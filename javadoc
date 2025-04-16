@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# Recycled from https://github.com/ChuechTeam/Domotique/blob/main/docs/javadoc
+
+# Get the directory where this script is located
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+# Change to the project root directory
+pushd "$SCRIPT_DIR" || exit
+
+echo "Generating Javadoc documentation..."
+
+# Execute the Gradle javadoc task & Check if the command was successful
+if ! ./gradlew javadoc; then
+    echo "Failed to generate Javadoc documentation."
+    popd || exit
+    exit 1
+fi
+
+echo "Javadocs have been generated at $(pwd)/build/docs/javadoc"
+popd || exit
+
+echo "Opening Javadoc in browser..."
+
+# Open the generated Javadoc in the default browser
+if [ "$(uname)" == "Darwin" ]; then
+    # macOS
+    open "build/docs/javadoc/index.html"
+elif [ "$(expr substr "$(uname -s)" 1 5)" == "Linux" ]; then
+    # Linux
+    xdg-open "build/docs/javadoc/index.html"
+else
+    # Fallback
+    echo "Please open build/docs/javadoc/index.html in your browser."
+fi
+
+echo "Done."
