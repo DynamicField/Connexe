@@ -71,6 +71,9 @@ tasks.withType<JavaExec> {
         // https://bugs.openjdk.org/browse/JDK-8345121
         "--sun-misc-unsafe-memory-access=allow"
     )
+
+    systemProperty("file.encoding", "UTF-8")
+    systemProperty("console.encoding", "UTF-8")
 }
 
 // Configure the Javadoc task to add links to JavaFX documentation and neat syntax highlighting

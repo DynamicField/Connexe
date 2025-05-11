@@ -120,12 +120,12 @@ La Javadoc est générée par Gradle (tâche `:javadoc`) et est disponible dans 
 2. Le **code des fonctions** doit être **suffisamment commenté**, minimum **1 commentaire par 5 lignes** de code environ
 3. Chaque **fonction, classe et constructeur public** doit comporter **un commentaire Javadoc au [format Markdown](https://docs.oracle.com/en/java/javase/23/javadoc/using-markdown-documentation-comments.html)** expliquant rapidement son fonctionnement (hormis les getters/setters car casse-couille, mais dans ce cas **mettre une Javadoc sur l'attribut de classe**). Voilà un exemple :
     ```java
-     /// A **directed graph** with a fixed number of N vertices, each identified by an integer (`int`) index from 0 to N.
+     /// A **directed algo** with a fixed number of N vertices, each identified by an integer (`int`) index from 0 to N.
      public class DirectedGraph {
-        /// The total number of vertices of this graph.
+        /// The total number of vertices of this algo.
         private final int num;
     
-        /// Creates a new directed graph with `n` vertices. `n` must be positive. 
+        /// Creates a new directed algo with `n` vertices. `n` must be positive. 
         public DirectedGraph(int n) { ... }
     
         /// Adds an edge from vertex `a` to `b`. Does nothing if the edge already exists.
