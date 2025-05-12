@@ -1,18 +1,24 @@
-package fr.connexe.algo;
+package fr.connexe.algo.generation;
+
+import fr.connexe.algo.GraphMaze;
+import fr.connexe.algo.Point;
 
 import java.util.*;
 import java.util.List;
 
 /// Generates mazes (perfect and not perfect) using various algorithms.
 ///
-/// Also provides an "event log" to know what algorithms do, so you can replay them step by step.
+/// Every function of this class returns a [MazeGenResult], which contains:
+/// - the generated maze, using [GraphMaze]
+/// - the complete generation log, using [MazeGenLog]
 @SuppressWarnings("OptionalUsedAsFieldOrParameterType") // let my Optional<T> as they are!
 public class MazeGenerator {
     /// Main function to debug the maze generator
     /// @param args command line args
     public static void main(String[] args) {
-        GraphMaze rand = makePrim(8, 4, OptionalLong.empty());
-        System.out.println(rand);
+        MazeGenResult rand = makePrim(8, 4, OptionalLong.empty());
+        System.out.println(rand.maze());
+        System.out.println(rand.log());
     }
 
     /// Generates a **perfect maze** randomly, using Prim's algorithm.
@@ -23,14 +29,16 @@ public class MazeGenerator {
     /// @param height the height of the maze to generate
     /// @param seed   an optional seed for the RNG;
     ///                 an empty value ([OptionalLong#empty()]) will generate a seed randomly.
-    /// @return the generated perfect maze, in graph format
-    public static GraphMaze makePrim(int width, int height, OptionalLong seed) {
+    /// @return the generated perfect maze and its log, inside a [MazeGenResult]
+    public static MazeGenResult makePrim(int width, int height, OptionalLong seed) {
         // Make an instance of the Random class, with the given seed. Generate one when the seed is empty.
         var random = seed.isPresent() ? new Random(seed.getAsLong()) : new Random();
 
         // An empty maze, which will be the output of this algorithm.
         // We're going to connect vertices of this maze during Prim's algorithm.
         var maze = new GraphMaze(width, height);
+        // The generation log which will contain events corresponding to each step of the algorithm.
+        var log = new MazeGenLog(width, height);
 
         // A weighted graph with one vertex per maze cell.
         // Each cell is connected with its adjacent cells, with random edge weights.
@@ -52,8 +60,9 @@ public class MazeGenerator {
             // Dequeue an edge from the Edge Queue.
             PrimEdge edge = edgeQueue.poll();
 
-            // Take the Chosen One, and connect its vertices in our maze.
+            // Take the Chosen One, and connect its vertices in our maze; add its related event to the log.
             maze.connect(edge.a, edge.b);
+            log.add(new MazeGenEvent.Connect(edge.a, edge.b));
 
             // Find which vertex is the new one, the one which isn't yet in the MST; mark it as visited.
             int newVertex = visitedVertices.contains(edge.a) ? edge.b : edge.a;
@@ -78,14 +87,15 @@ public class MazeGenerator {
             }
         }
 
-        // The Prim algorithm is done, and we just need to set the start and end vertices.
+        // The Prim algorithm is done, and we just need to set the start and end vertices and log that out.
         // Technically, since this generated maze is perfect, we can choose any vertex located in the border
         // of the maze.
         maze.setStart(0);
         maze.setEnd(maze.getNumCells() - 1);
+        log.add(new MazeGenEvent.SetEndpoints(0, maze.getNumCells() - 1));
 
         // Return the generated maze!
-        return maze;
+        return new MazeGenResult(maze, log);
     }
 
     /// A graph like [GraphMaze], but with weighted edges of random weight.
