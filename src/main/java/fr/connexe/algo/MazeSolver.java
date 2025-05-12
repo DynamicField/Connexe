@@ -36,7 +36,7 @@ public class MazeSolver {
         g.setEnd(15);
         System.out.println(g.toArrayMaze());
         Stack<Integer> pile;
-        pile = MazeSolver.prepDFS(g, 0);
+        pile = MazeSolver.prepLeftHand(g, 0);
         System.out.print(pile);
     }
 
@@ -102,4 +102,67 @@ public class MazeSolver {
         }*/
         return pile;
     }
+
+    /**
+     *
+     * @param laby graph du labyrinthe
+     * @param num noeud pù l'on se trouve
+     * @param visited noeuds que l'on utilise pour avoir le chemin (sans les culs de sacs)
+     * @param blocked noeuds qui mènent à ders culs de sacs
+     * @return visited
+     */
+    private static Stack<Integer> solveLeftHand(GraphMaze laby, int num, Stack<Integer> visited, Stack<Integer> blocked ) {
+        if (laby.getEnd() == num) {
+            return visited;
+        }
+        List<Integer> subList = laby.getEdges()[num];
+        if(!subList.isEmpty()) {
+            if(subList.contains(num-laby.getWidth()) && !visited.contains(num-laby.getWidth()) && !blocked.contains(num-laby.getWidth())) {
+                visited.push(num-laby.getWidth());
+                return solveLeftHand(laby, num- laby.getWidth(), visited, blocked);
+            }
+            else if(subList.contains(num+1) && !visited.contains(num+1) && !blocked.contains(num-1)) {
+                visited.push(num+1);
+                return solveLeftHand(laby, num+1, visited, blocked);
+            }
+            else if(subList.contains(num+ laby.getWidth()) && !visited.contains(num+ laby.getWidth()) && !blocked.contains(num+laby.getWidth())) {
+                visited.push(num+ laby.getWidth());
+                return solveLeftHand(laby, num+laby.getWidth(), visited, blocked);
+            }
+            else if(subList.contains(num-1) && !visited.contains(num-1) && !blocked.contains(num-1)) {
+                visited.push(num-1);
+                return solveLeftHand(laby, num-1, visited, blocked);
+            }
+            else{
+                blocked.push(num);
+                visited.pop();
+                return solveLeftHand(laby, visited.peek(), visited, blocked);
+            }
+        }
+        else {
+            blocked.push(num);
+            visited.pop();
+            return solveLeftHand(laby, visited.peek(), visited, blocked);
+        }
+    }
+
+    /**
+     *
+     * @param laby graph du labyrinthe
+     * @param mode mode pas à pas ou non (1 ou 0)
+     * @return le chemin qui mène à la sortie (de la sortie au début)
+     */
+    public static Stack<Integer> prepLeftHand(GraphMaze laby, int mode){
+        Stack<Integer> pile= new Stack<>();
+        pile.push(laby.getStart());
+        Stack<Integer> blocked = new Stack<>();
+        //if (mode == 0) {
+        pile = solveLeftHand(laby, laby.getStart(), pile, blocked);
+        //}
+        /*else {
+            pile=solveDFS2(labyrinth,labyrinth.getStart(), labyrinth.getStart();
+        }*/
+        return pile;
+    }
+
 }
