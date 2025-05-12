@@ -37,7 +37,9 @@ public class MazeSolver {
         System.out.println(g.toArrayMaze());
         Stack<Integer> pile;
         pile = MazeSolver.prepLeftHand(g, 0);
-        System.out.print(pile);
+        System.out.println(pile);
+        pile=MazeSolver.prepDFS(g,0);
+        System.out.println(pile);
     }
 
     /**
@@ -60,18 +62,14 @@ public class MazeSolver {
                     List<Integer> subVisited = new ArrayList<>(visited); //création d'une copie de visited pour pouvoir y repasser à partir d'un autre chemin.
                     subVisited.add(son);
                     subSon = solveDFS(labyrinth, son, subVisited);
-                    System.out.println("taille:" + subSon.size() + ";" + subSon + ";" + num);
                     if (!subSon.isEmpty()) {
                         if (maxflow.isEmpty()) {
                             maxflow = new Stack<Integer>();
                             maxflow.addAll(subSon);
                         } else {
-                            System.out.println("test");
                             if (subSon.size() < maxflow.size()) {
                                 maxflow = new Stack<Integer>();
                                 maxflow.addAll(subSon);
-                                System.out.println("ancien:" + maxflow);
-                                System.out.println("nouveau:" + subSon);
                             }
                         }
 
@@ -150,18 +148,22 @@ public class MazeSolver {
      *
      * @param laby graph du labyrinthe
      * @param mode mode pas à pas ou non (1 ou 0)
-     * @return le chemin qui mène à la sortie (de la sortie au début)
+     * @return le chemin qui mène à la sortie
      */
     public static Stack<Integer> prepLeftHand(GraphMaze laby, int mode){
         Stack<Integer> pile= new Stack<>();
-        pile.push(laby.getStart());
+        Stack<Integer> visited= new Stack<>();
+        visited.push(laby.getStart());
         Stack<Integer> blocked = new Stack<>();
         //if (mode == 0) {
-        pile = solveLeftHand(laby, laby.getStart(), pile, blocked);
+        visited = solveLeftHand(laby, laby.getStart(), visited, blocked);
         //}
         /*else {
             pile=solveDFS2(labyrinth,labyrinth.getStart(), labyrinth.getStart();
         }*/
+        do{
+            pile.push(visited.pop());
+        }while(!visited.isEmpty());
         return pile;
     }
 
