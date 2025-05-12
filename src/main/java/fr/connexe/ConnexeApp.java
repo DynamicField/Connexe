@@ -1,13 +1,17 @@
 package fr.connexe;
 
+import fr.connexe.ui.LabyrinthClass;
 import fr.connexe.ui.MainController;
 import fr.connexe.ui.MazeController;
+import fr.connexe.ui.NewMazeDialogController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.IOException;
@@ -26,14 +30,15 @@ public class ConnexeApp extends Application {
     public void start(Stage stage) throws IOException {
         this.stage = stage;
         this.stage.setTitle("Connexe");
-        stage.setMinHeight(500);
-        stage.setMinWidth(800);
+
+        // Min window size
+        stage.setMinWidth(900);
+        stage.setMinHeight(600);
 
         MainController mainController = initMainController();
         MazeController mazeController = initMazeController();
         mainController.setMazeController(mazeController);
     }
-
 
     public MainController initMainController() throws IOException {
         // Load the FXML file and create a new scene with it.
@@ -45,8 +50,12 @@ public class ConnexeApp extends Application {
         rootLayout = fxmlLoader.load();
         MainController controller = fxmlLoader.getController();
 
-        // Create the scene with the FXML file, set its title and size, and show it.
-        Scene scene = new Scene(rootLayout, 1200, 800);
+        // Create the scene with the FXML file, set its title and size and bind the layout size to the scene size
+        Scene scene = new Scene(rootLayout, 800, 500);
+        rootLayout.prefWidthProperty().bind(scene.widthProperty());
+        rootLayout.prefHeightProperty().bind(scene.heightProperty());
+
+        // Attach scene to window and show
         stage.setScene(scene);
         controller.setConnexeApp(this);
         stage.show();
@@ -84,5 +93,36 @@ public class ConnexeApp extends Application {
     public Stage getStage(){
         return this.stage;
     }
+
+
+    public boolean showNewMazeDialog(LabyrinthClass labyrinthClass) throws IOException{
+        // Load the fxml file and create a new stage for the popup dialog.
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(ConnexeApp.class.getResource("new-maze-popup.fxml"));
+        BorderPane page = loader.load();
+
+        // Create the dialog Stage.
+        Stage dialogStage = new Stage();
+        dialogStage.setTitle("Créer un labyrinthe");
+        dialogStage.initModality(Modality.WINDOW_MODAL);
+        dialogStage.initOwner(stage);
+
+        dialogStage.setMinHeight(300);
+        dialogStage.setMinWidth(500);
+
+        Scene scene = new Scene(page);
+        dialogStage.setScene(scene);
+
+        // Attach the dialog stage to the controller
+        NewMazeDialogController controller = loader.getController();
+        controller.setDialogStage(dialogStage);
+        controller.setMaze(labyrinthClass);
+
+        // Show the dialog and wait until the user closes it
+        dialogStage.showAndWait();
+
+        return controller.isOkClicked();
+    }
+
 
 }

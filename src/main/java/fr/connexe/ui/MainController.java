@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.stage.FileChooser;
 
 import java.io.File;
+import java.io.IOException;
 
 /// The controller of the main layout (menu bar, and overall ui). Is created automatically by the `hello-view.xml` FXML file.
 public class MainController {
@@ -51,10 +52,15 @@ public class MainController {
      * To create a new maze file
      */
     @FXML
-    private void handleNew() {
+    private void handleNew() throws IOException {
         // To do : popup to create a new maze with custom settings
-        System.out.println("New triggered....");
-        mazeController.createMazeFX();
+        System.out.println("New triggered...");
+
+        LabyrinthClass labyrinthClass = new LabyrinthClass();
+        boolean okClicked = connexeApp.showNewMazeDialog(labyrinthClass);
+        if (okClicked) {
+            mazeController.createMazeFX(labyrinthClass);
+        }
     }
 
     /**

@@ -5,7 +5,10 @@ import javafx.scene.layout.*;
 // placeholder class pour le vrai labyrinth generator
 public class LabyrinthClass {
 
-    public static GridPane buildGrid(int rows, int cols) {
+    private int rows;
+    private int cols;
+
+    public GridPane buildGrid() {
         GridPane grid = new GridPane();
 
         double cellScale = Math.max(rows, cols);
@@ -40,4 +43,19 @@ public class LabyrinthClass {
     }
 
 
+    public int getCols() {
+        return cols;
+    }
+
+    public void setCols(int cols) {
+        this.cols = cols;
+    }
+
+    public int getRows() {
+        return rows;
+    }
+
+    public void setRows(int rows) {
+        this.rows = rows;
+    }
 }
