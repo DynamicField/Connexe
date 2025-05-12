@@ -106,8 +106,8 @@ public class MazeSolver {
      *
      * @param laby graph du labyrinthe
      * @param num noeud pù l'on se trouve
-     * @param visited noeuds que l'on utilise pour avoir le chemin (sans les culs de sacs)
-     * @param blocked noeuds qui mènent à ders culs de sacs
+     * @param visited noeuds que l'on utilise pour avoir le chemin (sans les culs-de-sac)
+     * @param blocked noeuds qui mènent à ders culs-de-sac
      * @return visited
      */
     private static Stack<Integer> solveLeftHand(GraphMaze laby, int num, Stack<Integer> visited, Stack<Integer> blocked ) {
@@ -150,9 +150,9 @@ public class MazeSolver {
 
     /**
      *
-     * @param laby graph du labyrinthe
-     * @param mode mode pas à pas ou non (1 ou 0)
-     * @return le chemin qui mène à la sortie
+     * @param laby the maze to solve
+     * @param mode      resolution mode (0 for DFS, 1 for step by step DFS)
+     * @return stack of nodes to visit to solve the maze (not always the shortest way
      */
     public static Stack<Integer> prepLeftHand(GraphMaze laby, int mode){
         Stack<Integer> pile= new Stack<>();
