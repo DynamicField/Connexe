@@ -18,7 +18,7 @@ public class ArrayMaze {
     /// @param width The width of the maze.
     /// @param height The height of the maze.
     public ArrayMaze(Cell[][] cells, int width, int height) {
-        this.maze = new Cell[width][height];
+        this.maze = new Cell[height][width];
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {
                 Point pos = new Point(x, y);
@@ -82,7 +82,7 @@ public class ArrayMaze {
         // The size of each cell, NxN square.
         final int SIZE = 5;
         // The 2D matrix of ASCII pixels to print.
-        char[][] pixels = new char[width * SIZE][height * SIZE];
+        char[][] pixels = new char[height * SIZE][width * SIZE];
 
         for (int y = 0; y < height; y++) {
             for (int x = 0; x < width; x++) {

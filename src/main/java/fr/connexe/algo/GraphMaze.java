@@ -235,10 +235,10 @@ public class GraphMaze implements Serializable {
     /// @return a snapshot of this graph's state in [ArrayMaze] format
     public ArrayMaze toArrayMaze() {
         // Make a 2D array of cells for the array maze.
-        Cell[][] cells = new Cell[width][height];
+        Cell[][] cells = new Cell[height][width];
 
-        for (int y = 0; y < width; y++) {
-            for (int x = 0; x < height; x++) {
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 // Find the vertex id of this (x, y) point.
                 int vertex = toVertexId(new Point(x, y));
 
@@ -299,20 +299,18 @@ public class GraphMaze implements Serializable {
         return v >= 0 && v < numCells;
     }
 
+    /// Returns true is the 2D coordinates are contained within the graph.
+    /// @param p the point to check
+    /// @return true when the point is inside the maze.
+    public boolean isValidPos(Point p) {
+        return p.x() >= 0 && p.x() < width &&
+                p.y() >= 0 && p.y() < height;
+    }
+
     /// Checks if a vertex is valid.
     private void checkVertex(int v) {
         if (!isValidVertex(v)) {
             throw new IllegalArgumentException("Invalid vertex id " + v + ". It must be in [0, " + numCells + "[.");
-        }
-    }
-
-    /// Checks if a vertex's position is valid.
-    private void checkVertexPos(Point p) {
-        if (p.x() < 0 || p.x() >= width) {
-            throw new IllegalArgumentException("Invalid vertex position x " + p.x() + ". It must be in [0, " + width + "[.");
-        }
-        if (p.y() < 0 || p.y() >= height) {
-            throw new IllegalArgumentException("Invalid vertex position y " + p.y() + ". It must be in [0, " + height + "[.");
         }
     }
 
