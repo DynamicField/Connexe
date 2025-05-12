@@ -10,7 +10,7 @@ public class MazeSolver {
         // 0 - 1 - 2 - 3
         // -           -
         // 4 - 5   6 - 7
-        // -       -
+        // -
         // 8 - 9 - 10 - 11
         // -   -   -    -
         // 12  13  14 - 15
@@ -22,8 +22,9 @@ public class MazeSolver {
         g.connect(1, 2);
         g.connect(4, 5);
         g.connect(4, 8);
+        g.connect(5, 9);
+        g.connect(5, 6);
         g.connect(6, 7);
-        g.connect(6, 10);
         g.connect(8, 9);
         g.connect(8, 12);
         g.connect(9, 13);
@@ -119,7 +120,7 @@ public class MazeSolver {
                 visited.push(num-laby.getWidth());
                 return solveLeftHand(laby, num- laby.getWidth(), visited, blocked);
             }
-            else if(subList.contains(num+1) && !visited.contains(num+1) && !blocked.contains(num-1)) {
+            else if(subList.contains(num+1) && !visited.contains(num+1) && !blocked.contains(num+1)) {
                 visited.push(num+1);
                 return solveLeftHand(laby, num+1, visited, blocked);
             }
@@ -134,6 +135,9 @@ public class MazeSolver {
             else{
                 blocked.push(num);
                 visited.pop();
+                if(visited.isEmpty()) {
+                    return visited;
+                }
                 return solveLeftHand(laby, visited.peek(), visited, blocked);
             }
         }
