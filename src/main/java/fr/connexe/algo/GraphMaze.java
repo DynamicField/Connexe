@@ -201,8 +201,8 @@ public class GraphMaze implements Serializable {
             }
 
             // Else, disconnect them!
-            edges[vertexA].remove(vertexB);
-            edges[vertexB].remove(vertexA);
+            edges[vertexA].remove((Integer) vertexB);
+            edges[vertexB].remove((Integer) vertexA);
         }
 
         return true;
