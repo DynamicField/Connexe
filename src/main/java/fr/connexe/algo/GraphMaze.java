@@ -310,7 +310,7 @@ public class GraphMaze implements Serializable {
     /// Checks if a vertex is valid.
     private void checkVertex(int v) {
         if (!isValidVertex(v)) {
-            throw new IllegalArgumentException("Invalid vertex id " + v + ". It must be in [0, " + numCells + "[.");
+            throw new InvalidVertexException("Invalid vertex id " + v + ". It must be in [0, " + numCells + "[.");
         }
     }
 
@@ -328,13 +328,13 @@ public class GraphMaze implements Serializable {
 
         // Make sure we can't get start == end
         if (otherEnd == vertexId) {
-            throw new IllegalArgumentException("Start and end vertices cannot be the same.");
+            throw new InvalidVertexException("Start and end vertices cannot be the same.");
         }
 
         // Check that the vertex is on the border of the maze.
         Point pos = toPoint(vertexId);
         if (pos.x() != 0 && pos.x() != width - 1 && pos.y() != 0 && pos.y() != height - 1) {
-            throw new IllegalArgumentException("The start/end point should be at the border of the maze; not inside! " + pos);
+            throw new InvalidVertexException("The start/end point should be at the border of the maze; not inside! " + pos);
         }
     }
 
