@@ -9,4 +9,5 @@ open module fr.connexe {
     exports fr.connexe;
     exports fr.connexe.algo;
     exports fr.connexe.ui;
+    exports fr.connexe.algo.generation;
 }
