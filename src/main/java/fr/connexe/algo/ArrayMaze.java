@@ -6,8 +6,8 @@ package fr.connexe.algo;
 /// @see Cell
 public class ArrayMaze {
     private final Cell[][] maze;
-    private final int width;
-    private final int height;
+    private final int width; // number of columns
+    private final int height; // number of rows
     private final int numCells;
 
     /// Creates a new maze with the given dimensions and cells. Cells will have the correct position.
@@ -15,8 +15,8 @@ public class ArrayMaze {
     /// The array is in the following format: `cells[y][x]`
     ///
     /// @param cells The cells of the maze.
-    /// @param width The width of the maze.
-    /// @param height The height of the maze.
+    /// @param width The width of the maze. (number of columns)
+    /// @param height The height of the maze. (number of rows)
     public ArrayMaze(Cell[][] cells, int width, int height) {
         this.maze = new Cell[width][height];
         for (int y = 0; y < height; y++) {

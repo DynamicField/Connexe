@@ -69,8 +69,8 @@ public class GraphMaze implements Serializable {
 
     /// Makes an empty maze with inaccessible cells, and no start/end points.
     ///
-    /// @param width  The width of the maze.
-    /// @param height The height of the maze.
+    /// @param width  The width of the maze. (number of columns)
+    /// @param height The height of the maze. (number of rows)
     @SuppressWarnings("unchecked") // For the (List<Integer>[]) cast
     public GraphMaze(int width, int height) {
         // Check the width and height.
@@ -366,6 +366,22 @@ public class GraphMaze implements Serializable {
     /// Returns the start vertex. A value of -1 indicates no start vertex.
     public int getStart() {
         return start;
+    }
+
+    ///  Returns the coordinates of the start vertex. Returns null if no start vertex.
+    public Point getStartPoint() {
+        if (start == -1) {
+            return null;
+        }
+        return toPoint(start);
+    }
+
+    ///  Returns the coordinates of the end vertex. Returns null if no end vertex.
+    public Point getEndPoint() {
+        if (end == -1) {
+            return null;
+        }
+        return toPoint(end);
     }
 
     /// Sets the start vertex. A value of -1 indicates no start vertex.

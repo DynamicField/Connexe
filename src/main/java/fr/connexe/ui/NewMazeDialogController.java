@@ -1,5 +1,6 @@
 package fr.connexe.ui;
 
+import fr.connexe.algo.GraphMaze;
 import javafx.fxml.FXML;
 import javafx.scene.control.Spinner;
 import javafx.scene.control.SpinnerValueFactory;
@@ -8,8 +9,7 @@ import javafx.stage.Stage;
 public class NewMazeDialogController {
 
     private Stage dialogStage;
-    private LabyrinthClass maze;
-
+    private MazeRenderer mazeRenderer;
 
     @FXML
     private Spinner<Integer> rowSpinner;
@@ -21,9 +21,11 @@ public class NewMazeDialogController {
 
     @FXML
     private void initialize() {
+        // Minimum input sizes for columns and rows
         int MIN_SIZE = 2;
         int MAX_SIZE = 50;
 
+        // Restrict the Spinner inputs to take numbers in the given range for columns and rows
         SpinnerValueFactory<Integer> factory1 = new SpinnerValueFactory.IntegerSpinnerValueFactory(MIN_SIZE, MAX_SIZE, 1);
         SpinnerValueFactory<Integer> factory2 = new SpinnerValueFactory.IntegerSpinnerValueFactory(MIN_SIZE, MAX_SIZE, 1);
         factory1.setValue(10);
@@ -32,13 +34,11 @@ public class NewMazeDialogController {
         colSpinner.setValueFactory(factory2);
     }
 
-    /**
-     * Called when the user clicks ok.
-     */
+    /// Called when a user clicks ok. Generates a maze based on the given custom parameters and closes the dialog box.
     @FXML
     private void handleOk() {
-        maze.setCols(colSpinner.getValue());
-        maze.setRows(rowSpinner.getValue());
+        GraphMaze maze = new GraphMaze(colSpinner.getValue(), rowSpinner.getValue());
+        mazeRenderer.setGraphMaze(maze);
         okClicked = true;
         dialogStage.close();
     }
@@ -59,7 +59,7 @@ public class NewMazeDialogController {
         this.dialogStage = dialogStage;
     }
 
-    public void setMaze(LabyrinthClass maze) {
-        this.maze = maze;
+    public void setMazeRenderer(MazeRenderer mazeRenderer) {
+        this.mazeRenderer = mazeRenderer;
     }
 }

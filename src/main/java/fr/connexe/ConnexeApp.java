@@ -1,6 +1,6 @@
 package fr.connexe;
 
-import fr.connexe.ui.LabyrinthClass;
+import fr.connexe.ui.MazeRenderer;
 import fr.connexe.ui.MainController;
 import fr.connexe.ui.MazeController;
 import fr.connexe.ui.NewMazeDialogController;
@@ -95,7 +95,7 @@ public class ConnexeApp extends Application {
     }
 
 
-    public boolean showNewMazeDialog(LabyrinthClass labyrinthClass) throws IOException{
+    public boolean showNewMazeDialog(MazeRenderer mazeRenderer) throws IOException{
         // Load the fxml file and create a new stage for the popup dialog.
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(ConnexeApp.class.getResource("new-maze-popup.fxml"));
@@ -116,7 +116,7 @@ public class ConnexeApp extends Application {
         // Attach the dialog stage to the controller
         NewMazeDialogController controller = loader.getController();
         controller.setDialogStage(dialogStage);
-        controller.setMaze(labyrinthClass);
+        controller.setMazeRenderer(mazeRenderer);
 
         // Show the dialog and wait until the user closes it
         dialogStage.showAndWait();

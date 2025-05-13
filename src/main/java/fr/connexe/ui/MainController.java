@@ -53,13 +53,13 @@ public class MainController {
      */
     @FXML
     private void handleNew() throws IOException {
-        // To do : popup to create a new maze with custom settings
         System.out.println("New triggered...");
 
-        LabyrinthClass labyrinthClass = new LabyrinthClass();
-        boolean okClicked = connexeApp.showNewMazeDialog(labyrinthClass);
-        if (okClicked) {
-            mazeController.createMazeFX(labyrinthClass);
+        // Initialize a renderer taking a maze generated from user parameters through the creation dialog box
+        MazeRenderer mazeRenderer = new MazeRenderer();
+        boolean okClicked = connexeApp.showNewMazeDialog(mazeRenderer);
+        if (okClicked) { // Maze is generated, now query the controller to display it on the view
+            mazeController.createMazeFX(mazeRenderer);
         }
     }
 
@@ -113,5 +113,14 @@ public class MainController {
     @FXML
     private void handleExit() {
         System.exit(0);
+    }
+
+    @FXML
+    private void handleExampleMaze(){
+        System.out.println("Testing default maze...");
+
+        // Initialize a renderer taking a maze generated from user parameters through the creation dialog box
+        MazeRenderer mazeRenderer = new MazeRenderer();
+        mazeController.createMazeFX(mazeRenderer);
     }
 }

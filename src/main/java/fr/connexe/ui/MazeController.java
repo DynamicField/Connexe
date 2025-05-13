@@ -13,9 +13,9 @@ public class MazeController {
     @FXML
     private VBox vboxLayout;
 
-    public void createMazeFX(LabyrinthClass labyrinthClass){
+    public void createMazeFX(MazeRenderer MazeRenderer){
         vboxLayout.getChildren().clear();
-        GridPane dynamicGrid = labyrinthClass.buildGrid();
+        GridPane dynamicGrid = MazeRenderer.buildGrid();
 
         // Wrap the grid in a StackPane to center and constrain its size
         StackPane root = new StackPane();
