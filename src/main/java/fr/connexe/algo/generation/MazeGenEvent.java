@@ -32,6 +32,14 @@ public sealed interface MazeGenEvent {
     /// @see GraphMaze#connect
     record Connect(int vertexA, int vertexB) implements MazeGenEvent {}
 
+    /// **Two vertices** of the [maze graph][GraphMaze] **have been disconnected**:
+    /// they are no longer accessible, and **the wall between those two is now present**.
+    ///
+    /// @param vertexA The first vertex to disconnect from `vertexB`.
+    /// @param vertexB The second vertex to disconnect from `vertexA`.
+    /// @see GraphMaze#disconnect
+    record Disconnect(int vertexA, int vertexB) implements MazeGenEvent {}
+
     /// Start and end vertices of the [maze graph][GraphMaze] have been set.
     /// Either values can be set to -1 to indicate no start or end.
     ///
