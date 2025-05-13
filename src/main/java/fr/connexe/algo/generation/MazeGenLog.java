@@ -35,6 +35,16 @@ public class MazeGenLog implements Iterable<MazeGenEvent> {
         this.events = new ArrayList<>();
     }
 
+    /// Adds a new event to the log and apply it to the given maze.
+    ///
+    /// @param maze the maze to apply the event to
+    /// @param event the event to add and apply to the maze
+    /// @see #applyEvent(GraphMaze, MazeGenEvent)
+    public void add(GraphMaze maze, MazeGenEvent event) {
+        applyEvent(maze, event);
+        events.add(event);
+    }
+
     /// Adds a new event to the log. Events are not validated yet.
     ///
     /// @param event the event to add
@@ -58,14 +68,33 @@ public class MazeGenLog implements Iterable<MazeGenEvent> {
         return events.size();
     }
 
-    /// Builds a [GraphMaze] at a particular point in time, by replaying all events **STRICTLY BEFORE `maxEventIdx`**.
-    /// The event at index `maxEventidx` **will not be replayed**.
+    /// Applies an event to change a maze's state.
+    ///
+    /// The maze will be modified with the "instruction" given by the event.
+    ///
+    /// Cosmetic events won't change the maze at all.
+    ///
+    /// @param maze the maze to apply the event to
+    /// @param event the event to apply
+    public void applyEvent(GraphMaze maze, MazeGenEvent event) {
+        switch (event) {
+            case MazeGenEvent.Connect(int vertexA, int vertexB) -> maze.connect(vertexA, vertexB);
+            case MazeGenEvent.SetEndpoints(int startVertex, int endVertex) -> {
+                // Note: may cause issues if we ever swap startVertex/endVertex. But who does that?
+                maze.setStart(startVertex);
+                maze.setEnd(endVertex);
+            }
+        }
+    }
+
+    /// Builds a [GraphMaze] at a particular point in time, by applying all events **STRICTLY BEFORE `maxEventIdx`**.
+    /// The event at index `maxEventidx` **will not be applied**.
     ///
     /// An index of 0 will give the initial maze (default, all walls, no connections).
     ///
     /// An index of [#size()] will give the final maze (the algorithm is done).
     ///
-    /// @param maxEventIdx the exclusive event index before which all events are replayed;
+    /// @param maxEventIdx the exclusive event index before which all events are applied;
     ///                                       must be in the interval `[0, size]`.
     /// @return the maze created by applying all events in the interval `[0, maxEventIdx[`
     public GraphMaze buildMazeUntil(int maxEventIdx) {
@@ -77,17 +106,9 @@ public class MazeGenLog implements Iterable<MazeGenEvent> {
         // Make the initial maze
         var maze = new GraphMaze(mazeWidth, mazeHeight);
         for (int i = 0; i < maxEventIdx; i++) {
+            // Find the event and apply it to the maze.
             MazeGenEvent event = events.get(i);
-
-            // Apply the event to the maze.
-            switch (event) {
-                case MazeGenEvent.Connect(int vertexA, int vertexB) -> maze.connect(vertexA, vertexB);
-                case MazeGenEvent.SetEndpoints(int startVertex, int endVertex) -> {
-                    // Note: may cause issues if we ever swap startVertex/endVertex. But who does that?
-                    maze.setStart(startVertex);
-                    maze.setEnd(endVertex);
-                }
-            }
+            applyEvent(maze, event);
         }
 
         return maze;
