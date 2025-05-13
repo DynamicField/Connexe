@@ -7,12 +7,13 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
-
+///  Controller to display any Maze related operations on the view (creation, editing, solving, etc...)
 public class MazeController {
 
     @FXML
     private VBox vboxLayout;
 
+    ///  Display a maze in the VBox of the main scene
     public void createMazeFX(MazeRenderer MazeRenderer){
         vboxLayout.getChildren().clear();
         GridPane dynamicGrid = MazeRenderer.buildGrid();
@@ -32,7 +33,6 @@ public class MazeController {
 
         dynamicGrid.setAlignment(Pos.CENTER);
         vboxLayout.getChildren().add(root);
-
     }
 
 }

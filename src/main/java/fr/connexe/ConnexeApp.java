@@ -107,8 +107,8 @@ public class ConnexeApp extends Application {
         dialogStage.initModality(Modality.WINDOW_MODAL);
         dialogStage.initOwner(stage);
 
-        dialogStage.setMinHeight(300);
-        dialogStage.setMinWidth(500);
+        dialogStage.setMinHeight(400);
+        dialogStage.setMinWidth(600);
 
         Scene scene = new Scene(page);
         dialogStage.setScene(scene);

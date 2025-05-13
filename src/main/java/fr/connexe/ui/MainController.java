@@ -53,8 +53,6 @@ public class MainController {
      */
     @FXML
     private void handleNew() throws IOException {
-        System.out.println("New triggered...");
-
         // Initialize a renderer taking a maze generated from user parameters through the creation dialog box
         MazeRenderer mazeRenderer = new MazeRenderer();
         boolean okClicked = connexeApp.showNewMazeDialog(mazeRenderer);
@@ -121,6 +119,7 @@ public class MainController {
 
         // Initialize a renderer taking a maze generated from user parameters through the creation dialog box
         MazeRenderer mazeRenderer = new MazeRenderer();
+        mazeRenderer.setDefaultExample();
         mazeController.createMazeFX(mazeRenderer);
     }
 }

@@ -4,18 +4,22 @@ import fr.connexe.algo.ArrayMaze;
 import fr.connexe.algo.Cell;
 import fr.connexe.algo.GraphMaze;
 import fr.connexe.algo.Point;
+import fr.connexe.algo.generation.MazeGenResult;
 import javafx.scene.layout.*;
 
-
+///  Renderer for a GraphMaze as a JavaFX GridPane
 public class MazeRenderer {
 
+    private MazeGenResult mazeGenResult;
     private GraphMaze graphMaze;
 
     /// Initialize a maze renderer about to take a maze which parameters will be set by a user
     public MazeRenderer(){
-        // Forcing default maze for testing purposes
+    }
+
+    ///  For testing purposes
+    public void setDefaultExample(){
         var g = new GraphMaze(4, 4);
-        this.graphMaze = g;
         g.connect(0, 1);
         g.connect(0, 4);
         g.connect(2, 3);
@@ -35,13 +39,11 @@ public class MazeRenderer {
         g.connect(14, 15);
         g.setStart(0);
         g.setEnd(15);
+        this.graphMaze = g;
         System.out.println(g);
     }
 
-    public MazeRenderer(GraphMaze graphMaze){
-        this.graphMaze = graphMaze;
-    }
-
+    ///  Build a JavaFX GridPane to represent the maze and its walls
     public GridPane buildGrid() {
         int rows = graphMaze.getHeight();
         int cols = graphMaze.getWidth();
@@ -87,16 +89,12 @@ public class MazeRenderer {
                 if (col == 0 && leftWidth > 0) leftWidth = 4;
                 if (col == cols - 1 && rightWidth > 0) rightWidth = 4;
 
-                // Only apply borders if not start or end point
-                if (!graphMaze.getStartPoint().equals(vertexCoordinates) &&
-                        !graphMaze.getEndPoint().equals(vertexCoordinates)) {
-                    style.append("-fx-border-color: black;");
-                    style.append(" -fx-border-width: ")
-                            .append(topWidth).append(" ")
-                            .append(rightWidth).append(" ")
-                            .append(bottomWidth).append(" ")
-                            .append(leftWidth).append(";");
-                }
+                style.append("-fx-border-color: black;");
+                style.append(" -fx-border-width: ")
+                        .append(topWidth).append(" ")
+                        .append(rightWidth).append(" ")
+                        .append(bottomWidth).append(" ")
+                        .append(leftWidth).append(";");
 
                 // Apply style on cell
                 gridCell.setStyle(style.toString());
@@ -117,5 +115,24 @@ public class MazeRenderer {
 
     public void setGraphMaze(GraphMaze graphMaze) {
         this.graphMaze = graphMaze;
+    }
+
+    public MazeGenResult getMazeGenResult() {
+        return mazeGenResult;
+    }
+
+    public void setMazeGenResult(MazeGenResult mazeGenResult) {
+        this.mazeGenResult = mazeGenResult;
+        this.graphMaze = mazeGenResult.maze();
+        System.out.println(graphMaze);
+    }
+
+
+    public void setStartVertex(int startVertex) {
+        graphMaze.setStart(startVertex);
+    }
+
+    public void setEndVertex(int endVertex) {
+        graphMaze.setEnd(endVertex);
     }
 }
