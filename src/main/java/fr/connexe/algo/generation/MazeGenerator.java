@@ -20,10 +20,9 @@ public class MazeGenerator {
     ///
     /// @param args command line args
     public static void main(String[] args) {
-        MazeGenResult rand = makeDFS(4, 4, null);
-        System.out.println(rand);
-        introduceChaos(rand, 0.5f, null);
-        System.out.println(rand);
+        MazeGenResult result = makeDFS(10, 10, null);
+        introduceChaos(result, 0.15f, null);
+        System.out.println(result);
     }
 
     /// Generates a **perfect maze** randomly, using Prim's algorithm.
@@ -132,6 +131,25 @@ public class MazeGenerator {
         return new MazeGenResult(maze, log);
     }
 
+    private static void dfsRandom(GraphMaze maze, MazeGenLog log, boolean[] visited, Random random, int vertex) {
+        // Mark this vertex as visited.
+        visited[vertex] = true;
+
+        // Find all neighbors of this vertex, then shuffle it so we traverse the graph randomly.
+        int[] neighbors = neighbors(maze, vertex);
+        shuffleArray(random, neighbors);
+
+        // Classic DFS stuff, iterate through all the neighbors of that vertex.
+        for (int neighbor : neighbors) {
+            if (!visited[neighbor]) {
+                // This neighbor hasn't been visited; it's the first time we've seen it.
+                // Connect it to this vertex and visit it in turn!
+                log.add(maze, new MazeGenEvent.Connect(vertex, neighbor));
+                dfsRandom(maze, log, visited, random, neighbor);
+            }
+        }
+    }
+
     /// Transforms a **perfect maze** into a **non-perfect maze** by randomly introducing chaos: some
     /// walls will appear, and some will be removed, randomly.
     ///
@@ -233,25 +251,6 @@ public class MazeGenerator {
                         changedTheMaze = true;
                     }
                 }
-            }
-        }
-    }
-
-    private static void dfsRandom(GraphMaze maze, MazeGenLog log, boolean[] visited, Random random, int vertex) {
-        // Mark this vertex as visited.
-        visited[vertex] = true;
-
-        // Find all neighbors of this vertex, then shuffle it so we traverse the graph randomly.
-        int[] neighbors = neighbors(maze, vertex);
-        shuffleArray(random, neighbors);
-
-        // Classic DFS stuff, iterate through all the neighbors of that vertex.
-        for (int neighbor : neighbors) {
-            if (!visited[neighbor]) {
-                // This neighbor hasn't been visited; it's the first time we've seen it.
-                // Connect it to this vertex and visit it in turn!
-                log.add(maze, new MazeGenEvent.Connect(vertex, neighbor));
-                dfsRandom(maze, log, visited, random, neighbor);
             }
         }
     }

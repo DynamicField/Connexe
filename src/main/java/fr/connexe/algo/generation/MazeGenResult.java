@@ -6,4 +6,17 @@ import fr.connexe.algo.GraphMaze;
 ///
 /// @param maze the resulting [GraphMaze].
 /// @param log  the [MazeGenLog] describing the steps taken during the algorithm.
-public record MazeGenResult(GraphMaze maze, MazeGenLog log) {}
+public record MazeGenResult(GraphMaze maze, MazeGenLog log) {
+    @Override
+    public String toString() {
+        return """
+                ===========================================
+                             GENERATED MAZE
+                ===========================================
+                """ + maze.toString() + """
+                ===========================================
+                           MAZE GENERATION LOG
+                ===========================================
+                """ + log.toString();
+    }
+}
