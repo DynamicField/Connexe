@@ -7,6 +7,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.stage.Stage;
+import static fr.connexe.algo.generation.MazeGenerator.introduceChaos;
 
 /// Controller for the Maze Creation Dialog box (triggered when User clicks on "New" menu item)
 public class NewMazeDialogController {
@@ -37,6 +38,12 @@ public class NewMazeDialogController {
 
     @FXML
     private CheckBox perfectMazeCheckBox;
+
+    @FXML
+    private Label chaosPercentageLabel;
+
+    @FXML
+    private Spinner<Double> chaosPercentageSpinner;
 
     private boolean okClicked = false;
 
@@ -85,6 +92,17 @@ public class NewMazeDialogController {
         seedRadio.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
             seedSpinner.setDisable(!isNowSelected);
         });
+
+        // Restrict input values for chaos spinner
+        SpinnerValueFactory.DoubleSpinnerValueFactory chaosFactory =
+                new SpinnerValueFactory.DoubleSpinnerValueFactory(0.00, 1.00, 0.20, 0.01);
+        chaosPercentageSpinner.setValueFactory(chaosFactory);
+
+        // If perfect maze is checked, disable custom probability for chaos. Else, enable custom probability for chaos.
+        perfectMazeCheckBox.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
+            chaosPercentageSpinner.setDisable(isNowSelected);
+            chaosPercentageLabel.setDisable(isNowSelected);
+        });
     }
 
     /// Called when a user clicks ok.
@@ -105,19 +123,12 @@ public class NewMazeDialogController {
         } else {
             generatedMaze = MazeGenerator.makeDFS(colSpinner.getValue(), rowSpinner.getValue(), seed);
         }
-
-        // Introduce chaos to perfect maze to make it non-perfect if checkbox isn't selected
-        if(!perfectMazeCheckBox.isSelected()) {
-            // introduce chaos
-        }
-
         mazeRenderer.setMazeGenResult(generatedMaze);
 
-        // Setup entry/exit of maze with given vertex IDs
         try{
+            // Setup entry/exit of maze with given vertex IDs
             mazeRenderer.setEndVertex(endSpinner.getValue());
             mazeRenderer.setStartVertex(startSpinner.getValue());
-
         } catch(InvalidVertexException e) {
             showWarning("Entrée / Sortie invalide(s)",
                     "L'ID de l'entrée et/ou de sortie n'est/ne sont pas valide(s).\n" +
@@ -127,6 +138,15 @@ public class NewMazeDialogController {
             mazeRenderer.setStartVertex(0);
             mazeRenderer.setEndVertex(generatedMaze.maze().getNumCells() - 1);
         } finally {
+            // Introduce chaos to perfect maze to make it non-perfect if checkbox isn't selected
+            // Required to do AFTER setting the start and end
+            if(!perfectMazeCheckBox.isSelected()) {
+                introduceChaos(mazeRenderer.getMazeGenResult(), chaosPercentageSpinner.getValue().floatValue(), seed);
+            }
+
+            // Display result in console too to verify
+            System.out.println(mazeRenderer.getMazeGenResult());
+
             okClicked = true;
             dialogStage.close();
         }
