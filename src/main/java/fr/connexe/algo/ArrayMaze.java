@@ -80,7 +80,7 @@ public class ArrayMaze {
         // We're going to skip lines and columns that duplicate borders in the inside of the maze.
 
         // The size of each cell, NxN square. Make sure it's large enough to display all vertex ids.
-        final int SIZE = Math.max(5, toNearestEvenNumber(countDigits(numCells)) + 2);
+        final int SIZE = Math.max(5, toNearestOddNumber(countDigits(numCells)) + 2);
         // The 2D matrix of ASCII pixels to print.
         char[][] pixels = new char[height * SIZE][width * SIZE];
 
@@ -168,10 +168,10 @@ public class ArrayMaze {
         return sb.toString();
     }
 
-    // Returns the even number just above n. In other words, the smallest even number r such that r >= n.
+    // Returns the odd number just above n. In other words, the smallest odd number r such that r >= n.
     // Examples: 4 --> 5, 9 --> 9, 10 --> 11.
-    private static int toNearestEvenNumber(int n) {
-        // Turn on the LSB so we always have an even number.
+    private static int toNearestOddNumber(int n) {
+        // Turn on the LSB so we always have an odd number.
         // Examples:
         // 3: 11 -> 11  (3)
         // 2: 10 -> 11  (3)
