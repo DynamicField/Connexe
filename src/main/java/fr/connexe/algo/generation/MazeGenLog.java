@@ -10,7 +10,53 @@ import java.util.List;
 ///
 /// Logs are **created by maze generation algorithms**, alongside the final generated maze.
 ///
-/// Logs allow you to **scrub through the algorithm step by step**, by using the [#buildMazeUntil(int)] method.
+/// Logs allow you to **scrub through the algorithm step by step**, by using the [#buildMazeUntil(int)] method. This is
+/// possible by **applying events to mazes** (using [#applyEvent(GraphMaze, MazeGenEvent)]).
+///
+/// ## Examples
+///
+/// ### DFS-generated imperfect maze
+///
+/// Using the following code to generate an imperfect maze:
+/// ```java
+/// MazeGenResult result = MazeGenerator.makeDFS(3, 3, null);
+/// MazeGenerator.introduceChaos(result, 0.15f, null);
+/// System.out.println(result);
+/// ```
+/// Gives this output:
+/// ```
+/// ===========================================
+///              GENERATED MAZE
+/// ===========================================
+/// #   #---#---#
+///     |       |
+///  000|001 002|
+///     |       |
+/// #   #---#   #
+/// |       |   |
+/// |003 004|005|
+/// |       |
+/// #   #---#   #
+/// |
+/// |006 007 008
+/// |
+/// #---#---#   #
+/// ===========================================
+///            MAZE GENERATION LOG
+/// ===========================================
+/// MazeGenLog [3x3] 11 events:
+///   0   : Connect[vertexA=0, vertexB=3]
+///   1   : Connect[vertexA=3, vertexB=6]
+///   2   : Connect[vertexA=6, vertexB=7]
+///   3   : Connect[vertexA=7, vertexB=8]
+///   4   : Connect[vertexA=8, vertexB=5]
+///   5   : Connect[vertexA=5, vertexB=2]
+///   6   : Connect[vertexA=2, vertexB=1]
+///   7   : Connect[vertexA=1, vertexB=4]
+///   8   : SetEndpoints[startVertex=0, endVertex=8]
+///   9   : Disconnect[vertexA=1, vertexB=4]
+///   10  : Connect[vertexA=3, vertexB=4]
+/// ```
 ///
 /// @see MazeGenEvent
 /// @see MazeGenResult
