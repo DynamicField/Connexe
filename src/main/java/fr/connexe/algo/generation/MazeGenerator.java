@@ -19,7 +19,7 @@ public class MazeGenerator {
     ///
     /// @param args command line args
     public static void main(String[] args) {
-        MazeGenResult result = makeDFS(10, 10, null);
+        MazeGenResult result = makePrim(10, 10, null);
         introduceChaos(result, 0.15f, null);
         System.out.println(result);
 
@@ -456,7 +456,7 @@ public class MazeGenerator {
                 int otherVertex = maze.toVertexId(otherPos);
 
                 // Preserve the "a < b" edge invariant for uniqueness.
-                if (otherVertex > vertex) {
+                if (otherVertex < vertex) {
                     return;
                 }
 
