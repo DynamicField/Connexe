@@ -95,6 +95,8 @@ public class ConnexeApp extends Application {
     }
 
 
+    /// Setup and show the dialog box when clicking on the menu item to create a new Maze
+    /// @param mazeRenderer - passed by the MainController to be ready to receive a maze (to display later on the view)
     public boolean showNewMazeDialog(MazeRenderer mazeRenderer) throws IOException{
         // Load the fxml file and create a new stage for the popup dialog.
         FXMLLoader loader = new FXMLLoader();
@@ -123,6 +125,4 @@ public class ConnexeApp extends Application {
 
         return controller.isOkClicked();
     }
-
-
 }
