@@ -1,8 +1,6 @@
 package fr.connexe.algo;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 
 /// Solves mazes with various algorithms.
 public class MazeSolver {
@@ -40,6 +38,8 @@ public class MazeSolver {
         pile = MazeSolver.prepLeftHand(g, 0);
         System.out.println(pile);
         pile=MazeSolver.prepDFS(g,0);
+        System.out.println(pile);
+        pile=MazeSolver.solveDjisktra(g);
         System.out.println(pile);
     }
 
@@ -168,7 +168,56 @@ public class MazeSolver {
         do{
             pile.push(visited.pop());
         }while(!visited.isEmpty());
+        System.out.println(blocked);
         return pile;
+    }
+
+    /**
+     *
+     * @param laby le labyrinthe en question
+     * @return la pile contenant le chemin à prendre pour avoir le plus cours chemin
+     */
+    public static Stack<Integer> solveDjisktra(GraphMaze laby) {
+        int n= laby.getEdges().length;
+        int[] dist= new int[n];
+        int[] fathers= new int[n];
+        boolean[] visited= new boolean[n];
+
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        Arrays.fill(fathers, -1);
+        dist[laby.getStart()]=0;
+
+        PriorityQueue<Integer> queue= new PriorityQueue<>(Comparator.comparingInt(x -> dist[x]));//les distances les plus faibles en premier
+        queue.add(laby.getStart());
+
+        while(!queue.isEmpty()) {
+            int current= queue.poll();
+            if(visited[current]){
+                continue;
+            }
+            visited[current]=true;
+
+            if (current==laby.getEnd()) {
+                break;
+            }
+            for (int edge: laby.getEdges()[current] ) {
+                if(dist[current]+1<dist[edge]) {
+                    dist[edge]=dist[current]+1;
+                    fathers[edge]=current;
+                    queue.add(edge);
+                }
+            }
+        }
+        Stack<Integer> path = new Stack<>();
+        if (dist[laby.getStart()]==Integer.MAX_VALUE) {
+            return path;
+        }
+        for(int at=laby.getEnd(); at!=laby.getStart(); at=fathers[at]) {
+            path.push(at);
+        }
+        path.push(laby.getStart());
+
+        return path;
     }
 
 }
