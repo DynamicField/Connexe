@@ -124,7 +124,6 @@ public class MazeRenderer {
     public void setMazeGenResult(MazeGenResult mazeGenResult) {
         this.mazeGenResult = mazeGenResult;
         this.graphMaze = mazeGenResult.maze();
-        System.out.println(graphMaze);
     }
 
 

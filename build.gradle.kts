@@ -69,7 +69,8 @@ tasks.withType<JavaExec> {
         // https://bugs.openjdk.org/browse/JDK-8347744
         "--enable-native-access=javafx.graphics",
         // https://bugs.openjdk.org/browse/JDK-8345121
-        "--sun-misc-unsafe-memory-access=allow"
+        "--sun-misc-unsafe-memory-access=allow",
+        "-ea" // Enable assertions
     )
 
     systemProperty("file.encoding", "UTF-8")

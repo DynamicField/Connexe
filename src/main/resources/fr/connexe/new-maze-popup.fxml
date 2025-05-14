@@ -33,6 +33,7 @@
                   <RowConstraints minHeight="10.0" />
                   <RowConstraints minHeight="10.0" />
                   <RowConstraints minHeight="10.0" />
+                  <RowConstraints minHeight="10.0" />
               </rowConstraints>
                <children>
                   <Label ellipsisString="" text="Lignes" textAlignment="CENTER" wrapText="true" GridPane.halignment="CENTER" GridPane.valignment="CENTER">
@@ -105,13 +106,15 @@
                      </toggleGroup>
                   </RadioButton>
                   <RadioButton fx:id="seedRadio" mnemonicParsing="false" text="Graine :" toggleGroup="$genType" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
-                  <Spinner fx:id="seedSpinner" disable="true" editable="true" GridPane.columnIndex="3" GridPane.rowIndex="5" />
+                  <Spinner fx:id="seedSpinner" disable="true" editable="true" GridPane.columnIndex="3" GridPane.halignment="CENTER" GridPane.rowIndex="5" GridPane.valignment="CENTER" />
                   <Label ellipsisString="" minHeight="-Infinity" text="Labyrinthe parfait" textAlignment="CENTER" wrapText="true" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="CENTER">
                      <GridPane.margin>
                         <Insets left="10.0" right="10.0" />
                      </GridPane.margin>
                   </Label>
                   <CheckBox fx:id="perfectMazeCheckBox" mnemonicParsing="false" selected="true" text="Générer un labyrinthe parfait" GridPane.columnIndex="1" GridPane.columnSpan="3" GridPane.halignment="CENTER" GridPane.rowIndex="6" GridPane.valignment="CENTER" />
+                  <Spinner fx:id="chaosPercentageSpinner" disable="true" editable="true" prefWidth="81.0" GridPane.columnIndex="2" GridPane.halignment="CENTER" GridPane.rowIndex="7" />
+                  <Label fx:id="chaosPercentageLabel" disable="true" minHeight="-Infinity" text="\% Chaos (facultatif)" wrapText="true" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="7" GridPane.valignment="CENTER" />
                </children>
             </GridPane>
          </children>
