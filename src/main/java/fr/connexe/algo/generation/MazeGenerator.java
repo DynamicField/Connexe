@@ -1,6 +1,7 @@
 package fr.connexe.algo.generation;
 
 import fr.connexe.algo.GraphMaze;
+import fr.connexe.algo.MazeSolver;
 import fr.connexe.algo.Point;
 
 import java.util.*;
@@ -13,15 +14,18 @@ import java.util.List;
 /// - the complete generation log, using [MazeGenLog]
 ///
 /// They also accept a seed for generating random numbers, which can be set to `null` to use a random seed.
-@SuppressWarnings("OptionalUsedAsFieldOrParameterType") // let my Optional<T> as they are!
 public class MazeGenerator {
     /// Main function to debug the maze generator
     ///
     /// @param args command line args
     public static void main(String[] args) {
-        MazeGenResult rand = makeDFS(8, 4, null);
-        System.out.println(rand.maze());
-        System.out.println(rand.log());
+        MazeGenResult result = makeDFS(10, 10, null);
+        introduceChaos(result, 0.15f, null);
+        System.out.println(result);
+
+        // previously buggy combo:
+        // var r = makeDFS(3, 3, 0L);
+        // introduceChaos(r, 0.15f, 3L);
     }
 
     /// Generates a **perfect maze** randomly, using Prim's algorithm.
@@ -31,6 +35,9 @@ public class MazeGenerator {
     /// @param seed   an optional seed for the RNG; a `null` value will generate a seed randomly.
     /// @return the generated perfect maze and its log, inside a [MazeGenResult]
     public static MazeGenResult makePrim(int width, int height, Long seed) {
+        // Check the dimensions of the maze to be large enough.
+        checkDimensions(width, height);
+
         // Make an instance of the Random class, with the given seed. Generate one when the seed is empty.
         var random = seed != null ? new Random(seed) : new Random();
 
@@ -110,9 +117,10 @@ public class MazeGenerator {
     /// @param width  the width of the maze to generate
     /// @param height the height of the maze to generate
     /// @param seed   an optional seed for the RNG; a `null` value will generate a seed randomly.
-    /// @return the generated non-perfect maze and its log, inside a [MazeGenResult]
+    /// @return the generated perfect maze and its log, inside a [MazeGenResult]
     public static MazeGenResult makeDFS(int width, int height, Long seed) {
         // Make the maze and generation log with the right dimensions.
+        checkDimensions(width, height);
         var maze = new GraphMaze(width, height);
         var log = new MazeGenLog(width, height);
 
@@ -126,7 +134,7 @@ public class MazeGenerator {
         dfsRandom(maze, log, visited, random, 0);
 
         // Finally, set both start and end points to be furthest apart and return the final maze!
-        log.add(new MazeGenEvent.SetEndpoints(0, maze.getNumCells() - 1));
+        log.add(maze, new MazeGenEvent.SetEndpoints(0, maze.getNumCells() - 1));
         return new MazeGenResult(maze, log);
     }
 
@@ -147,6 +155,182 @@ public class MazeGenerator {
                 dfsRandom(maze, log, visited, random, neighbor);
             }
         }
+    }
+
+    /// Transforms a **perfect maze** into a **non-perfect maze** by randomly introducing chaos: some
+    /// walls will appear, and some will be removed, randomly.
+    ///
+    /// The resulting maze is guaranteed to be **non-perfect**.
+    ///
+    /// @param result      the result from a previous generation, which will be modified with chaos!
+    /// @param probability the probability of a wall being removed (0.0 to 1.0); will automatically be increased
+    ///                                                                             if it's too small for the given maze.
+    /// @param seed        an optional seed for the RNG; a `null` value will generate a seed randomly.
+    public static void introduceChaos(MazeGenResult result, float probability, Long seed) {
+        // Grab the maze and log from the result, so we can change them!
+        GraphMaze maze = result.maze();
+        MazeGenLog log = result.log();
+
+        // Make the Random instance based off the seed.
+        var random = seed != null ? new Random(seed) : new Random();
+
+        // --- How the algorithm works ---
+        // Assuming we have a perfect maze, we know that there's only one path from the start to the end.
+        //
+        // To make it "imperfect", we can arbitrarily add and remove walls to add cycles, or make some vertices
+        // completely inaccessible.
+        //
+        // However, while doing this, we need to make sure that the path from start to end IS LEFT UNTOUCHED!
+        // Else, we would risk having a labyrinth with no way to go from start to end!
+        //
+        // Essentially, we need to tamper with the maze randomly WITHOUT REMOVING ANY EDGE OF THE PATH.
+
+        // Make sure the maze has proper start/end points.
+        assert maze.getStart() != -1 && maze.getEnd() != -1;
+
+        // Make sure we have enough cells to make it imperfect.
+        if (maze.getNumCells() < 4) {
+            return;
+        }
+
+        // Cap the probability to be in a reasonable range so the algorithm doesn't loop indefinitely.
+        // Put a minimum of 1/(2*numCells), 2*numCells being approximately the number of edges in the maze that
+        // can be tampered with.
+        probability = Math.clamp(probability, 1.0f / (2 * maze.getNumCells()), 1.0f);
+
+        // Find the path from the start point to the end point using the DFS algorithm.
+        Integer[] path = MazeSolver.prepDFS(maze, 0).toArray(new Integer[0]);
+
+        // If the path is too short, we can't introduce any chaos!
+        if (path.length < 2) {
+            return;
+        }
+
+        // A pair of two vertices that are blacklisted.
+        record Blacklist(int a, int b) {
+            // Returns true when this adjacent vertex is allowed.
+            boolean allows(int v) {
+                return a != v && b != v;
+            }
+        }
+
+        // Associates every vertex with an optional list of neighbors that should NOT be tampered with.
+        // Will be null for vertices that aren't in the path.
+        Blacklist[] neighborBlacklists = new Blacklist[maze.getNumCells()];
+
+        // Add a blacklist for every vertex in the path.
+        // First vertex of the path: only the next vertex is blacklisted.
+        neighborBlacklists[path[0]] = new Blacklist(path[1], -1);
+        for (int i = 1; i < path.length - 1; i++) {
+            // In the middle of the path: both the previous and next vertices are blacklisted.
+            int prev = i - 1;
+            int next = i + 1;
+            neighborBlacklists[path[i]] = new Blacklist(path[prev], path[next]);
+        }
+        // Last vertex of the path: only the previous vertex is blacklisted.
+        neighborBlacklists[path[path.length - 1]] = new Blacklist(-1, path[path.length - 2]);
+
+        // Iterate through all vertices and mess around with their neighbors, without removing edges of the path.
+        // Repeat this process until we've checked that the maze is indeed imperfect, or if we didn't change the maze
+        // at all.
+        // The probability is set to be high enough so we don't repeat this over and over.
+        boolean changedTheMaze = false;
+        do {
+            for (int v = 0; v < maze.getNumCells(); v++) {
+                // Grab the blacklist for this vertex. CAN BE NULL!
+                Blacklist blacklist = neighborBlacklists[v];
+
+                // Look at its neighbors.
+                for (int neighbor : neighbors(maze, v)) {
+                    // Ignore neighbors that we're already processed before. Else, we would process edges twice!
+                    if (neighbor < v) {
+                        continue;
+                    }
+
+                    // See if we're going to mess up this neighbor. If not, go to the next neighbor.
+                    if (random.nextFloat() > probability) {
+                        continue;
+                    }
+
+                    // Connect or disconnect this neighbor from our current vertex.
+                    boolean connected = maze.isConnected(v, neighbor);
+                    if (connected && (blacklist == null || blacklist.allows(neighbor))) {
+                        // This neighbor is connected, and it's not part of the path; disconnect it!
+                        log.add(maze, new MazeGenEvent.Disconnect(v, neighbor));
+                        changedTheMaze = true;
+                    } else if (!connected) {
+                        // This neighbor isn't connected, connect it! It won't invalidate the existing path anyway,
+                        // it will just create a cycle.
+                        log.add(maze, new MazeGenEvent.Connect(v, neighbor));
+                        changedTheMaze = true;
+                    }
+                }
+            }
+        } while (!changedTheMaze || !isImperfect(maze)); // Repeat if the maze wasn't modified, or if it's imperfect.
+    }
+
+    // Makes sure that the maze is indeed imperfect.
+    private static boolean isImperfect(GraphMaze maze) {
+        // First, see if graph is NOT connected. If it's not connected, then it's already imperfect.
+        boolean[] visited = new boolean[maze.getNumCells()];
+        dfsConnectedGraph(maze, visited, 0);
+        for (boolean b : visited) {
+            if (!b) {
+                // One vertex wasn't visited, so the graph is not connected: imperfect!
+                return true;
+            }
+        }
+
+        // Reset the visited array for future use.
+        Arrays.fill(visited, false);
+
+        // Too bad: it's a connected graph! Let's find a cycle in it.
+        // We only have one connected component, so this DFS will traverse the entire graph for cycles.
+        return dfsCycles(maze, visited, new boolean[maze.getNumCells()], -1, 0);
+    }
+
+    // Determines if a graph is connected by filling in the "visited" array with boolean for every vertex.
+    // If there's one vertex that's not visited, then the graph is not connected.'
+    private static void dfsConnectedGraph(GraphMaze maze, boolean[] visited, int vertex) {
+        // Mark this vertex as visited.
+        visited[vertex] = true;
+
+        // Classic DFS traversal.
+        for (int adjacent : maze.getAdjacentVertices(vertex)) {
+            if (!visited[adjacent]) {
+                dfsConnectedGraph(maze, visited, adjacent);
+            }
+        }
+    }
+
+    // Returns true if there's a cycle in the maze.
+    private static boolean dfsCycles(GraphMaze maze, boolean[] visited, boolean[] inChain, int parent, int vertex) {
+        // Mark this vertex as visited.
+        visited[vertex] = true;
+        // Put it in the current "chain", i.e. the stack of visited vertices during a DFS traversal
+        inChain[vertex] = true;
+
+        for (int adjacent : maze.getAdjacentVertices(vertex)) {
+            if (!visited[adjacent]) {
+                // New vertex: visit it. If it found a cycle, end early.
+                boolean cycleFound = dfsCycles(maze, visited, inChain, vertex, adjacent);
+                if (cycleFound) {
+                    return true;
+                }
+            } else if (inChain[adjacent] && parent != adjacent) {
+                // This adjacent vertex is:
+                // - already visited
+                // - in the current chain (for example, vertex=2 and adjacent=3: 1 - 3 - 4 - 2)
+                // - not the previous vertex (remember that edges are undirected!)
+                //
+                // So... that's a CYCLE! Report it!
+                return true;
+            }
+        }
+
+        // We're done visiting this vertex; remove it from the chain, and report that we've found no cycle.
+        inChain[vertex] = false;
+        return false;
     }
 
     // Returns all the neighbors of a given vertex in a particular maze.
@@ -204,6 +388,13 @@ public class MazeGenerator {
             int temp = array[randomIdx];
             array[randomIdx] = array[i];
             array[i] = temp;
+        }
+    }
+
+    private static void checkDimensions(int width, int height) {
+        if (width < 2 || height < 2) {
+            throw new IllegalArgumentException("The width and height of the maze must be at least 2. ("
+                    + width + ", " + height + ")");
         }
     }
 

@@ -66,12 +66,12 @@ public class ArrayMaze {
 
     @Override
     public String toString() {
-        // Each cell is a NxN square.
+        // Each cell is a NxN square, ideally N is odd so we can center numbers properly.
         // ### (size 3)
         // # #
         // ###
 
-        // 5x5
+        // 6x6
         // ######
         // #    #
         // #    #
@@ -79,8 +79,8 @@ public class ArrayMaze {
         // ######
         // We're going to skip lines and columns that duplicate borders in the inside of the maze.
 
-        // The size of each cell, NxN square.
-        final int SIZE = 5;
+        // The size of each cell, NxN square. Make sure it's large enough to display all vertex ids.
+        final int SIZE = Math.max(5, toNearestEvenNumber(countDigits(numCells)) + 2);
         // The 2D matrix of ASCII pixels to print.
         char[][] pixels = new char[height * SIZE][width * SIZE];
 
@@ -92,8 +92,14 @@ public class ArrayMaze {
                 int px0 = x * SIZE;
                 int py0 = y * SIZE;
 
-                // Draw the center of the cell with the 'o' character.
-                pixels[py0 + SIZE / 2][px0 + SIZE / 2] = 'o';
+                // Format the vertex id so it's padded by zeros, and has a length of exactly SIZE-2 characters,
+                // to leave room for the walls.
+                // Exampled: 1 --> 001, 48 --> 048
+                String id = String.format("%0" + (SIZE-2) + "d", x+y*width);
+                // Print out the vertex id of the cell in the center of the cell, digit by digit.
+                for (int i = 0; i < id.length(); i++) {
+                    pixels[py0 + SIZE / 2][px0 + i + 1] = id.charAt(i);
+                }
 
                 // Draw the top wall of the cell.
                 if (cell.wallUp()) {
@@ -160,5 +166,28 @@ public class ArrayMaze {
 
         // The end!
         return sb.toString();
+    }
+
+    // Returns the even number just above n. In other words, the smallest even number r such that r >= n.
+    // Examples: 4 --> 5, 9 --> 9, 10 --> 11.
+    private static int toNearestEvenNumber(int n) {
+        // Turn on the LSB so we always have an even number.
+        // Examples:
+        // 3: 11 -> 11  (3)
+        // 2: 10 -> 11  (3)
+        return n | 1;
+    }
+
+    // Returns the number of digits needed to display the given number.
+    // Same as floor(log10(n)).
+    // n must be positive.
+    private static int countDigits(int n) {
+        assert n >= 0;
+
+        if (n < 10) {
+            return 1;
+        } else {
+            return 1 + countDigits(n / 10);
+        }
     }
 }
