@@ -29,14 +29,14 @@ import java.util.List;
 ///              GENERATED MAZE
 /// ===========================================
 /// #   #---#---#
-///     |       |
-///  000|001 002|
-///     |       |
-/// #   #---#   #
+///         |   |
+///  000 001|002|
+///         |   |
+/// #---#   #   #
 /// |       |   |
 /// |003 004|005|
-/// |       |
-/// #   #---#   #
+/// |       |   |
+/// #   #   #---#
 /// |
 /// |006 007 008
 /// |
@@ -45,17 +45,17 @@ import java.util.List;
 ///            MAZE GENERATION LOG
 /// ===========================================
 /// MazeGenLog [3x3] 11 events:
-///   0   : Connect[vertexA=0, vertexB=3]
-///   1   : Connect[vertexA=3, vertexB=6]
-///   2   : Connect[vertexA=6, vertexB=7]
-///   3   : Connect[vertexA=7, vertexB=8]
-///   4   : Connect[vertexA=8, vertexB=5]
-///   5   : Connect[vertexA=5, vertexB=2]
-///   6   : Connect[vertexA=2, vertexB=1]
-///   7   : Connect[vertexA=1, vertexB=4]
+///   0   : Connect[vertexA=0, vertexB=1]
+///   1   : Connect[vertexA=1, vertexB=4]
+///   2   : Connect[vertexA=4, vertexB=7]
+///   3   : Connect[vertexA=7, vertexB=6]
+///   4   : Connect[vertexA=6, vertexB=3]
+///   5   : Connect[vertexA=7, vertexB=8]
+///   6   : Connect[vertexA=8, vertexB=5]
+///   7   : Connect[vertexA=5, vertexB=2]
 ///   8   : SetEndpoints[startVertex=0, endVertex=8]
-///   9   : Disconnect[vertexA=1, vertexB=4]
-///   10  : Connect[vertexA=3, vertexB=4]
+///   9   : Connect[vertexA=3, vertexB=4]
+///   10  : Disconnect[vertexA=5, vertexB=8]
 /// ```
 ///
 /// @see MazeGenEvent
