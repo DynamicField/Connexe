@@ -30,7 +30,13 @@ public class NewMazeDialogController {
     private RadioButton primRadio;
 
     @FXML
-    private RadioButton dfsRadio;
+    private RadioButton seedRadio;
+
+    @FXML
+    private Spinner<Integer> seedSpinner;
+
+    @FXML
+    private CheckBox perfectMazeCheckBox;
 
     private boolean okClicked = false;
 
@@ -69,21 +75,45 @@ public class NewMazeDialogController {
         // Handle update of endSpinner value when user commits new value for cols/rows
         setupCommitOnFocusOrEnter(rowSpinner);
         setupCommitOnFocusOrEnter(colSpinner);
+
+        // Restrict input values for seed spinner
+        SpinnerValueFactory.IntegerSpinnerValueFactory seedFactory =
+                new SpinnerValueFactory.IntegerSpinnerValueFactory(Integer.MIN_VALUE, Integer.MAX_VALUE, 0);
+        seedSpinner.setValueFactory(seedFactory);
+
+        // Enable / Disable input field for seed depending on whether radio button for seed is selected or not
+        seedRadio.selectedProperty().addListener((obs, wasSelected, isNowSelected) -> {
+            seedSpinner.setDisable(!isNowSelected);
+        });
     }
 
-    /// Called when a user clicks ok. Generates a maze based on the given custom parameters and closes the dialog box.
+    /// Called when a user clicks ok.
+    /// Generates a maze based on the given custom parameters and closes the dialog box.
     @FXML
     private void handleOk() {
         MazeGenResult generatedMaze;
+        Long seed = null;
 
+        // Retrieve seed value if generation with seed is selected
+        if(seedRadio.isSelected()) {
+            seed = seedSpinner.getValue().longValue();
+        }
+
+        // Use the chosen generation method depending on the selected radio button
         if(primRadio.isSelected()) {
-            generatedMaze = MazeGenerator.makePrim(colSpinner.getValue(), rowSpinner.getValue(), null);
+            generatedMaze = MazeGenerator.makePrim(colSpinner.getValue(), rowSpinner.getValue(), seed);
         } else {
-            generatedMaze = MazeGenerator.makeDFS(colSpinner.getValue(), rowSpinner.getValue(), null);
+            generatedMaze = MazeGenerator.makeDFS(colSpinner.getValue(), rowSpinner.getValue(), seed);
+        }
+
+        // Introduce chaos to perfect maze to make it non-perfect if checkbox isn't selected
+        if(!perfectMazeCheckBox.isSelected()) {
+            // introduce chaos
         }
 
         mazeRenderer.setMazeGenResult(generatedMaze);
 
+        // Setup entry/exit of maze with given vertex IDs
         try{
             mazeRenderer.setEndVertex(endSpinner.getValue());
             mazeRenderer.setStartVertex(startSpinner.getValue());
@@ -171,7 +201,9 @@ public class NewMazeDialogController {
     /// * The spinner loses focus (clicks elsewhere)
     /// @param spinner - the spinner in which we want to listen to user inputs
     private void setupCommitOnFocusOrEnter(Spinner<Integer> spinner) {
-        spinner.getEditor().setOnAction(e -> commitEditorText(spinner));
+        spinner.getEditor().setOnAction(e -> commitEditorText(spinner)); // on enter
+
+        // On loss of focus :
         spinner.focusedProperty().addListener((obs, wasFocused, isNowFocused) -> {
             if (!isNowFocused) {
                 commitEditorText(spinner);
@@ -192,11 +224,13 @@ public class NewMazeDialogController {
         SpinnerValueFactory.IntegerSpinnerValueFactory endFactory =
                 (SpinnerValueFactory.IntegerSpinnerValueFactory) endSpinner.getValueFactory();
 
+        // Recalculate maximum possible vertex IDs with the new total of cells in the maze
         startFactory.setMax(total - 1);
         endFactory.setMax(total - 1);
 
+        // If current entered values in spinners are superior to the new total of cells, clip excess
         if (startSpinner.getValue() > total - 1) {
-            startFactory.setValue(0);
+            startFactory.setValue(total - 1);
         }
         if (endSpinner.getValue() > total - 1) {
             endFactory.setValue(total - 1);
