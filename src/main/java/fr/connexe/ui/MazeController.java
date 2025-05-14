@@ -14,9 +14,9 @@ public class MazeController {
     private VBox vboxLayout;
 
     ///  Display a maze in the VBox of the main scene
-    public void createMazeFX(MazeRenderer MazeRenderer){
+    public void createMazeFX(MazeRenderer mazeRenderer){
         vboxLayout.getChildren().clear();
-        GridPane dynamicGrid = MazeRenderer.buildGrid();
+        GridPane dynamicGrid = mazeRenderer.buildGrid();
 
         // Wrap the grid in a StackPane to center and constrain its size
         StackPane root = new StackPane();
