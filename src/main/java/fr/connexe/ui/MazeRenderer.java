@@ -89,6 +89,7 @@ public class MazeRenderer {
                 if (col == 0 && leftWidth > 0) leftWidth = 4;
                 if (col == cols - 1 && rightWidth > 0) rightWidth = 4;
 
+                // Apply style on cell
                 style.append("-fx-border-color: black;");
                 style.append(" -fx-border-width: ")
                         .append(topWidth).append(" ")
@@ -96,12 +97,13 @@ public class MazeRenderer {
                         .append(bottomWidth).append(" ")
                         .append(leftWidth).append(";");
 
-                // Apply style on cell
                 gridCell.setStyle(style.toString());
 
+                // Allow dynamic resizing of the cell
                 GridPane.setHgrow(gridCell, Priority.ALWAYS);
                 GridPane.setVgrow(gridCell, Priority.ALWAYS);
                 gridCell.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+
                 grid.add(gridCell, col, row);
             }
         }
@@ -125,7 +127,6 @@ public class MazeRenderer {
         this.mazeGenResult = mazeGenResult;
         this.graphMaze = mazeGenResult.maze();
     }
-
 
     public void setStartVertex(int startVertex) {
         graphMaze.setStart(startVertex);

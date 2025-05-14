@@ -13,22 +13,21 @@ public class MainController {
     private ConnexeApp connexeApp;
     private MazeController mazeController;
 
-    /**
-     * Is called by the main application to give a reference back to itself.
-     * @param connexeApp description
-     */
+     /// Is called by the main application to give a reference back to itself.
+     /// @param connexeApp - main application
     public void setConnexeApp(ConnexeApp connexeApp) {
         this.connexeApp = connexeApp;
     }
 
-    /**
-     * References the MazeController to call its building methods from the menu bar options (new, edit...)
-     * @param mazeController
-     */
+     /// References the MazeController to call its building methods from the menu bar options (new, edit...)
+     /// @param mazeController - the MazeController to use maze related methods from (building, etc...)
     public void setMazeController(MazeController mazeController){
         this.mazeController = mazeController;
     }
 
+    /// Initialize config for a FileChooser
+    /// Only accepts file of ".con" extension
+    /// Opens by default the last directory a user saved into/opened
     private File initFileChooser(){
         // Create a new file chooser dialog popup and set the opened directory to the last visited one
         FileChooser fileChooser = new FileChooser();
@@ -48,9 +47,9 @@ public class MainController {
         return selected;
     }
 
-    /**
-     * To create a new maze file
-     */
+    /// Option to create a new maze.
+    /// Will build a MazeRenderer to take on a generated maze from user custom parameters,
+    /// then render the resulting maze into the view
     @FXML
     private void handleNew() throws IOException {
         // Initialize a renderer taking a maze generated from user parameters through the creation dialog box
@@ -61,9 +60,7 @@ public class MainController {
         }
     }
 
-    /**
-     * Opens a FileChooser to let the user select a maze file to load.
-     */
+    /// Opens a FileChooser to let the user select a maze file to load.
     @FXML
     private void handleOpen() {
         // Init the FileChooser and retrieve the selected file
@@ -75,10 +72,8 @@ public class MainController {
         }
     }
 
-    /**
-     * Saves the file to the person file that is currently open. If there is no
-     * open file, the "save as" dialog is shown.
-     */
+    /// Saves the maze into a file
+    /// If the current maze has never been saved before, the "save as" dialog is shown.
     @FXML
     private void handleSave() {
         System.out.println("Save triggered...");
@@ -91,9 +86,7 @@ public class MainController {
         }*/
     }
 
-    /**
-     * Opens a FileChooser to let the user select a file to save to.
-     */
+    /// Opens a FileChooser to let the user select a file to save to.
     @FXML
     private void handleSaveAs() {
         // Init the FileChooser and retrieve the selected file
@@ -105,14 +98,13 @@ public class MainController {
         }
     }
 
-    /**
-     * Closes the application
-     */
+    ///  Closes the app
     @FXML
     private void handleExit() {
         System.exit(0);
     }
 
+    ///  Menu Item option to show a hardcoded example maze
     @FXML
     private void handleExampleMaze(){
         System.out.println("Testing default maze...");
