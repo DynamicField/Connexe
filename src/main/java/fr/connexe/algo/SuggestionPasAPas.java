@@ -9,12 +9,12 @@ public class SuggestionPasAPas {
     public static void solveDFSStepByStep(GraphMaze maze, int current, List<Integer> visited) {
         // Dans le cas oû on est arrivé à la fin du labyrinthe
         if (current == maze.getEnd()) {
-            System.out.println("✅ Arrivé au bout : " + current);
+            System.out.println("Arrivé au bout : " + current);
             return;
         }
 
         // Pour affiche le sommet visité actuellement
-        System.out.println("➡️ Visite : " + current);
+        System.out.println(" Visite : " + current);
 
         // Pause (simulation du pas-à-pas)
         try {
