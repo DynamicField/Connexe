@@ -76,6 +76,7 @@ public class ArrayMaze {
         // #    #
         // #    #
         // #    #
+        // #    #
         // ######
         // We're going to skip lines and columns that duplicate borders in the inside of the maze.
 
