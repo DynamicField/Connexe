@@ -39,19 +39,24 @@ public class MazeController {
 
         dynamicGrid.setAlignment(Pos.CENTER);
         vboxLayout.getChildren().add(root);
+
+        // Console view
+        System.out.println(mazeRenderer.getGraphMaze());
     }
 
     /// Saves the current rendered maze into a file
     public void saveMaze(File file) throws MazeSerializationException, FileNotFoundException {
+        assert mazeRenderer.getGraphMaze() != null : "MazeRenderer must have a maze to be saved";
         FileOutputStream fileOutputStream = new FileOutputStream(file);
         mazeRenderer.getGraphMaze().save(fileOutputStream);
     }
 
-    /// loads a file containing maze data and renders it on the view
+    /// Loads a file containing maze data and renders it on the view
     public void loadMaze(File file) throws MazeSerializationException, FileNotFoundException {
         FileInputStream fileInputStream = new FileInputStream(file);
         GraphMaze maze = GraphMaze.load(fileInputStream);
         mazeRenderer.setGraphMaze(maze);
+        mazeRenderer.setLog(null); // remove log of previous generation
         createMazeFX();
     }
 

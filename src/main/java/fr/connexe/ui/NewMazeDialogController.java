@@ -123,7 +123,9 @@ public class NewMazeDialogController {
         } else {
             generatedMaze = MazeGenerator.makeDFS(colSpinner.getValue(), rowSpinner.getValue(), seed);
         }
-        mazeRenderer.setMazeGenResult(generatedMaze);
+
+        mazeRenderer.setGraphMaze(generatedMaze.maze());
+        mazeRenderer.setLog(generatedMaze.log());
 
         try{
             // Setup entry/exit of maze with given vertex IDs
@@ -141,12 +143,11 @@ public class NewMazeDialogController {
             // Introduce chaos to perfect maze to make it non-perfect if checkbox isn't selected
             // Required to do AFTER setting the start and end
             if(!perfectMazeCheckBox.isSelected()) {
-                introduceChaos(mazeRenderer.getMazeGenResult(), chaosPercentageSpinner.getValue().floatValue(), seed);
+                MazeGenResult mazeGenResult = new MazeGenResult(mazeRenderer.getGraphMaze(), mazeRenderer.getLog());
+                introduceChaos(mazeGenResult, chaosPercentageSpinner.getValue().floatValue(), seed);
+                mazeRenderer.setGraphMaze(mazeGenResult.maze());
+                mazeRenderer.setLog(mazeGenResult.log());
             }
-
-            // Display result in console too to verify
-            System.out.println(mazeRenderer.getMazeGenResult());
-
             okClicked = true;
             dialogStage.close();
         }

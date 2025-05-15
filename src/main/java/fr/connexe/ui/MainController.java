@@ -52,7 +52,11 @@ public class MainController {
         boolean okClicked = connexeApp.showNewMazeDialog(mazeRenderer);
         if (okClicked) { // Maze is generated, now query the controller to display it on the view
             mazeController.setMazeRenderer(mazeRenderer);
+
+            // Create the maze grid on the view (also displays the maze in the console)
             mazeController.createMazeFX();
+            System.out.println(mazeController.getMazeRenderer().getLog()); // show generation logs in console
+
             connexeApp.updateStageTitle(null);
             connexeApp.setMazeFilePath(null);
         }
@@ -105,29 +109,33 @@ public class MainController {
     /// Opens a FileChooser to let the user save a maze into a .con file
     @FXML
     private void handleSaveAs() {
-        // Init the FileChooser and retrieve the file
-        FileChooser fileChooser = initFileChooser();
-        fileChooser.setTitle("Enregistrer le labyrinthe");
+        if(mazeController.getMazeRenderer() != null){
+            // Init the FileChooser and retrieve the file
+            FileChooser fileChooser = initFileChooser();
+            fileChooser.setTitle("Enregistrer le labyrinthe");
 
-        // Show save file dialog on top of stage
-        File mazeFile = fileChooser.showSaveDialog(connexeApp.getStage());
+            // Show save file dialog on top of stage
+            File mazeFile = fileChooser.showSaveDialog(connexeApp.getStage());
 
-        if (mazeFile != null) {
-            // Make sure it has the correct extension
-            if (!mazeFile.getPath().endsWith(".con")) {
-                mazeFile = new File(mazeFile.getPath() + ".con");
+            if (mazeFile != null) {
+                // Make sure it has the correct extension
+                if (!mazeFile.getPath().endsWith(".con")) {
+                    mazeFile = new File(mazeFile.getPath() + ".con");
+                }
+                Settings.setLastVisitedDirectory(mazeFile.getParentFile());
+                try{
+                    // Save the maze to the selected file
+                    mazeController.saveMaze(mazeFile);
+
+                    // Update the app title with the current saved file
+                    connexeApp.setMazeFilePath(mazeFile);
+                    connexeApp.updateStageTitle(mazeFile.getName());
+                } catch (Exception e) {
+                    showError("Erreur lors de la sauvegarde du labyrinthe", e.getMessage());
+                }
             }
-            Settings.setLastVisitedDirectory(mazeFile.getParentFile());
-            try{
-                // Save the maze to the selected file
-                mazeController.saveMaze(mazeFile);
-
-                // Update the app title with the current saved file
-                connexeApp.setMazeFilePath(mazeFile);
-                connexeApp.updateStageTitle(mazeFile.getName());
-            } catch (Exception e) {
-                showError("Erreur lors de la sauvegarde du labyrinthe", e.getMessage());
-            }
+        } else {
+            showError("Aucun labyrinthe créé", "Veuillez créer un labyrinthe avant de le sauvegarder.");
         }
     }
 
