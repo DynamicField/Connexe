@@ -171,8 +171,8 @@ public class NewMazeDialogController {
     }
 
     ///  To show an alert/warning dialog box
-    /// @param title - title of the box
-    /// @param content - warning message inside the box
+    /// @param title title of the box
+    /// @param content warning message inside the box
     private void showWarning(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle(title);
@@ -197,7 +197,7 @@ public class NewMazeDialogController {
 
 
     ///  Force commit user input from a spinner's TextField to that spinner
-    /// @param spinner - the spinner in which we want to listen to user inputs
+    /// @param spinner the spinner in which we want to listen to user inputs
     private void commitEditorText(Spinner<Integer> spinner) {
         if (!spinner.isEditable()) return;
 
@@ -219,7 +219,7 @@ public class NewMazeDialogController {
     /// If the user types a value in a spinner, forces JavaFX to commit that value to the spinner’s value property when :
     /// * The user presses Enter, or
     /// * The spinner loses focus (clicks elsewhere)
-    /// @param spinner - the spinner in which we want to listen to user inputs
+    /// @param spinner the spinner in which we want to listen to user inputs
     private void setupCommitOnFocusOrEnter(Spinner<Integer> spinner) {
         spinner.getEditor().setOnAction(e -> commitEditorText(spinner)); // on enter
 
