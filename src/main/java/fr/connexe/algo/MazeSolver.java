@@ -35,13 +35,20 @@ public class MazeSolver {
         g.setEnd(15);
         System.out.println(g.toArrayMaze());
         Stack<Integer> pile;
-        pile = MazeSolver.prepLeftHand(g, 0);
+        /*pile = MazeSolver.prepLeftHand(g);
         System.out.println(pile);
-        pile=MazeSolver.prepDFS(g,0);
+        pile = MazeSolver.prepDFS(g);
         System.out.println(pile);
-        pile=MazeSolver.solveDjisktra(g);
+        pile = MazeSolver.solveDjisktra(g);
         System.out.println(pile);
+*/
+        Stack<Stack<Integer>> pile2;
+        //pile2=MazeSolver.prepDFS2(g);
+        //System.out.println("DFS2:" +pile2);
+        pile2=MazeSolver.prepLeftHand2(g);
+        System.out.println(pile2);
     }
+
 
     /**
      * @param labyrinth le labyrinthe à résoudre
@@ -86,138 +93,255 @@ public class MazeSolver {
 
     /**
      * @param labyrinth the maze to solve
-     * @param mode      resolution mode (0 for DFS, 1 for step by step DFS)
      * @return stack of nodes to visit to solve the maze in the shortest way
      */
-    public static Stack<Integer> prepDFS(GraphMaze labyrinth, int mode) {
+    public static Stack<Integer> prepDFS(GraphMaze labyrinth) {
         Stack<Integer> pile;
         List<Integer> visited = new ArrayList<>();
         visited.add(labyrinth.getStart());
-        //if (mode == 0) {
         pile = solveDFS(labyrinth, labyrinth.getStart(), visited);
-        //}
-        /*else {
-            pile=solveDFS2(labyrinth,labyrinth.getStart(), labyrinth.getStart();
-        }*/
         return pile;
     }
 
     /**
-     *
-     * @param laby graph du labyrinthe
-     * @param num noeud pù l'on se trouve
+     * @param laby    graph du labyrinthe
+     * @param num     noeud pù l'on se trouve
      * @param visited noeuds que l'on utilise pour avoir le chemin (sans les culs-de-sac)
      * @param blocked noeuds qui mènent à ders culs-de-sac
      * @return visited
      */
-    private static Stack<Integer> solveLeftHand(GraphMaze laby, int num, Stack<Integer> visited, Stack<Integer> blocked ) {
+    private static Stack<Integer> solveLeftHand(GraphMaze laby, int num, Stack<Integer> visited, Stack<Integer> blocked) {
         if (laby.getEnd() == num) {
             return visited;
         }
         List<Integer> subList = laby.getEdges()[num];
-        if(!subList.isEmpty()) {
-            if(subList.contains(num-laby.getWidth()) && !visited.contains(num-laby.getWidth()) && !blocked.contains(num-laby.getWidth())) {
-                visited.push(num-laby.getWidth());
-                return solveLeftHand(laby, num- laby.getWidth(), visited, blocked);
-            }
-            else if(subList.contains(num+1) && !visited.contains(num+1) && !blocked.contains(num+1)) {
-                visited.push(num+1);
-                return solveLeftHand(laby, num+1, visited, blocked);
-            }
-            else if(subList.contains(num+ laby.getWidth()) && !visited.contains(num+ laby.getWidth()) && !blocked.contains(num+laby.getWidth())) {
-                visited.push(num+ laby.getWidth());
-                return solveLeftHand(laby, num+laby.getWidth(), visited, blocked);
-            }
-            else if(subList.contains(num-1) && !visited.contains(num-1) && !blocked.contains(num-1)) {
-                visited.push(num-1);
-                return solveLeftHand(laby, num-1, visited, blocked);
-            }
-            else{
+        if (!subList.isEmpty()) {
+            if (subList.contains(num - laby.getWidth()) && !visited.contains(num - laby.getWidth()) && !blocked.contains(num - laby.getWidth())) {
+                visited.push(num - laby.getWidth());
+                return solveLeftHand(laby, num - laby.getWidth(), visited, blocked);
+            } else if (subList.contains(num + 1) && !visited.contains(num + 1) && !blocked.contains(num + 1)) {
+                visited.push(num + 1);
+                return solveLeftHand(laby, num + 1, visited, blocked);
+            } else if (subList.contains(num + laby.getWidth()) && !visited.contains(num + laby.getWidth()) && !blocked.contains(num + laby.getWidth())) {
+                visited.push(num + laby.getWidth());
+                return solveLeftHand(laby, num + laby.getWidth(), visited, blocked);
+            } else if (subList.contains(num - 1) && !visited.contains(num - 1) && !blocked.contains(num - 1)) {
+                visited.push(num - 1);
+                return solveLeftHand(laby, num - 1, visited, blocked);
+            } else {
                 blocked.push(num);
                 visited.pop();
-                if(visited.isEmpty()) {
+                if (visited.isEmpty()) {
                     return visited;
                 }
                 return solveLeftHand(laby, visited.peek(), visited, blocked);
             }
-        }
-        else {
+        } else {
             blocked.push(num);
             visited.pop();
+            if(!visited.isEmpty()){
+                return visited;
+            }
             return solveLeftHand(laby, visited.peek(), visited, blocked);
         }
     }
 
     /**
-     *
      * @param laby the maze to solve
-     * @param mode      resolution mode (0 for DFS, 1 for step by step DFS)
      * @return stack of nodes to visit to solve the maze (not always the shortest way
      */
-    public static Stack<Integer> prepLeftHand(GraphMaze laby, int mode){
-        Stack<Integer> pile= new Stack<>();
-        Stack<Integer> visited= new Stack<>();
+    public static Stack<Integer> prepLeftHand(GraphMaze laby) {
+        Stack<Integer> pile = new Stack<>();
+        Stack<Integer> visited = new Stack<>();
         visited.push(laby.getStart());
         Stack<Integer> blocked = new Stack<>();
-        //if (mode == 0) {
         visited = solveLeftHand(laby, laby.getStart(), visited, blocked);
-        //}
-        /*else {
-            pile=solveDFS2(labyrinth,labyrinth.getStart(), labyrinth.getStart();
-        }*/
-        do{
+        do {
             pile.push(visited.pop());
-        }while(!visited.isEmpty());
+        } while (!visited.isEmpty());
         System.out.println(blocked);
         return pile;
     }
 
     /**
-     *
      * @param laby le labyrinthe en question
      * @return la pile contenant le chemin à prendre pour avoir le plus cours chemin
      */
     public static Stack<Integer> solveDjisktra(GraphMaze laby) {
-        int n= laby.getEdges().length;
-        int[] dist= new int[n];
-        int[] fathers= new int[n];
-        boolean[] visited= new boolean[n];
+        int n = laby.getEdges().length;
+        int[] dist = new int[n];
+        int[] fathers = new int[n];
+        boolean[] visited = new boolean[n];
 
         Arrays.fill(dist, Integer.MAX_VALUE);
         Arrays.fill(fathers, -1);
-        dist[laby.getStart()]=0;
+        dist[laby.getStart()] = 0;
 
-        PriorityQueue<Integer> queue= new PriorityQueue<>(Comparator.comparingInt(x -> dist[x]));//les distances les plus faibles en premier
+        PriorityQueue<Integer> queue = new PriorityQueue<>(Comparator.comparingInt(x -> dist[x]));//les distances les plus faibles en premier
         queue.add(laby.getStart());
 
-        while(!queue.isEmpty()) {
-            int current= queue.poll();
-            if(visited[current]){
+        while (!queue.isEmpty()) {
+            int current = queue.poll();
+            if (visited[current]) {
                 continue;
             }
-            visited[current]=true;
+            visited[current] = true;
 
-            if (current==laby.getEnd()) {
+            if (current == laby.getEnd()) {
                 break;
             }
-            for (int edge: laby.getEdges()[current] ) {
-                if(dist[current]+1<dist[edge]) {
-                    dist[edge]=dist[current]+1;
-                    fathers[edge]=current;
+            for (int edge : laby.getEdges()[current]) {
+                if (dist[current] + 1 < dist[edge]) {
+                    dist[edge] = dist[current] + 1;
+                    fathers[edge] = current;
                     queue.add(edge);
                 }
             }
         }
         Stack<Integer> path = new Stack<>();
-        if (dist[laby.getStart()]==Integer.MAX_VALUE) {
+        if (dist[laby.getStart()] == Integer.MAX_VALUE) {
             return path;
         }
-        for(int at=laby.getEnd(); at!=laby.getStart(); at=fathers[at]) {
+        for (int at = laby.getEnd(); at != laby.getStart(); at = fathers[at]) {
             path.push(at);
         }
         path.push(laby.getStart());
 
         return path;
     }
+
+    /**
+     * @param labyrinth le labyrinthe à résoudre
+     * @param num       le noeud dans lequel on est
+     * @param visited   les noeuds déjà visités précedemment
+     * @return pile la pile des noeuds à visiter pour résoudre le labyrinthe de la manière la plus courte
+    */
+    @SuppressWarnings("unchecked")
+    private static Stack<Stack<Integer>> solveDFS2(GraphMaze labyrinth, int num, List<Integer> visited, Stack<Integer> currentPath) {
+        Stack<Stack<Integer>> pile = new Stack<>();
+        currentPath.push(num);
+
+        List<Integer> subList = labyrinth.getEdges()[num];
+        boolean deadEnd = true;
+
+        if (subList != null && !subList.isEmpty()) {
+            for (int son : subList) {
+                if (!visited.contains(son)) {
+                    deadEnd = false;
+                    List<Integer> subVisited = new ArrayList<>(visited);
+                    subVisited.add(son);
+                    Stack<Stack<Integer>> tempPile = solveDFS2(labyrinth, son, subVisited, (Stack<Integer>) currentPath.clone());
+                    pile.addAll(tempPile);
+                }
+            }
+        }
+
+        // On est soit à un dead-end soit à la fin
+        if (deadEnd || labyrinth.getEnd() == num) {
+            pile.push((Stack<Integer>) currentPath.clone());
+        }
+
+        return pile;
+    }
+
+
+    /**
+     * @param labyrinth the maze to solve
+     * @return stack of stacks of nodes to visit to solve the maze in the shortest way wtih a copy of the best path on top of the stack
+    */
+    public static Stack<Stack<Integer>> prepDFS2(GraphMaze labyrinth) {
+        List<Integer> visited = new ArrayList<>();
+        visited.add(labyrinth.getStart());
+        Stack<Integer> currentPath = new Stack<>();
+
+        Stack<Stack<Integer>> allPaths = solveDFS2(labyrinth, labyrinth.getStart(), visited, currentPath);
+
+        Stack<Integer> bestPath = null;
+        for (Stack<Integer> path : allPaths) {
+            if (path.contains(labyrinth.getEnd())) {
+                if (bestPath == null || path.size() < bestPath.size()) {
+                    bestPath = path;
+                }
+            }
+        }
+
+        System.out.println("Chemin le plus court : " + bestPath);
+        allPaths.push(bestPath);
+        return allPaths;
+    }
+
+    /**
+     * @param laby    graph du labyrinthe
+     * @param num     noeud pù l'on se trouve
+     * @param visited noeuds que l'on utilise pour avoir le chemin (sans les culs-de-sac)
+     * @param blocked noeuds qui mènent à ders culs-de-sac
+     * @return visited
+     */
+    @SuppressWarnings("unchecked")
+    private static Stack<Stack<Integer>> solveLeftHand2(GraphMaze laby, int num, Stack<Integer> visited, Stack<Integer> blocked, Stack<Stack<Integer>> pile) {
+        // À CHAQUE APPEL, on enregistre le chemin actuel
+        pile.push((Stack<Integer>) visited.clone());
+
+        // Condition d'arrêt : on a atteint la sortie
+        if (laby.getEnd() == num) {
+            return pile;
+        }
+
+        List<Integer> subList = laby.getEdges()[num];
+        if (subList != null && !subList.isEmpty()) {
+            // Essayer chaque direction selon la règle main gauche
+            if (subList.contains(num - laby.getWidth()) && !visited.contains(num - laby.getWidth()) && !blocked.contains(num - laby.getWidth())) {
+                visited.push(num - laby.getWidth());
+                return solveLeftHand2(laby, num - laby.getWidth(), visited, blocked, pile);
+            } else if (subList.contains(num + 1) && !visited.contains(num + 1) && !blocked.contains(num + 1)) {
+                visited.push(num + 1);
+                return solveLeftHand2(laby, num + 1, visited, blocked, pile);
+            } else if (subList.contains(num + laby.getWidth()) && !visited.contains(num + laby.getWidth()) && !blocked.contains(num + laby.getWidth())) {
+                visited.push(num + laby.getWidth());
+                return solveLeftHand2(laby, num + laby.getWidth(), visited, blocked, pile);
+            } else if (subList.contains(num - 1) && !visited.contains(num - 1) && !blocked.contains(num - 1)) {
+                visited.push(num - 1);
+                return solveLeftHand2(laby, num - 1, visited, blocked, pile);
+            } else {
+                // Impasse : marquer le noeud comme bloqué et revenir en arrière
+                blocked.push(num);
+                visited.pop();
+                if (visited.isEmpty()) {
+                    return pile;  // Plus de noeud à visiter, on arrête
+                }
+                return solveLeftHand2(laby, visited.peek(), visited, blocked, pile);
+            }
+        } else {
+            // Pas de voisin : impasse
+            blocked.push(num);
+            visited.pop();
+            if (visited.isEmpty()) {
+                return pile;  // Plus de noeud à visiter, on arrête
+            }
+            return solveLeftHand2(laby, visited.peek(), visited, blocked, pile);
+        }
+    }
+
+
+    /**
+     * @param laby the maze to solve
+     * @return stack of nodes to visit to solve the maze (not always the shortest way
+     */
+    public static Stack<Stack<Integer>> prepLeftHand2(GraphMaze laby) {
+        Stack<Stack<Integer>> temPile = new Stack<>();
+        Stack<Stack<Integer>> pile = new Stack<>();
+        Stack<Integer> visited = new Stack<>();
+        Stack<Integer> blocked = new Stack<>();
+        visited.push(laby.getStart());
+        temPile=solveLeftHand2(laby, laby.getStart(), visited, blocked, temPile);
+        do{
+            pile.push(temPile.pop());
+        }while(!temPile.isEmpty());
+        System.out.println(blocked);
+        return pile;
+    }
+
+
+
 
 }
