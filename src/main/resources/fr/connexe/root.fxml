@@ -6,7 +6,7 @@
 <?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.BorderPane?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="800.0" prefWidth="1200.0" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fr.connexe.ui.MainController">
+<BorderPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" prefHeight="800.0" prefWidth="1200.0" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fr.connexe.ui.MainController">
     <top>
         <MenuBar BorderPane.alignment="CENTER">
             <menus>
@@ -49,6 +49,7 @@
                             <accelerator>
                                 <KeyCodeCombination alt="UP" code="H" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                             </accelerator></MenuItem>
+                  <MenuItem mnemonicParsing="false" onAction="#handleExampleMaze" text="Labyrinthe d'exemple" />
                     </items>
                 </Menu>
             </menus>

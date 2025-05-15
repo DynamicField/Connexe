@@ -1,16 +1,23 @@
 package fr.connexe;
 
+import fr.connexe.ui.MazeRenderer;
 import fr.connexe.ui.MainController;
 import fr.connexe.ui.MazeController;
+import fr.connexe.ui.NewMazeDialogController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.prefs.Preferences;
 
 /// Our entire application, which persists until it is closed.
 ///
@@ -18,6 +25,7 @@ import java.io.IOException;
 public class ConnexeApp extends Application {
     private Stage stage;
     private BorderPane rootLayout;
+    private File mazeFilePath;
 
     /// Creates a new instance of the [ConnexeApp].
     public ConnexeApp() {}
@@ -26,14 +34,15 @@ public class ConnexeApp extends Application {
     public void start(Stage stage) throws IOException {
         this.stage = stage;
         this.stage.setTitle("Connexe");
-        stage.setMinHeight(500);
-        stage.setMinWidth(800);
+
+        // Min window size
+        stage.setMinWidth(900);
+        stage.setMinHeight(600);
 
         MainController mainController = initMainController();
         MazeController mazeController = initMazeController();
         mainController.setMazeController(mazeController);
     }
-
 
     public MainController initMainController() throws IOException {
         // Load the FXML file and create a new scene with it.
@@ -45,8 +54,12 @@ public class ConnexeApp extends Application {
         rootLayout = fxmlLoader.load();
         MainController controller = fxmlLoader.getController();
 
-        // Create the scene with the FXML file, set its title and size, and show it.
-        Scene scene = new Scene(rootLayout, 1200, 800);
+        // Create the scene with the FXML file, set its title and size and bind the layout size to the scene size
+        Scene scene = new Scene(rootLayout, 800, 500);
+        rootLayout.prefWidthProperty().bind(scene.widthProperty());
+        rootLayout.prefHeightProperty().bind(scene.heightProperty());
+
+        // Attach scene to window and show
         stage.setScene(scene);
         controller.setConnexeApp(this);
         stage.show();
@@ -85,4 +98,55 @@ public class ConnexeApp extends Application {
         return this.stage;
     }
 
+
+    /// Setup and show the dialog box when clicking on the menu item to create a new Maze
+    /// @param mazeRenderer passed by the MainController to be ready to receive a maze (to display later on the view)
+    public boolean showNewMazeDialog(MazeRenderer mazeRenderer) throws IOException{
+        // Load the fxml file and create a new stage for the popup dialog.
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(ConnexeApp.class.getResource("new-maze-popup.fxml"));
+        BorderPane page = loader.load();
+
+        // Create the dialog Stage.
+        Stage dialogStage = new Stage();
+        dialogStage.setTitle("Créer un labyrinthe");
+        dialogStage.initModality(Modality.WINDOW_MODAL);
+        dialogStage.initOwner(stage);
+
+        dialogStage.setMinHeight(400);
+        dialogStage.setMinWidth(600);
+
+        Scene scene = new Scene(page);
+        dialogStage.setScene(scene);
+
+        // Attach the dialog stage to the controller
+        NewMazeDialogController controller = loader.getController();
+        controller.setDialogStage(dialogStage);
+        controller.setMazeRenderer(mazeRenderer);
+
+        // Show the dialog and wait until the user closes it
+        dialogStage.showAndWait();
+
+        return controller.isOkClicked();
+    }
+
+    public File getMazeFilePath() {
+        return mazeFilePath;
+    }
+
+    public void setMazeFilePath(File file) {
+        this.mazeFilePath = file;
+    }
+
+    /// Function used by controllers when opening/saving/creating maze files
+    /// Set the [Stage] title to display the name of a currently opened maze file
+    /// @param file The name of the currently opened file in the view. If null given,
+    /// clears the app title
+    public void updateStageTitle(String file){
+        if(file != null){
+            stage.setTitle("Connexe - " + file);
+        } else {
+            stage.setTitle("Connexe");
+        }
+    }
 }

@@ -69,8 +69,8 @@ public class GraphMaze implements Serializable {
 
     /// Makes an empty maze with inaccessible cells, and no start/end points.
     ///
-    /// @param width  The width of the maze.
-    /// @param height The height of the maze.
+    /// @param width  The width of the maze. (number of columns)
+    /// @param height The height of the maze. (number of rows)
     @SuppressWarnings("unchecked") // For the (List<Integer>[]) cast
     public GraphMaze(int width, int height) {
         // Check the width and height.
@@ -201,8 +201,8 @@ public class GraphMaze implements Serializable {
             }
 
             // Else, disconnect them!
-            edges[vertexA].remove(vertexB);
-            edges[vertexB].remove(vertexA);
+            edges[vertexA].remove((Integer) vertexB);
+            edges[vertexB].remove((Integer) vertexA);
         }
 
         return true;
@@ -235,10 +235,10 @@ public class GraphMaze implements Serializable {
     /// @return a snapshot of this graph's state in [ArrayMaze] format
     public ArrayMaze toArrayMaze() {
         // Make a 2D array of cells for the array maze.
-        Cell[][] cells = new Cell[width][height];
+        Cell[][] cells = new Cell[height][width];
 
-        for (int y = 0; y < width; y++) {
-            for (int x = 0; x < height; x++) {
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
                 // Find the vertex id of this (x, y) point.
                 int vertex = toVertexId(new Point(x, y));
 
@@ -299,20 +299,18 @@ public class GraphMaze implements Serializable {
         return v >= 0 && v < numCells;
     }
 
+    /// Returns true is the 2D coordinates are contained within the graph.
+    /// @param p the point to check
+    /// @return true when the point is inside the maze.
+    public boolean isValidPos(Point p) {
+        return p.x() >= 0 && p.x() < width &&
+                p.y() >= 0 && p.y() < height;
+    }
+
     /// Checks if a vertex is valid.
     private void checkVertex(int v) {
         if (!isValidVertex(v)) {
-            throw new IllegalArgumentException("Invalid vertex id " + v + ". It must be in [0, " + numCells + "[.");
-        }
-    }
-
-    /// Checks if a vertex's position is valid.
-    private void checkVertexPos(Point p) {
-        if (p.x() < 0 || p.x() >= width) {
-            throw new IllegalArgumentException("Invalid vertex position x " + p.x() + ". It must be in [0, " + width + "[.");
-        }
-        if (p.y() < 0 || p.y() >= height) {
-            throw new IllegalArgumentException("Invalid vertex position y " + p.y() + ". It must be in [0, " + height + "[.");
+            throw new InvalidVertexException("Invalid vertex id " + v + ". It must be in [0, " + numCells + "[.");
         }
     }
 
@@ -330,13 +328,13 @@ public class GraphMaze implements Serializable {
 
         // Make sure we can't get start == end
         if (otherEnd == vertexId) {
-            throw new IllegalArgumentException("Start and end vertices cannot be the same.");
+            throw new InvalidVertexException("Start and end vertices cannot be the same.");
         }
 
         // Check that the vertex is on the border of the maze.
         Point pos = toPoint(vertexId);
         if (pos.x() != 0 && pos.x() != width - 1 && pos.y() != 0 && pos.y() != height - 1) {
-            throw new IllegalArgumentException("The start/end point should be at the border of the maze; not inside! " + pos);
+            throw new InvalidVertexException("The start/end point should be at the border of the maze; not inside! " + pos);
         }
     }
 
@@ -366,6 +364,22 @@ public class GraphMaze implements Serializable {
     /// Returns the start vertex. A value of -1 indicates no start vertex.
     public int getStart() {
         return start;
+    }
+
+    ///  Returns the coordinates of the start vertex. Returns null if no start vertex.
+    public Point getStartPoint() {
+        if (start == -1) {
+            return null;
+        }
+        return toPoint(start);
+    }
+
+    ///  Returns the coordinates of the end vertex. Returns null if no end vertex.
+    public Point getEndPoint() {
+        if (end == -1) {
+            return null;
+        }
+        return toPoint(end);
     }
 
     /// Sets the start vertex. A value of -1 indicates no start vertex.
