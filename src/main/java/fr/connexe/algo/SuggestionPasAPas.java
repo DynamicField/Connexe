@@ -1,6 +1,7 @@
 package fr.connexe.algo;
 
-import fr.connexe.GraphMaze;
+import fr.connexe.algo.GraphMaze;
+
 import java.util.ArrayList;
 import java.util.List;
 
