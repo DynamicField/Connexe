@@ -67,7 +67,6 @@ public class MazeController {
         mazeRenderer.getGraphMaze().save(fileOutputStream);
     }
 
-    // PROBLEM HERE : if we load a maze from a file, the log is lost so unable to recreate generation !!!
     /// Loads a file containing maze data and renders it on the view
     public void loadMaze(File file) throws MazeSerializationException, FileNotFoundException {
         FileInputStream fileInputStream = new FileInputStream(file);

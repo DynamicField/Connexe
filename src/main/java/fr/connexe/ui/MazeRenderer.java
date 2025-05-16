@@ -183,7 +183,7 @@ public class MazeRenderer {
         }
     }
 
-        public GraphMaze getGraphMaze() {
+    public GraphMaze getGraphMaze() {
         return graphMaze;
     }
 
