@@ -45,16 +45,18 @@ public class MazeSolver {
         Stack<Stack<Integer>> pile2;
         //pile2=MazeSolver.prepDFS2(g);
         //System.out.println("DFS2:" +pile2);
-        pile2=MazeSolver.prepLeftHand2(g);
-        System.out.println(pile2);
+        //pile2=MazeSolver.prepLeftHand2(g);
+        //System.out.println(pile2);
+        pile2=MazeSolver.solveDjisktra2(g);
+        System.out.println("Dijkstra2:" +pile2);
     }
 
 
     /**
-     * @param labyrinth le labyrinthe à résoudre
-     * @param num       le noeud dans lequel on est
-     * @param visited   les noeuds déjà visités précedemment
-     * @return pile la pile des noeuds à visiter pour résoudre le labyrinthe de la manière la plus courte
+     * @param labyrinth the maze to solve
+     * @param num       the node we are at
+     * @param visited   the nodes we already visited
+     * @return the stack of nodes which is the best path
      */
     private static Stack<Integer> solveDFS(GraphMaze labyrinth, int num, List<Integer> visited) {
         Stack<Integer> maxflow = new Stack<Integer>();
@@ -104,10 +106,10 @@ public class MazeSolver {
     }
 
     /**
-     * @param laby    graph du labyrinthe
-     * @param num     noeud pù l'on se trouve
-     * @param visited noeuds que l'on utilise pour avoir le chemin (sans les culs-de-sac)
-     * @param blocked noeuds qui mènent à ders culs-de-sac
+     * @param laby    the maze to solve
+     * @param num     the node we are at
+     * @param visited the nodes that we already visited without the dead ends
+     * @param blocked the nodes that lead to a dead end
      * @return visited
      */
     private static Stack<Integer> solveLeftHand(GraphMaze laby, int num, Stack<Integer> visited, Stack<Integer> blocked) {
@@ -164,8 +166,8 @@ public class MazeSolver {
     }
 
     /**
-     * @param laby le labyrinthe en question
-     * @return la pile contenant le chemin à prendre pour avoir le plus cours chemin
+     * @param laby the maze to solve
+     * @return stack of nodes which is the best path
      */
     public static Stack<Integer> solveDjisktra(GraphMaze laby) {
         int n = laby.getEdges().length;
@@ -211,10 +213,10 @@ public class MazeSolver {
     }
 
     /**
-     * @param labyrinth le labyrinthe à résoudre
-     * @param num       le noeud dans lequel on est
-     * @param visited   les noeuds déjà visités précedemment
-     * @return pile la pile des noeuds à visiter pour résoudre le labyrinthe de la manière la plus courte
+     * @param labyrinth the maze
+     * @param num       the node we are at
+     * @param visited   the nodes we visited
+     * @return pile the stack of nodes which is the best path
     */
     @SuppressWarnings("unchecked")
     private static Stack<Stack<Integer>> solveDFS2(GraphMaze labyrinth, int num, List<Integer> visited, Stack<Integer> currentPath) {
@@ -271,10 +273,10 @@ public class MazeSolver {
     }
 
     /**
-     * @param laby    graph du labyrinthe
-     * @param num     noeud pù l'on se trouve
-     * @param visited noeuds que l'on utilise pour avoir le chemin (sans les culs-de-sac)
-     * @param blocked noeuds qui mènent à ders culs-de-sac
+     * @param laby    the maze to solve
+     * @param num     the node where we are at
+     * @param visited nodes that we visited without the dead ends
+     * @param blocked the nodes that lead to a dead end
      * @return visited
      */
     @SuppressWarnings("unchecked")
@@ -325,7 +327,7 @@ public class MazeSolver {
 
     /**
      * @param laby the maze to solve
-     * @return stack of nodes to visit to solve the maze (not always the shortest way
+     * @return stack of stack of nodes to visit to solve the maze (not always the shortest way)
      */
     public static Stack<Stack<Integer>> prepLeftHand2(GraphMaze laby) {
         Stack<Stack<Integer>> temPile = new Stack<>();
@@ -341,7 +343,57 @@ public class MazeSolver {
         return pile;
     }
 
+    /**
+     * @param laby the maze to solve
+     * @return Stack of Stacks of nodes where the best path is at the top of the stack
+     */
+    @SuppressWarnings("unchecked")
+    public static Stack<Stack<Integer>> solveDjisktra2(GraphMaze laby) {
+        int n = laby.getEdges().length;
+        int[] dist = new int[n];
+        int[] fathers = new int[n];
+        boolean[] visited = new boolean[n];
+        Stack<Integer> visit= new Stack<>();
+        Stack<Stack<Integer>> pile = new Stack<>();
 
+        Arrays.fill(dist, Integer.MAX_VALUE);
+        Arrays.fill(fathers, -1);
+        dist[laby.getStart()] = 0;
+
+        PriorityQueue<Integer> queue = new PriorityQueue<>(Comparator.comparingInt(x -> dist[x]));//les distances les plus faibles en premier
+        queue.add(laby.getStart());
+
+        while (!queue.isEmpty()) {
+            int current = queue.poll();
+            if (visited[current]) {
+                continue;
+            }
+            visited[current] = true;
+            visit.push(current);
+            pile.push((Stack<Integer>)visit.clone());
+            if (current == laby.getEnd()) {
+                break;
+            }
+            for (int edge : laby.getEdges()[current]) {
+                if (dist[current] + 1 < dist[edge]) {
+                    dist[edge] = dist[current] + 1;
+                    fathers[edge] = current;
+                    queue.add(edge);
+                }
+            }
+        }
+        Stack<Integer> path = new Stack<>();
+        if (dist[laby.getEnd()] == Integer.MAX_VALUE) {
+            pile.push((Stack<Integer>)path.clone());
+            return pile;
+        }
+        for (int at = laby.getEnd(); at != laby.getStart(); at = fathers[at]) {
+            path.push(at);
+        }
+        path.push(laby.getStart());
+        pile.push((Stack<Integer>)path.clone());
+        return pile;
+    }
 
 
 }
