@@ -2,6 +2,7 @@ package fr.connexe.ui;
 
 import fr.connexe.ConnexeApp;
 import javafx.fxml.FXML;
+import javafx.scene.control.MenuItem;
 import javafx.stage.FileChooser;
 
 import java.io.File;
@@ -13,6 +14,14 @@ public class MainController {
     private ConnexeApp connexeApp;
     private MazeController mazeController;
     private MazeSelector mazeSelector;
+
+    @FXML
+    private MenuItem change;
+
+    @FXML
+    public void initialize() {
+        change.setDisable(true);
+    }
 
      /// Is called by the main application to give a reference back to itself.
      /// @param connexeApp - main application
@@ -57,6 +66,7 @@ public class MainController {
         MazeRenderer mazeRenderer = new MazeRenderer();
         boolean okClicked = connexeApp.showNewMazeDialog(mazeRenderer);
         if (okClicked) { // Maze is generated, now query the controller to display it on the view
+            change.setDisable(false);
             mazeController.createMazeFX(mazeRenderer);
         }
     }
@@ -97,6 +107,10 @@ public class MainController {
             // To do : save maze data to export as a file
             //connexeApp.saveMaze(file); or something like that
         }
+    }
+
+    public void handleChange(){
+
     }
 
     ///  Closes the app
