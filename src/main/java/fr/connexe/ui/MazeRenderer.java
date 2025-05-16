@@ -199,14 +199,6 @@ public class MazeRenderer {
         this.log = log;
     }
 
-    public void setStartVertex(int startVertex) {
-        graphMaze.setStart(startVertex);
-    }
-
-    public void setEndVertex(int endVertex) {
-        graphMaze.setEnd(endVertex);
-    }
-
     public GridPane getGrid() {
         return grid;
     }

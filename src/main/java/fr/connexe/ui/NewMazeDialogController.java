@@ -1,6 +1,7 @@
 package fr.connexe.ui;
 
 import fr.connexe.algo.InvalidVertexException;
+import fr.connexe.algo.generation.Endpoints;
 import fr.connexe.algo.generation.MazeGenResult;
 import fr.connexe.algo.generation.MazeGenerator;
 import javafx.beans.value.ChangeListener;
@@ -109,7 +110,7 @@ public class NewMazeDialogController {
     /// Generates a maze based on the given custom parameters and closes the dialog box.
     @FXML
     private void handleOk() {
-        MazeGenResult generatedMaze;
+        MazeGenResult generatedMaze = null;
         Long seed = null;
 
         // Retrieve seed value if generation with seed is selected
@@ -117,28 +118,35 @@ public class NewMazeDialogController {
             seed = seedSpinner.getValue().longValue();
         }
 
-        // Use the chosen generation method depending on the selected radio button
-        if(primRadio.isSelected()) {
-            generatedMaze = MazeGenerator.makePrim(colSpinner.getValue(), rowSpinner.getValue(), seed);
-        } else {
-            generatedMaze = MazeGenerator.makeDFS(colSpinner.getValue(), rowSpinner.getValue(), seed);
-        }
-
-        mazeRenderer.setGraphMaze(generatedMaze.maze());
-        mazeRenderer.setLog(generatedMaze.log());
-
         try{
             // Setup entry/exit of maze with given vertex IDs
-            mazeRenderer.setEndVertex(endSpinner.getValue());
-            mazeRenderer.setStartVertex(startSpinner.getValue());
+            Endpoints endpoints = new Endpoints(startSpinner.getValue(), endSpinner.getValue());
+
+            // Use the chosen generation method depending on the selected radio button
+            if(primRadio.isSelected()) {
+                generatedMaze = MazeGenerator.makePrim(colSpinner.getValue(), rowSpinner.getValue(), endpoints, seed);
+            } else {
+                generatedMaze = MazeGenerator.makeDFS(colSpinner.getValue(), rowSpinner.getValue(), endpoints, seed);
+            }
+
+            mazeRenderer.setGraphMaze(generatedMaze.maze());
+            mazeRenderer.setLog(generatedMaze.log());
+
         } catch(InvalidVertexException e) {
             showWarning("Entrée / Sortie invalide(s)",
                     "L'ID de l'entrée et/ou de sortie n'est/ne sont pas valide(s).\n" +
                             "Des valeurs par défaut ont été choisies.");
 
-            // Choose default fallback values
-            mazeRenderer.setStartVertex(0);
-            mazeRenderer.setEndVertex(generatedMaze.maze().getNumCells() - 1);
+            // No endpoints specified = default fallback values set by the generation methods (start = 0; end = n-1)
+            if(primRadio.isSelected()) {
+                generatedMaze = MazeGenerator.makePrim(colSpinner.getValue(), rowSpinner.getValue(), null, seed);
+            } else {
+                generatedMaze = MazeGenerator.makeDFS(colSpinner.getValue(), rowSpinner.getValue(), null, seed);
+            }
+
+            mazeRenderer.setGraphMaze(generatedMaze.maze());
+            mazeRenderer.setLog(generatedMaze.log());
+
         } finally {
             // Introduce chaos to perfect maze to make it non-perfect if checkbox isn't selected
             // Required to do AFTER setting the start and end
