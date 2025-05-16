@@ -61,19 +61,24 @@ public class MazeController {
     }
 
     /// Saves the current rendered maze into a file
-    public void saveMaze(File file) throws MazeSerializationException, FileNotFoundException {
+    public void saveMaze(File file) throws MazeSerializationException, IOException {
         assert mazeRenderer.getGraphMaze() != null : "MazeRenderer must have a maze to be saved";
-        FileOutputStream fileOutputStream = new FileOutputStream(file);
-        mazeRenderer.getGraphMaze().save(fileOutputStream);
+
+        // Open an output stream with the given file, then close it automatically
+        try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+            mazeRenderer.getGraphMaze().save(fileOutputStream);
+        }
     }
 
     /// Loads a file containing maze data and renders it on the view
-    public void loadMaze(File file) throws MazeSerializationException, FileNotFoundException {
-        FileInputStream fileInputStream = new FileInputStream(file);
-        GraphMaze maze = GraphMaze.load(fileInputStream);
-        mazeRenderer.setGraphMaze(maze);
-        mazeRenderer.setLog(null); // remove log of previous generation
-        createMazeFX();
+    public void loadMaze(File file) throws MazeSerializationException, IOException {
+        // Open an input stream with the given file, then close it automatically
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+            GraphMaze maze = GraphMaze.load(fileInputStream);
+            mazeRenderer.setGraphMaze(maze);
+            mazeRenderer.setLog(null); // remove log of previous generation
+            createMazeFX();
+        }
     }
 
     public void setMazeRenderer(MazeRenderer mazeRenderer) {
