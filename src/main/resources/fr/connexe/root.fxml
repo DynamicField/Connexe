@@ -69,7 +69,7 @@
               </MenuBar>
             <ToolBar>
               <items>
-                <Button fx:id="genButton" mnemonicParsing="false" onAction="#handleGenerationAnimation">
+                <Button fx:id="genButton" disable="true" mnemonicParsing="false" onAction="#handleGenerationAnimation">
                      <graphic>
                         <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
                            <image>
