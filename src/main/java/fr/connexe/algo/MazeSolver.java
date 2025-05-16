@@ -43,10 +43,10 @@ public class MazeSolver {
         System.out.println(pile);
 */
         Stack<Stack<Integer>> pile2;
-        //pile2=MazeSolver.prepDFS2(g);
-        //System.out.println("DFS2:" +pile2);
-        //pile2=MazeSolver.prepLeftHand2(g);
-        //System.out.println(pile2);
+        pile2=MazeSolver.prepDFS2(g);
+        System.out.println("DFS2:" +pile2);
+        pile2=MazeSolver.prepLeftHand2(g);
+        System.out.println(pile2);
         pile2=MazeSolver.solveDjisktra2(g);
         System.out.println("Dijkstra2:" +pile2);
     }
@@ -339,7 +339,7 @@ public class MazeSolver {
         do{
             pile.push(temPile.pop());
         }while(!temPile.isEmpty());
-        System.out.println(blocked);
+
         return pile;
     }
 
