@@ -104,6 +104,31 @@ public class MazeRenderer {
 
                 gridCell.setStyle(style.toString());
 
+                //Must be final for lambda expression below
+                final int tWidth = topWidth;
+                final int bWidth = bottomWidth;
+                final int lWidth = leftWidth;
+                final int rWidth = rightWidth;
+                final int FRow = row;
+                final int FCol = col;
+
+                gridCell.setOnMouseClicked(event -> {
+                    double x = event.getX();
+                    double y = event.getY();
+                    double w = gridCell.getWidth();
+                    double h = gridCell.getHeight();
+                    double margin = 10; // tolérance en pixels
+
+                    if (tWidth > 0 && y < margin)
+                        System.out.println("mur haut (" + FRow + "," + FCol + ")");
+                    else if (bWidth > 0 && y > h - margin)
+                        System.out.println("mur bas (" + FRow + "," + FCol + ")");
+                    else if (lWidth > 0 && x < margin)
+                        System.out.println("mur gauche (" + FRow + "," + FCol + ")");
+                    else if (rWidth > 0 && x > w - margin)
+                        System.out.println("mur droite (" + FRow + "," + FCol + ")");
+                });
+
                 // Allow dynamic resizing of the cell
                 GridPane.setHgrow(gridCell, Priority.ALWAYS);
                 GridPane.setVgrow(gridCell, Priority.ALWAYS);
