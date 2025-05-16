@@ -53,6 +53,7 @@ public class ConnexeApp extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(ConnexeApp.class.getResource("root.fxml"));
         rootLayout = fxmlLoader.load();
         MainController controller = fxmlLoader.getController();
+        //Disable the edit button
         controller.initialize();
 
 
