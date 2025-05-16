@@ -5,14 +5,21 @@ import fr.connexe.algo.Cell;
 import fr.connexe.algo.GraphMaze;
 import fr.connexe.algo.Point;
 import fr.connexe.algo.generation.MazeGenLog;
-import fr.connexe.algo.generation.MazeGenResult;
+import javafx.animation.PauseTransition;
 import javafx.scene.layout.*;
+
+import javafx.util.Duration;
+
+import java.util.function.Supplier;
 
 ///  Renderer for a GraphMaze as a JavaFX GridPane
 public class MazeRenderer {
 
     private MazeGenLog log;
     private GraphMaze graphMaze;
+    private GridPane grid; // currently displayed maze grid
+    private Supplier<Double> delaySupplier; // supplier to query speed value during animations
+
 
     /// Initialize a maze renderer about to take a maze which parameters will be set by a user
     public MazeRenderer(){
@@ -46,16 +53,66 @@ public class MazeRenderer {
         System.out.println(g);
     }
 
-    ///  Build a JavaFX GridPane to represent the maze and its walls
-    public GridPane buildGrid() {
+    ///  Build a [GridPane] to represent the maze and its walls
+    public void buildGrid() {
         assert graphMaze != null : "GraphMaze must be set before calling buildGrid()";
+        ArrayMaze arrayMaze = graphMaze.toArrayMaze();
+
+        // Initialize a new GridPane object for the renderer's grid and build the maze
+        this.grid = initMazeGrid();
+        buildWalls(arrayMaze);
+    }
+
+    /// Animate the whole maze grid generation
+    /// @param onFinished piece of code to run later when the animation is finished.
+    /// (to re-enable buttons for example)
+    public void animateGridBuild(Runnable onFinished) {
+        assert graphMaze != null : "GraphMaze must be set before calling animateGridBuild()";
+        assert log != null : "MazeGenLog must be set before calling animateGridBuild()";
+        assert grid != null : "Grid must be built first before calling animateGridBuild()";
+
+        int totalSteps = log.size();
+        playStep(1, totalSteps, onFinished);
+    }
+
+    /// Animate the current step
+    /// @param step step number in the logs
+    /// @param totalSteps total number of steps during generation (from the logs)
+    /// @param onFinished piece of code to run later when the animation is finished.
+    /// (to re-enable buttons for example)
+    private void playStep(int step, int totalSteps, Runnable onFinished) {
+        if (step > totalSteps) { // animation is finished
+            if (onFinished != null) onFinished.run();
+            return;
+        }
+
+        // Build and render this step
+        GraphMaze mazeStep = log.buildMazeUntil(step);
+        ArrayMaze mazeStepArray = mazeStep.toArrayMaze();
+
+        grid.getChildren().clear();
+        buildWalls(mazeStepArray);
+
+        // Query the current delay (animation speed) from the supplier
+        double currentDelayMs = delaySupplier != null ? delaySupplier.get() : 500;
+
+        // Wait for a certain time delay without freezing the UI thread then go to the next step
+        PauseTransition pause = new PauseTransition(Duration.millis(currentDelayMs));
+        pause.setOnFinished(e -> playStep(step + 1, totalSteps, onFinished));
+        pause.play();
+    }
+
+    /// Initialize an empty [GridPane] with the graph's dimensions.
+    private GridPane initMazeGrid(){
+        assert graphMaze != null : "GraphMaze must be set before calling initMazeGrid()";
 
         int rows = graphMaze.getHeight();
         int cols = graphMaze.getWidth();
-        ArrayMaze arrayMaze = graphMaze.toArrayMaze();
 
         GridPane grid = new GridPane();
         double cellScale = Math.max(rows, cols);
+
+        // Set constraints for the GridPane to preserve a view ratio depending on its number of rows and columns
 
         // Set column constraints (once per column)
         for (int i = 0; i < cols; i++) {
@@ -71,14 +128,26 @@ public class MazeRenderer {
             grid.getRowConstraints().add(rowConstraints);
         }
 
-        // Add empty regions to each cell
+        return grid;
+    }
+
+    /// For a given [ArrayMaze], initialize regions in the corresponding [GridPane] cells
+    /// and build their walls (as borders).
+    /// This method is used not only to build the current renderer's maze ([#buildGrid()]), but also
+    /// used for the generation animation ([#animateGridBuild(Duration)])
+    /// to build the grid for intermediate [ArrayMaze] steps
+    /// @param arrayMaze the maze that needs to be rendered, either `MazeRenderer`'s finished `ArrayMaze`, either
+    /// an intermediate step of its generation
+    private void buildWalls(ArrayMaze arrayMaze){
+        int rows = arrayMaze.getHeight();
+        int cols = arrayMaze.getWidth();
+
+        // Build a region holding walls (borders) on each cell
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
                 Region gridCell = new Region();
 
-                // Add a style to the region (make each cell white)
-                StringBuilder style = new StringBuilder("-fx-background-color: white;");
-
+                // Retrieve information of the cell from the ArrayMaze
                 Point vertexCoordinates = new Point(col, row);
                 Cell mazeCell = arrayMaze.getCell(vertexCoordinates);
 
@@ -95,14 +164,14 @@ public class MazeRenderer {
                 if (col == cols - 1 && rightWidth > 0) rightWidth = 4;
 
                 // Apply style on cell
-                style.append("-fx-border-color: black;");
-                style.append(" -fx-border-width: ")
-                        .append(topWidth).append(" ")
-                        .append(rightWidth).append(" ")
-                        .append(bottomWidth).append(" ")
-                        .append(leftWidth).append(";");
+                String style = "-fx-border-color: black; -fx-border-width: "
+                        + topWidth + " "
+                        + rightWidth + " "
+                        + bottomWidth + " "
+                        + leftWidth + ";"
+                        + "-fx-background-color: white;";
 
-                gridCell.setStyle(style.toString());
+                gridCell.setStyle(style);
 
                 // Allow dynamic resizing of the cell
                 GridPane.setHgrow(gridCell, Priority.ALWAYS);
@@ -112,11 +181,9 @@ public class MazeRenderer {
                 grid.add(gridCell, col, row);
             }
         }
-
-        return grid;
     }
 
-    public GraphMaze getGraphMaze() {
+        public GraphMaze getGraphMaze() {
         return graphMaze;
     }
 
@@ -138,5 +205,13 @@ public class MazeRenderer {
 
     public void setEndVertex(int endVertex) {
         graphMaze.setEnd(endVertex);
+    }
+
+    public GridPane getGrid() {
+        return grid;
+    }
+
+    public void setDelaySupplier(Supplier<Double> delaySupplier) {
+        this.delaySupplier = delaySupplier;
     }
 }

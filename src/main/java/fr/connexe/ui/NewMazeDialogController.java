@@ -249,12 +249,8 @@ public class NewMazeDialogController {
         startFactory.setMax(total - 1);
         endFactory.setMax(total - 1);
 
-        // If current entered values in spinners are superior to the new total of cells, clip excess
-        if (startSpinner.getValue() > total - 1) {
-            startFactory.setValue(total - 1);
-        }
-        if (endSpinner.getValue() > total - 1) {
-            endFactory.setValue(total - 1);
-        }
+        // Automatically reset start/end to first and last cell
+        startFactory.setValue(0);
+        endFactory.setValue(total - 1);
     }
 }
