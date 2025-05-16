@@ -28,13 +28,21 @@ public class MazeGenerator {
         // introduceChaos(r, 0.15f, 3L);
     }
 
+    /// Generates a **perfect maze** randomly, using Prim's algorithm, with default endpoints.
+    ///
+    /// @see #makePrim(int, int, Endpoints, Long)
+    public static MazeGenResult makePrim(int width, int height, Long seed) {
+        return makePrim(width, height, null, seed);
+    }
+
     /// Generates a **perfect maze** randomly, using Prim's algorithm.
     ///
     /// @param width  the width of the maze to generate
     /// @param height the height of the maze to generate
+    /// @param endpoints the start and end vertices of the maze to generate; if `null`, the endpoints will be set to default.
     /// @param seed   an optional seed for the RNG; a `null` value will generate a seed randomly.
     /// @return the generated perfect maze and its log, inside a [MazeGenResult]
-    public static MazeGenResult makePrim(int width, int height, Long seed) {
+    public static MazeGenResult makePrim(int width, int height, Endpoints endpoints, Long seed) {
         // Check the dimensions of the maze to be large enough.
         checkDimensions(width, height);
 
@@ -46,6 +54,10 @@ public class MazeGenerator {
         var maze = new GraphMaze(width, height);
         // The generation log which will contain events corresponding to each step of the algorithm.
         var log = new MazeGenLog(width, height);
+
+        // Apply the start and end vertices contained in "endpoints" if we have some.
+        // Otherwise, we're going to use the default: [first vertex, last vertex].
+        applyEndpoints(maze, log, endpoints);
 
         // A weighted graph with one vertex per maze cell.
         // Each cell is connected with its adjacent cells, with random edge weights.
@@ -103,26 +115,33 @@ public class MazeGenerator {
             }
         }
 
-        // The Prim algorithm is done, and we just need to set the start and end vertices and log that out.
-        // Technically, since this generated maze is perfect, we can choose any vertex located in the border
-        // of the maze.
-        log.add(new MazeGenEvent.SetEndpoints(0, maze.getNumCells() - 1));
-
         // Return the generated maze!
         return new MazeGenResult(maze, log);
+    }
+
+    /// Generates a **perfect maze** randomly, using a randomized depth-first search algorithm, with default endpoints.
+    ///
+    /// @see #makeDFS(int, int, Endpoints, Long)
+    public static MazeGenResult makeDFS(int width, int height, Long seed) {
+        return makeDFS(width, height, null, seed);
     }
 
     /// Generates a **perfect maze** randomly, using a randomized depth-first search algorithm.
     ///
     /// @param width  the width of the maze to generate
     /// @param height the height of the maze to generate
+    /// @param endpoints the start and end vertices of the maze to generate; if `null`, the endpoints will be set to default.
     /// @param seed   an optional seed for the RNG; a `null` value will generate a seed randomly.
     /// @return the generated perfect maze and its log, inside a [MazeGenResult]
-    public static MazeGenResult makeDFS(int width, int height, Long seed) {
+    public static MazeGenResult makeDFS(int width, int height, Endpoints endpoints, Long seed) {
         // Make the maze and generation log with the right dimensions.
         checkDimensions(width, height);
         var maze = new GraphMaze(width, height);
         var log = new MazeGenLog(width, height);
+
+        // Apply the start and end vertices contained in "endpoints" if we have some.
+        // Otherwise, we're going to use the default: [first vertex, last vertex].
+        applyEndpoints(maze, log, endpoints);
 
         // Create the random instance using the given seed (or none).
         var random = seed != null ? new Random(seed) : new Random();
@@ -133,11 +152,12 @@ public class MazeGenerator {
         // Start the DFS algorithm.
         dfsRandom(maze, log, visited, random, 0);
 
-        // Finally, set both start and end points to be furthest apart and return the final maze!
-        log.add(maze, new MazeGenEvent.SetEndpoints(0, maze.getNumCells() - 1));
+        // The DFS algorithm is done, return the result!
         return new MazeGenResult(maze, log);
     }
 
+    // The heart of the DFS generation algorithm: a recursive function that traverses a graph in DFS-fashion...
+    // Except that the edges are taken randomly!
     private static void dfsRandom(GraphMaze maze, MazeGenLog log, boolean[] visited, Random random, int vertex) {
         // Mark this vertex as visited.
         visited[vertex] = true;
@@ -391,6 +411,17 @@ public class MazeGenerator {
         }
     }
 
+    // Sets the start and end vertices of a maze given some endpoints. If "endpoints" is null,
+    // uses default start/end vertices (first to last cell).
+    private static void applyEndpoints(GraphMaze maze, MazeGenLog log, Endpoints endpoints) {
+        if (endpoints == null) {
+            // Apply defaults: first vertex to last vertex.
+            endpoints = new Endpoints(0, maze.getNumCells() - 1);
+        }
+        log.add(maze, new MazeGenEvent.SetEndpoints(endpoints.startVertex(), endpoints.endVertex()));
+    }
+
+    // Checks if both dimensions are large enough to make a (challenging?) maze.
     private static void checkDimensions(int width, int height) {
         if (width < 2 || height < 2) {
             throw new IllegalArgumentException("The width and height of the maze must be at least 2. ("
@@ -453,9 +484,13 @@ public class MazeGenerator {
 
             // Make sure this offset leads to a valid vertex.
             if (maze.isValidPos(otherPos)) {
+                // Find its vertex id
                 int otherVertex = maze.toVertexId(otherPos);
 
                 // Preserve the "a < b" edge invariant for uniqueness.
+                // Remember that we always call this function twice with "reversed" arguments.
+                // Example: (1, 1, 0) and (2, -1, 0) to connect vertices 1 and 2.
+                // So, in the end, we'll always have unique edges without needing to check for uniqueness.
                 if (otherVertex < vertex) {
                     return;
                 }
