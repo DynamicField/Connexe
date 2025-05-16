@@ -72,7 +72,7 @@ public class MazeGenLog implements Iterable<MazeGenEvent> {
     public MazeGenLog(int mazeWidth, int mazeHeight) {
         // Check width/height
         if (mazeWidth <= 0 || mazeHeight <= 0) {
-            throw new IllegalArgumentException("mazeWidth and mazeHeight must be positive (not zero)");
+            throw new IllegalArgumentException("mazeWidth and mazeHeight must be positive (not zero and not negative)");
         }
 
         // Initialize all fields
@@ -134,25 +134,25 @@ public class MazeGenLog implements Iterable<MazeGenEvent> {
         }
     }
 
-    /// Builds a [GraphMaze] at a particular point in time, by applying all events **STRICTLY BEFORE `maxEventIdx`**.
+    /// Builds a [GraphMaze] at a particular point in time, by applying all events **STRICTLY BEFORE `maxEventIndex`**.
     /// The event at index `maxEventidx` **will not be applied**.
     ///
     /// An index of 0 will give the initial maze (default, all walls, no connections).
     ///
     /// An index of [#size()] will give the final maze (the algorithm is done).
     ///
-    /// @param maxEventIdx the exclusive event index before which all events are applied;
+    /// @param maxEventIndex the exclusive event index before which all events are applied;
     ///                                       must be in the interval `[0, size]`.
-    /// @return the maze created by applying all events in the interval `[0, maxEventIdx[`
-    public GraphMaze buildMazeUntil(int maxEventIdx) {
+    /// @return the maze created by applying all events in the interval `[0, maxEventIndex[`
+    public GraphMaze buildMazeUntil(int maxEventIndex) {
         // Make sure the index isn't out of bounds
-        if (maxEventIdx < 0 || maxEventIdx > events.size()) {
-            throw new IllegalArgumentException("maxEventIdx must be a valid index, in [0, " + events.size() + "]");
+        if (maxEventIndex < 0 || maxEventIndex > events.size()) {
+            throw new IllegalArgumentException("maxEventIndex must be a valid index, in [0, " + events.size() + "]");
         }
 
         // Make the initial maze
         var maze = new GraphMaze(mazeWidth, mazeHeight);
-        for (int i = 0; i < maxEventIdx; i++) {
+        for (int i = 0; i < maxEventIndex; i++) {
             // Find the event and apply it to the maze.
             MazeGenEvent event = events.get(i);
             applyEvent(maze, event);

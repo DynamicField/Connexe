@@ -123,7 +123,9 @@ public class NewMazeDialogController {
         } else {
             generatedMaze = MazeGenerator.makeDFS(colSpinner.getValue(), rowSpinner.getValue(), seed);
         }
-        mazeRenderer.setMazeGenResult(generatedMaze);
+
+        mazeRenderer.setGraphMaze(generatedMaze.maze());
+        mazeRenderer.setLog(generatedMaze.log());
 
         try{
             // Setup entry/exit of maze with given vertex IDs
@@ -141,12 +143,11 @@ public class NewMazeDialogController {
             // Introduce chaos to perfect maze to make it non-perfect if checkbox isn't selected
             // Required to do AFTER setting the start and end
             if(!perfectMazeCheckBox.isSelected()) {
-                introduceChaos(mazeRenderer.getMazeGenResult(), chaosPercentageSpinner.getValue().floatValue(), seed);
+                MazeGenResult mazeGenResult = new MazeGenResult(mazeRenderer.getGraphMaze(), mazeRenderer.getLog());
+                introduceChaos(mazeGenResult, chaosPercentageSpinner.getValue().floatValue(), seed);
+                mazeRenderer.setGraphMaze(mazeGenResult.maze());
+                mazeRenderer.setLog(mazeGenResult.log());
             }
-
-            // Display result in console too to verify
-            System.out.println(mazeRenderer.getMazeGenResult());
-
             okClicked = true;
             dialogStage.close();
         }
@@ -171,8 +172,8 @@ public class NewMazeDialogController {
     }
 
     ///  To show an alert/warning dialog box
-    /// @param title - title of the box
-    /// @param content - warning message inside the box
+    /// @param title title of the box
+    /// @param content warning message inside the box
     private void showWarning(String title, String content) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         alert.setTitle(title);
@@ -197,7 +198,7 @@ public class NewMazeDialogController {
 
 
     ///  Force commit user input from a spinner's TextField to that spinner
-    /// @param spinner - the spinner in which we want to listen to user inputs
+    /// @param spinner the spinner in which we want to listen to user inputs
     private void commitEditorText(Spinner<Integer> spinner) {
         if (!spinner.isEditable()) return;
 
@@ -219,7 +220,7 @@ public class NewMazeDialogController {
     /// If the user types a value in a spinner, forces JavaFX to commit that value to the spinner’s value property when :
     /// * The user presses Enter, or
     /// * The spinner loses focus (clicks elsewhere)
-    /// @param spinner - the spinner in which we want to listen to user inputs
+    /// @param spinner the spinner in which we want to listen to user inputs
     private void setupCommitOnFocusOrEnter(Spinner<Integer> spinner) {
         spinner.getEditor().setOnAction(e -> commitEditorText(spinner)); // on enter
 

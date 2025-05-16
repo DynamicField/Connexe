@@ -7,6 +7,7 @@ import fr.connexe.ui.NewMazeDialogController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -14,7 +15,9 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.io.File;
 import java.io.IOException;
+import java.util.prefs.Preferences;
 
 /// Our entire application, which persists until it is closed.
 ///
@@ -22,6 +25,7 @@ import java.io.IOException;
 public class ConnexeApp extends Application {
     private Stage stage;
     private BorderPane rootLayout;
+    private File mazeFilePath;
 
     /// Creates a new instance of the [ConnexeApp].
     public ConnexeApp() {}
@@ -98,7 +102,7 @@ public class ConnexeApp extends Application {
 
 
     /// Setup and show the dialog box when clicking on the menu item to create a new Maze
-    /// @param mazeRenderer - passed by the MainController to be ready to receive a maze (to display later on the view)
+    /// @param mazeRenderer passed by the MainController to be ready to receive a maze (to display later on the view)
     public boolean showNewMazeDialog(MazeRenderer mazeRenderer) throws IOException{
         // Load the fxml file and create a new stage for the popup dialog.
         FXMLLoader loader = new FXMLLoader();
@@ -126,5 +130,25 @@ public class ConnexeApp extends Application {
         dialogStage.showAndWait();
 
         return controller.isOkClicked();
+    }
+
+    public File getMazeFilePath() {
+        return mazeFilePath;
+    }
+
+    public void setMazeFilePath(File file) {
+        this.mazeFilePath = file;
+    }
+
+    /// Function used by controllers when opening/saving/creating maze files
+    /// Set the [Stage] title to display the name of a currently opened maze file
+    /// @param file The name of the currently opened file in the view. If null given,
+    /// clears the app title
+    public void updateStageTitle(String file){
+        if(file != null){
+            stage.setTitle("Connexe - " + file);
+        } else {
+            stage.setTitle("Connexe");
+        }
     }
 }

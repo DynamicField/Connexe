@@ -4,13 +4,14 @@ import fr.connexe.algo.ArrayMaze;
 import fr.connexe.algo.Cell;
 import fr.connexe.algo.GraphMaze;
 import fr.connexe.algo.Point;
+import fr.connexe.algo.generation.MazeGenLog;
 import fr.connexe.algo.generation.MazeGenResult;
 import javafx.scene.layout.*;
 
 ///  Renderer for a GraphMaze as a JavaFX GridPane
 public class MazeRenderer {
 
-    private MazeGenResult mazeGenResult;
+    private MazeGenLog log;
     private GraphMaze graphMaze;
 
     /// Initialize a maze renderer about to take a maze which parameters will be set by a user
@@ -40,11 +41,15 @@ public class MazeRenderer {
         g.setStart(0);
         g.setEnd(15);
         this.graphMaze = g;
+        this.log = null; // in case we're reusing a previous renderer for another maze for whatever reason
+
         System.out.println(g);
     }
 
     ///  Build a JavaFX GridPane to represent the maze and its walls
     public GridPane buildGrid() {
+        assert graphMaze != null : "GraphMaze must be set before calling buildGrid()";
+
         int rows = graphMaze.getHeight();
         int cols = graphMaze.getWidth();
         ArrayMaze arrayMaze = graphMaze.toArrayMaze();
@@ -119,13 +124,12 @@ public class MazeRenderer {
         this.graphMaze = graphMaze;
     }
 
-    public MazeGenResult getMazeGenResult() {
-        return mazeGenResult;
+    public MazeGenLog getLog() {
+        return log;
     }
 
-    public void setMazeGenResult(MazeGenResult mazeGenResult) {
-        this.mazeGenResult = mazeGenResult;
-        this.graphMaze = mazeGenResult.maze();
+    public void setLog(MazeGenLog log) {
+        this.log = log;
     }
 
     public void setStartVertex(int startVertex) {
