@@ -13,6 +13,7 @@ public class MainController {
 
     private ConnexeApp connexeApp;
     private MazeController mazeController;
+    private MazeRenderer mazeRenderer = new MazeRenderer();
 
     @FXML
     private MenuItem change;
@@ -62,11 +63,10 @@ public class MainController {
     @FXML
     private void handleNew() throws IOException {
         // Initialize a renderer taking a maze generated from user parameters through the creation dialog box
-        MazeRenderer mazeRenderer = new MazeRenderer();
-        boolean okClicked = connexeApp.showNewMazeDialog(mazeRenderer);
+        boolean okClicked = connexeApp.showNewMazeDialog(this.mazeRenderer);
         if (okClicked) { // Maze is generated, now query the controller to display it on the view
             change.setDisable(false);
-            mazeController.createMazeFX();
+            //mazeController.createMazeFX(this.mazeRenderer);
         }
     }
 
@@ -109,7 +109,7 @@ public class MainController {
     }
 
     public void handleChange(){
-
+        mazeController.createMazeFX(this.mazeRenderer);
     }
 
     ///  Closes the app
@@ -126,6 +126,6 @@ public class MainController {
         // Initialize a renderer taking a maze generated from user parameters through the creation dialog box
         MazeRenderer mazeRenderer = new MazeRenderer();
         mazeRenderer.setDefaultExample();
-        mazeController.createMazeFX();
+        mazeController.createMazeFX(mazeRenderer);
     }
 }

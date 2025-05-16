@@ -20,7 +20,7 @@ public class MazeController {
     private VBox vboxLayout;
 
     ///  Display a maze in the VBox of the main scene
-    public void createMazeFX(){
+    public void createMazeFX(MazeRenderer mazeRenderer){
         vboxLayout.getChildren().clear();
         GridPane dynamicGrid = mazeRenderer.buildGrid();
 
@@ -57,7 +57,7 @@ public class MazeController {
         GraphMaze maze = GraphMaze.load(fileInputStream);
         mazeRenderer.setGraphMaze(maze);
         mazeRenderer.setLog(null); // remove log of previous generation
-        createMazeFX();
+        createMazeFX(mazeRenderer);
     }
 
     public void setMazeRenderer(MazeRenderer mazeRenderer) {
