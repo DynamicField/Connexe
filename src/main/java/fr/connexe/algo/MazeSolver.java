@@ -46,7 +46,7 @@ public class MazeSolver {
         pile2=MazeSolver.prepDFS2(g);
         System.out.println("DFS2:" +pile2);
         pile2=MazeSolver.prepLeftHand2(g);
-        System.out.println(pile2);
+        System.out.println("main gauche:"+pile2);
         pile2=MazeSolver.solveDjisktra2(g);
         System.out.println("Dijkstra2:" +pile2);
     }
@@ -266,8 +266,6 @@ public class MazeSolver {
                 }
             }
         }
-
-        System.out.println("Chemin le plus court : " + bestPath);
         allPaths.push(bestPath);
         return allPaths;
     }
