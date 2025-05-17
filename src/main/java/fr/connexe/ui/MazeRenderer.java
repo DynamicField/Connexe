@@ -14,7 +14,6 @@ public class MazeRenderer {
     private MazeGenLog log;
     private GraphMaze graphMaze;
 
-    // Pour mémoriser le dernier mur sélectionné
     private Region lastSelectedCell = null;
     private String lastSelectedSide = null;
     private Region lastNeighborCell = null;
@@ -22,8 +21,7 @@ public class MazeRenderer {
 
     public MazeRenderer() {}
 
-    /// Exemple par défaut pour test
-    public void setDefaultExample(){
+    public void setDefaultExample() {
         var g = new GraphMaze(4, 4);
         g.connect(0, 1);
         g.connect(0, 4);
@@ -49,7 +47,6 @@ public class MazeRenderer {
         System.out.println(g);
     }
 
-    /// Construit la grille JavaFX représentant le labyrinthe
     public GridPane buildGrid() {
         assert graphMaze != null : "GraphMaze must be set before calling buildGrid()";
 
@@ -79,7 +76,7 @@ public class MazeRenderer {
                 Point vertexCoordinates = new Point(col, row);
                 Cell mazeCell = arrayMaze.getCell(vertexCoordinates);
 
-                int topWidth = 2; int rightWidth = 2; int bottomWidth = 2; int leftWidth = 2;
+                int topWidth = 2, rightWidth = 2, bottomWidth = 2, leftWidth = 2;
                 String topColor = mazeCell.wallUp() ? "black" : "transparent";
                 String rightColor = mazeCell.wallRight() ? "black" : "transparent";
                 String bottomColor = mazeCell.wallDown() ? "black" : "transparent";
@@ -103,6 +100,8 @@ public class MazeRenderer {
                         .append(leftWidth).append(";");
 
                 gridCell.setStyle(style.toString());
+                // Mémorise le style initial pour le reset
+                gridCell.getProperties().put("initialStyle", style.toString());
 
                 selectWall(gridCell, arrayMaze, row, col, grid);
 
@@ -116,7 +115,6 @@ public class MazeRenderer {
         return grid;
     }
 
-    // Gestion du clic sur un mur : affichage en pointillé et synchronisation avec la cellule voisine
     public void selectWall(Region gridCell, ArrayMaze arrayMaze, int row, int col, GridPane grid) {
         gridCell.setOnMouseClicked(event -> {
             double x = event.getX();
@@ -180,12 +178,10 @@ public class MazeRenderer {
         });
     }
 
-    // Met le bord sélectionné en pointillé
+    // Met le bord sélectionné en rouge
     private void setBorderColor(Region cell, String side) {
         String style = cell.getStyle();
-        // Récupère les couleurs actuelles
         String[] colors = {"black", "black", "black", "black"};
-        // Recherche les couleurs actuelles dans le style
         java.util.regex.Matcher m = java.util.regex.Pattern
                 .compile("-fx-border-color: ([^;]+);")
                 .matcher(style);
@@ -195,22 +191,20 @@ public class MazeRenderer {
                 colors[i] = currentColors[i];
             }
         }
-        // Modifie seulement le côté sélectionné
         switch (side) {
             case "top":    colors[0] = "red"; break;
             case "right":  colors[1] = "red"; break;
             case "bottom": colors[2] = "red"; break;
             case "left":   colors[3] = "red"; break;
         }
-        // Reconstruit le style
         style = style.replaceAll("-fx-border-color: [^;]+;", "");
         style += "-fx-border-color: " + String.join(" ", colors) + ";";
         cell.setStyle(style);
     }
 
+    // Remet le bord sélectionné à sa couleur d'origine (noir ou transparent)
     private void resetBorderColor(Region cell, String side) {
         String style = cell.getStyle();
-        // Récupère les couleurs actuelles
         String[] colors = {"black", "black", "black", "black"};
         java.util.regex.Matcher m = java.util.regex.Pattern
                 .compile("-fx-border-color: ([^;]+);")
@@ -221,30 +215,31 @@ public class MazeRenderer {
                 colors[i] = currentColors[i];
             }
         }
-        // Remet la couleur d'origine (noir ou transparent) sur le côté concerné
-        // Si le mur était rouge, on regarde la couleur initiale dans le style de base
+        // Récupère la couleur initiale du côté concerné
+        String initialStyle = (String) cell.getProperties().get("initialStyle");
         String[] initialColors = {"black", "black", "black", "black"};
-        java.util.regex.Matcher mInit = java.util.regex.Pattern
-                .compile("-fx-border-color: ([^;]+);")
-                .matcher(cell.getProperties().getOrDefault("initialStyle", style).toString());
-        if (mInit.find()) {
-            String[] baseColors = mInit.group(1).split(" ");
-            for (int i = 0; i < Math.min(4, baseColors.length); i++) {
-                initialColors[i] = baseColors[i];
+        if (initialStyle != null) {
+            java.util.regex.Matcher mInit = java.util.regex.Pattern
+                    .compile("-fx-border-color: ([^;]+);")
+                    .matcher(initialStyle);
+            if (mInit.find()) {
+                String[] baseColors = mInit.group(1).split(" ");
+                for (int i = 0; i < Math.min(4, baseColors.length); i++) {
+                    initialColors[i] = baseColors[i];
+                }
             }
         }
         switch (side) {
-            case "top":    colors[0] = colors[0].equals("red") ? initialColors[0] : colors[0]; break;
-            case "right":  colors[1] = colors[1].equals("red") ? initialColors[1] : colors[1]; break;
-            case "bottom": colors[2] = colors[2].equals("red") ? initialColors[2] : colors[2]; break;
-            case "left":   colors[3] = colors[3].equals("red") ? initialColors[3] : colors[3]; break;
+            case "top":    colors[0] = initialColors[0]; break;
+            case "right":  colors[1] = initialColors[1]; break;
+            case "bottom": colors[2] = initialColors[2]; break;
+            case "left":   colors[3] = initialColors[3]; break;
         }
         style = style.replaceAll("-fx-border-color: [^;]+;", "");
         style += "-fx-border-color: " + String.join(" ", colors) + ";";
         cell.setStyle(style);
     }
 
-    // Récupère la Region d'une cellule voisine dans le GridPane
     private Region getCellFromGrid(Parent grid, int col, int row) {
         if (!(grid instanceof GridPane)) return null;
         for (Node node : ((GridPane) grid).getChildren()) {
