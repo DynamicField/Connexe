@@ -5,20 +5,24 @@ import fr.connexe.algo.Cell;
 import fr.connexe.algo.GraphMaze;
 import fr.connexe.algo.Point;
 import fr.connexe.algo.generation.MazeGenLog;
-import fr.connexe.algo.generation.MazeGenResult;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.layout.*;
 
-///  Renderer for a GraphMaze as a JavaFX GridPane
 public class MazeRenderer {
 
     private MazeGenLog log;
     private GraphMaze graphMaze;
 
-    /// Initialize a maze renderer about to take a maze which parameters will be set by a user
-    public MazeRenderer(){
-    }
+    // Pour mémoriser le dernier mur sélectionné
+    private Region lastSelectedCell = null;
+    private String lastSelectedSide = null;
+    private Region lastNeighborCell = null;
+    private String lastNeighborSide = null;
 
-    ///  For testing purposes
+    public MazeRenderer() {}
+
+    /// Exemple par défaut pour test
     public void setDefaultExample(){
         var g = new GraphMaze(4, 4);
         g.connect(0, 1);
@@ -41,12 +45,11 @@ public class MazeRenderer {
         g.setStart(0);
         g.setEnd(15);
         this.graphMaze = g;
-        this.log = null; // in case we're reusing a previous renderer for another maze for whatever reason
-
+        this.log = null;
         System.out.println(g);
     }
 
-    ///  Build a JavaFX GridPane to represent the maze and its walls
+    /// Construit la grille JavaFX représentant le labyrinthe
     public GridPane buildGrid() {
         assert graphMaze != null : "GraphMaze must be set before calling buildGrid()";
 
@@ -57,44 +60,35 @@ public class MazeRenderer {
         GridPane grid = new GridPane();
         double cellScale = Math.max(rows, cols);
 
-        // Set column constraints (once per column)
         for (int i = 0; i < cols; i++) {
             ColumnConstraints colConstraints = new ColumnConstraints();
             colConstraints.setPercentWidth(100.0 / cellScale);
             grid.getColumnConstraints().add(colConstraints);
         }
-
-        // Set row constraints (once per row)
         for (int i = 0; i < rows; i++) {
             RowConstraints rowConstraints = new RowConstraints();
             rowConstraints.setPercentHeight(100.0 / cellScale);
             grid.getRowConstraints().add(rowConstraints);
         }
 
-        // Add empty regions to each cell
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
                 Region gridCell = new Region();
-
-                // Add a style to the region (make each cell white)
                 StringBuilder style = new StringBuilder("-fx-background-color: white;");
 
                 Point vertexCoordinates = new Point(col, row);
                 Cell mazeCell = arrayMaze.getCell(vertexCoordinates);
 
-                // Calculate border widths if wall exists in that cell
                 int topWidth = mazeCell.wallUp() ? 2 : 0;
                 int rightWidth = mazeCell.wallRight() ? 2 : 0;
                 int bottomWidth = mazeCell.wallDown() ? 2 : 0;
                 int leftWidth = mazeCell.wallLeft() ? 2 : 0;
 
-                // Boost outer borders to 4px to visually balance internal shared borders
                 if (row == 0 && topWidth > 0) topWidth = 4;
                 if (row == rows - 1 && bottomWidth > 0) bottomWidth = 4;
                 if (col == 0 && leftWidth > 0) leftWidth = 4;
                 if (col == cols - 1 && rightWidth > 0) rightWidth = 4;
 
-                // Apply style on cell
                 style.append("-fx-border-color: black;");
                 style.append(" -fx-border-width: ")
                         .append(topWidth).append(" ")
@@ -104,9 +98,8 @@ public class MazeRenderer {
 
                 gridCell.setStyle(style.toString());
 
-                selectWall(gridCell, arrayMaze, topWidth, bottomWidth, leftWidth, rightWidth, row, col);
+                selectWall(gridCell, arrayMaze, row, col, grid);
 
-                // Allow dynamic resizing of the cell
                 GridPane.setHgrow(gridCell, Priority.ALWAYS);
                 GridPane.setVgrow(gridCell, Priority.ALWAYS);
                 gridCell.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
@@ -114,30 +107,110 @@ public class MazeRenderer {
                 grid.add(gridCell, col, row);
             }
         }
-
         return grid;
     }
 
-    public void selectWall(Region gridCell, ArrayMaze arrayMaze, int topWidth, int bottomWidth, int leftWidth, int rightWidth, int row, int col){
+    // Gestion du clic sur un mur : affichage en pointillé et synchronisation avec la cellule voisine
+    public void selectWall(Region gridCell, ArrayMaze arrayMaze, int row, int col, GridPane grid) {
         gridCell.setOnMouseClicked(event -> {
             double x = event.getX();
             double y = event.getY();
             double width = gridCell.getWidth();
             double height = gridCell.getHeight();
-            double margin = 10; // tolérance en pixels
+            double margin = 15;
 
-            Cell cell = arrayMaze.getCell(new Point(col, row));
+            String selectedSide = null;
+            int neighborRow = row, neighborCol = col;
+            String neighborSide = null;
 
             if (y < margin) {
-                System.out.println("mur haut (" + row + "," + col + ") : " + (cell.wallUp() ? "présent" : "absent"));
+                selectedSide = "top";
+                neighborRow = row - 1;
+                neighborSide = "bottom";
             } else if (y > height - margin) {
-                System.out.println("mur bas (" + row + "," + col + ") : " + (cell.wallDown() ? "présent" : "absent"));
+                selectedSide = "bottom";
+                neighborRow = row + 1;
+                neighborSide = "top";
             } else if (x < margin) {
-                System.out.println("mur gauche (" + row + "," + col + ") : " + (cell.wallLeft() ? "présent" : "absent"));
+                selectedSide = "left";
+                neighborCol = col - 1;
+                neighborSide = "right";
             } else if (x > width - margin) {
-                System.out.println("mur droite (" + row + "," + col + ") : " + (cell.wallRight() ? "présent" : "absent"));
+                selectedSide = "right";
+                neighborCol = col + 1;
+                neighborSide = "left";
+            }
+
+            // Réinitialise le mur précédent (et celui du voisin)
+            if (lastSelectedCell != null && lastSelectedSide != null) {
+                resetBorderStyle(lastSelectedCell, lastSelectedSide);
+            }
+            if (lastNeighborCell != null && lastNeighborSide != null) {
+                resetBorderStyle(lastNeighborCell, lastNeighborSide);
+            }
+
+            if (selectedSide != null) {
+                setBorderDashed(gridCell, selectedSide);
+                lastSelectedCell = gridCell;
+                lastSelectedSide = selectedSide;
+
+                // Met à jour le mur opposé de la cellule voisine si elle existe
+                if (neighborRow >= 0 && neighborCol >= 0 &&
+                        neighborRow < arrayMaze.getHeight() && neighborCol < arrayMaze.getWidth()) {
+                    Region neighborCell = getCellFromGrid(grid, neighborCol, neighborRow);
+                    if (neighborCell != null && neighborSide != null) {
+                        setBorderDashed(neighborCell, neighborSide);
+                        lastNeighborCell = neighborCell;
+                        lastNeighborSide = neighborSide;
+                    } else {
+                        lastNeighborCell = null;
+                        lastNeighborSide = null;
+                    }
+                } else {
+                    lastNeighborCell = null;
+                    lastNeighborSide = null;
+                }
             }
         });
+    }
+
+    // Met le bord sélectionné en pointillé
+    private void setBorderDashed(Region cell, String side) {
+        String style = cell.getStyle();
+        String borderStyle = "-fx-border-style: ";
+        String[] styles = {"solid", "solid", "solid", "solid"};
+        switch (side) {
+            case "top":    styles[0] = "dashed"; break;
+            case "right":  styles[1] = "dashed"; break;
+            case "bottom": styles[2] = "dashed"; break;
+            case "left":   styles[3] = "dashed"; break;
+        }
+        style = style.replaceAll("-fx-border-style: [^;]+;", "");
+        style += borderStyle + String.join(" ", styles) + ";";
+        cell.setStyle(style);
+    }
+
+    // Remet le bord sélectionné en plein
+    private void resetBorderStyle(Region cell, String side) {
+        String style = cell.getStyle();
+        String borderStyle = "-fx-border-style: ";
+        String[] styles = {"solid", "solid", "solid", "solid"};
+        style = style.replaceAll("-fx-border-style: [^;]+;", "");
+        style += borderStyle + String.join(" ", styles) + ";";
+        cell.setStyle(style);
+    }
+
+    // Récupère la Region d'une cellule voisine dans le GridPane
+    private Region getCellFromGrid(Parent grid, int col, int row) {
+        if (!(grid instanceof GridPane)) return null;
+        for (Node node : ((GridPane) grid).getChildren()) {
+            Integer nodeCol = GridPane.getColumnIndex(node);
+            Integer nodeRow = GridPane.getRowIndex(node);
+            if (nodeCol != null && nodeRow != null && nodeCol == col && nodeRow == row) {
+                return (Region) node;
+            }
+        }
+        return null;
     }
 
     public GraphMaze getGraphMaze() {
