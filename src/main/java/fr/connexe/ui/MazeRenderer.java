@@ -104,7 +104,7 @@ public class MazeRenderer {
 
                 gridCell.setStyle(style.toString());
 
-                changeMaze(gridCell, topWidth, bottomWidth, leftWidth, rightWidth, row, col);
+                selectWall(gridCell, arrayMaze, topWidth, bottomWidth, leftWidth, rightWidth, row, col);
 
                 // Allow dynamic resizing of the cell
                 GridPane.setHgrow(gridCell, Priority.ALWAYS);
@@ -118,22 +118,25 @@ public class MazeRenderer {
         return grid;
     }
 
-    public void changeMaze(Region gridCell, int tWidth, int bWidth, int lWidth, int rWidth, int FRow, int FCol){
+    public void selectWall(Region gridCell, ArrayMaze arrayMaze, int topWidth, int bottomWidth, int leftWidth, int rightWidth, int row, int col){
         gridCell.setOnMouseClicked(event -> {
             double x = event.getX();
             double y = event.getY();
-            double w = gridCell.getWidth();
-            double h = gridCell.getHeight();
+            double width = gridCell.getWidth();
+            double height = gridCell.getHeight();
             double margin = 10; // tolérance en pixels
 
-            if (tWidth > 0 && y < margin)
-                System.out.println("mur haut (" + FRow + "," + FCol + ")");
-            else if (bWidth > 0 && y > h - margin)
-                System.out.println("mur bas (" + FRow + "," + FCol + ")");
-            else if (lWidth > 0 && x < margin)
-                System.out.println("mur gauche (" + FRow + "," + FCol + ")");
-            else if (rWidth > 0 && x > w - margin)
-                System.out.println("mur droite (" + FRow + "," + FCol + ")");
+            Cell cell = arrayMaze.getCell(new Point(col, row));
+
+            if (y < margin) {
+                System.out.println("mur haut (" + row + "," + col + ") : " + (cell.wallUp() ? "présent" : "absent"));
+            } else if (y > height - margin) {
+                System.out.println("mur bas (" + row + "," + col + ") : " + (cell.wallDown() ? "présent" : "absent"));
+            } else if (x < margin) {
+                System.out.println("mur gauche (" + row + "," + col + ") : " + (cell.wallLeft() ? "présent" : "absent"));
+            } else if (x > width - margin) {
+                System.out.println("mur droite (" + row + "," + col + ") : " + (cell.wallRight() ? "présent" : "absent"));
+            }
         });
     }
 
