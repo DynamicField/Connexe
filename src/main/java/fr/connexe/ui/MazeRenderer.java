@@ -79,17 +79,23 @@ public class MazeRenderer {
                 Point vertexCoordinates = new Point(col, row);
                 Cell mazeCell = arrayMaze.getCell(vertexCoordinates);
 
-                int topWidth = mazeCell.wallUp() ? 2 : 0;
-                int rightWidth = mazeCell.wallRight() ? 2 : 0;
-                int bottomWidth = mazeCell.wallDown() ? 2 : 0;
-                int leftWidth = mazeCell.wallLeft() ? 2 : 0;
+                int topWidth = 2; int rightWidth = 2; int bottomWidth = 2; int leftWidth = 2;
+                String topColor = mazeCell.wallUp() ? "black" : "transparent";
+                String rightColor = mazeCell.wallRight() ? "black" : "transparent";
+                String bottomColor = mazeCell.wallDown() ? "black" : "transparent";
+                String leftColor = mazeCell.wallLeft() ? "black" : "transparent";
 
-                if (row == 0 && topWidth > 0) topWidth = 4;
-                if (row == rows - 1 && bottomWidth > 0) bottomWidth = 4;
-                if (col == 0 && leftWidth > 0) leftWidth = 4;
-                if (col == cols - 1 && rightWidth > 0) rightWidth = 4;
+                if (row == 0) topWidth = 4;
+                if (row == rows - 1) bottomWidth = 4;
+                if (col == 0) leftWidth = 4;
+                if (col == cols - 1) rightWidth = 4;
 
-                style.append("-fx-border-color: black;");
+                style.append("-fx-border-color: ")
+                        .append(topColor).append(" ")
+                        .append(rightColor).append(" ")
+                        .append(bottomColor).append(" ")
+                        .append(leftColor).append(";");
+
                 style.append(" -fx-border-width: ")
                         .append(topWidth).append(" ")
                         .append(rightWidth).append(" ")
@@ -143,14 +149,14 @@ public class MazeRenderer {
 
             // Réinitialise le mur précédent (et celui du voisin)
             if (lastSelectedCell != null && lastSelectedSide != null) {
-                resetBorderStyle(lastSelectedCell, lastSelectedSide);
+                resetBorderColor(lastSelectedCell, lastSelectedSide);
             }
             if (lastNeighborCell != null && lastNeighborSide != null) {
-                resetBorderStyle(lastNeighborCell, lastNeighborSide);
+                resetBorderColor(lastNeighborCell, lastNeighborSide);
             }
 
             if (selectedSide != null) {
-                setBorderDashed(gridCell, selectedSide);
+                setBorderColor(gridCell, selectedSide);
                 lastSelectedCell = gridCell;
                 lastSelectedSide = selectedSide;
 
@@ -159,7 +165,7 @@ public class MazeRenderer {
                         neighborRow < arrayMaze.getHeight() && neighborCol < arrayMaze.getWidth()) {
                     Region neighborCell = getCellFromGrid(grid, neighborCol, neighborRow);
                     if (neighborCell != null && neighborSide != null) {
-                        setBorderDashed(neighborCell, neighborSide);
+                        setBorderColor(neighborCell, neighborSide);
                         lastNeighborCell = neighborCell;
                         lastNeighborSide = neighborSide;
                     } else {
@@ -175,28 +181,66 @@ public class MazeRenderer {
     }
 
     // Met le bord sélectionné en pointillé
-    private void setBorderDashed(Region cell, String side) {
+    private void setBorderColor(Region cell, String side) {
         String style = cell.getStyle();
-        String borderStyle = "-fx-border-style: ";
-        String[] styles = {"solid", "solid", "solid", "solid"};
-        switch (side) {
-            case "top":    styles[0] = "dashed"; break;
-            case "right":  styles[1] = "dashed"; break;
-            case "bottom": styles[2] = "dashed"; break;
-            case "left":   styles[3] = "dashed"; break;
+        // Récupère les couleurs actuelles
+        String[] colors = {"black", "black", "black", "black"};
+        // Recherche les couleurs actuelles dans le style
+        java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("-fx-border-color: ([^;]+);")
+                .matcher(style);
+        if (m.find()) {
+            String[] currentColors = m.group(1).split(" ");
+            for (int i = 0; i < Math.min(4, currentColors.length); i++) {
+                colors[i] = currentColors[i];
+            }
         }
-        style = style.replaceAll("-fx-border-style: [^;]+;", "");
-        style += borderStyle + String.join(" ", styles) + ";";
+        // Modifie seulement le côté sélectionné
+        switch (side) {
+            case "top":    colors[0] = "red"; break;
+            case "right":  colors[1] = "red"; break;
+            case "bottom": colors[2] = "red"; break;
+            case "left":   colors[3] = "red"; break;
+        }
+        // Reconstruit le style
+        style = style.replaceAll("-fx-border-color: [^;]+;", "");
+        style += "-fx-border-color: " + String.join(" ", colors) + ";";
         cell.setStyle(style);
     }
 
-    // Remet le bord sélectionné en plein
-    private void resetBorderStyle(Region cell, String side) {
+    private void resetBorderColor(Region cell, String side) {
         String style = cell.getStyle();
-        String borderStyle = "-fx-border-style: ";
-        String[] styles = {"solid", "solid", "solid", "solid"};
-        style = style.replaceAll("-fx-border-style: [^;]+;", "");
-        style += borderStyle + String.join(" ", styles) + ";";
+        // Récupère les couleurs actuelles
+        String[] colors = {"black", "black", "black", "black"};
+        java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("-fx-border-color: ([^;]+);")
+                .matcher(style);
+        if (m.find()) {
+            String[] currentColors = m.group(1).split(" ");
+            for (int i = 0; i < Math.min(4, currentColors.length); i++) {
+                colors[i] = currentColors[i];
+            }
+        }
+        // Remet la couleur d'origine (noir ou transparent) sur le côté concerné
+        // Si le mur était rouge, on regarde la couleur initiale dans le style de base
+        String[] initialColors = {"black", "black", "black", "black"};
+        java.util.regex.Matcher mInit = java.util.regex.Pattern
+                .compile("-fx-border-color: ([^;]+);")
+                .matcher(cell.getProperties().getOrDefault("initialStyle", style).toString());
+        if (mInit.find()) {
+            String[] baseColors = mInit.group(1).split(" ");
+            for (int i = 0; i < Math.min(4, baseColors.length); i++) {
+                initialColors[i] = baseColors[i];
+            }
+        }
+        switch (side) {
+            case "top":    colors[0] = colors[0].equals("red") ? initialColors[0] : colors[0]; break;
+            case "right":  colors[1] = colors[1].equals("red") ? initialColors[1] : colors[1]; break;
+            case "bottom": colors[2] = colors[2].equals("red") ? initialColors[2] : colors[2]; break;
+            case "left":   colors[3] = colors[3].equals("red") ? initialColors[3] : colors[3]; break;
+        }
+        style = style.replaceAll("-fx-border-color: [^;]+;", "");
+        style += "-fx-border-color: " + String.join(" ", colors) + ";";
         cell.setStyle(style);
     }
 
