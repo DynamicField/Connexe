@@ -257,8 +257,10 @@ public class NewMazeDialogController {
         startFactory.setMax(total - 1);
         endFactory.setMax(total - 1);
 
-        // Automatically reset start/end to first and last cell
-        startFactory.setValue(0);
-        endFactory.setValue(total - 1);
+        // Clamp start/end values to the valid range
+        int clampedStart = Math.max(0, Math.min(startSpinner.getValue(), total - 1));
+        int clampedEnd = Math.max(0, Math.min(endSpinner.getValue(), total - 1));
+        startFactory.setValue(clampedStart);
+        endFactory.setValue(clampedEnd);
     }
 }
