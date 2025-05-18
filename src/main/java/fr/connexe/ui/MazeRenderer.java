@@ -93,11 +93,11 @@ public class MazeRenderer {
                         .append(bottomWidth).append(" ")
                         .append(leftWidth).append(";");
 
-                mazeSelector.selectWall(gridCell, arrayMaze, row, col, grid);
-
-                gridCell.setStyle(style.toString());
                 // Mémorise le style initial pour le reset
+                gridCell.setStyle(style.toString());
                 gridCell.getProperties().put("initialStyle", style.toString());
+
+                mazeSelector.selectWall(gridCell, arrayMaze, row, col, grid);
 
                 GridPane.setHgrow(gridCell, Priority.ALWAYS);
                 GridPane.setVgrow(gridCell, Priority.ALWAYS);
