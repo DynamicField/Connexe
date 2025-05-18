@@ -13,7 +13,6 @@ public class MainController {
 
     private ConnexeApp connexeApp;
     private MazeController mazeController;
-    private MazeSelector mazeSelector;
 
     @FXML
     private MenuItem change;
