@@ -70,12 +70,14 @@ public class MazeRenderer {
                 Point vertexCoordinates = new Point(col, row);
                 Cell mazeCell = arrayMaze.getCell(vertexCoordinates);
 
+                //Black=Wall, Transparent=Empty
                 int topWidth = 2, rightWidth = 2, bottomWidth = 2, leftWidth = 2;
                 String topColor = mazeCell.wallUp() ? "black" : "transparent";
                 String rightColor = mazeCell.wallRight() ? "black" : "transparent";
                 String bottomColor = mazeCell.wallDown() ? "black" : "transparent";
                 String leftColor = mazeCell.wallLeft() ? "black" : "transparent";
 
+                //If the wall is within the border, the width of the border is increased to make it more aesthetic.
                 if (row == 0) topWidth = 4;
                 if (row == rows - 1) bottomWidth = 4;
                 if (col == 0) leftWidth = 4;
@@ -93,7 +95,7 @@ public class MazeRenderer {
                         .append(bottomWidth).append(" ")
                         .append(leftWidth).append(";");
 
-                // Mémorise le style initial pour le reset
+                //Remembers the initial style for reset
                 gridCell.setStyle(style.toString());
                 gridCell.getProperties().put("initialStyle", style.toString());
 

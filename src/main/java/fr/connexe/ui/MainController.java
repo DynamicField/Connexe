@@ -17,6 +17,7 @@ public class MainController {
     @FXML
     private MenuItem change;
 
+    /// Disable the "Edit" menu item until a maze is loaded or created
     @FXML
     public void initialize() {
         change.setDisable(true);
@@ -67,7 +68,7 @@ public class MainController {
         if (okClicked) { // Maze is generated, now query the controller to display it on the view
             change.setDisable(false);
             mazeController.setMazeRenderer(mazeRenderer);
-            //mazeController.createMazeFX(mazeRenderer);
+            mazeController.createMazeFX(mazeRenderer);
         }
     }
 
@@ -109,8 +110,8 @@ public class MainController {
         }
     }
 
+    /// Make changes when the user clicks on the "Edit" menu item (not used yet)
     public void handleChange(){
-        mazeController.createMazeFX(mazeController.getMazeRenderer());
     }
 
     ///  Closes the app
