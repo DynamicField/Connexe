@@ -86,11 +86,11 @@ public class MazeSolver {
      *
      * @param allPaths the list of stacks of nodes which represent all the paths to the end of a maze
      */
-    private static  Stack<Integer> shortest(List<Stack<Integer>> allPaths) {
+    private static  Stack<Integer> shortest(List<Stack<Integer>> allPaths, GraphMaze g) {
         //create a new stack and whenever there is a path shorter than the ones before this one, it is copied and replace the last shortest if there was one
         Stack<Integer> shortest = new Stack<>();
         for (Stack<Integer> path : allPaths) {
-            if (shortest.isEmpty() || path.size() < shortest.size()) {
+            if ((shortest.isEmpty() || path.size() < shortest.size())&& path.contains(g.getEnd())) {
                 shortest = path;
             }
         }
@@ -120,7 +120,7 @@ public class MazeSolver {
         //call of the function solveDFS
         solveDFS(maze, maze.getStart(), visited, currentPath, allPaths);
         //call of the function shortest and returns what it returns
-        return shortest(allPaths);
+        return shortest(allPaths, maze);
     }
 
 
@@ -282,9 +282,9 @@ public class MazeSolver {
         Stack<Integer> currentPath = new Stack<>();
         List<Stack<Integer>> allPaths = new ArrayList<>();
 
-        solveDFS(maze, maze.getStart(), visited, currentPath, allPaths);
+        solveDFS2(maze, maze.getStart(), visited, currentPath, allPaths);
         Stack<Integer> shortest;
-        shortest=shortest(allPaths);
+        shortest=shortest(allPaths, maze);
         Collections.reverse(allPaths);
         allPaths.add(shortest);
 
