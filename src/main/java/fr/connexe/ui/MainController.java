@@ -12,6 +12,7 @@ public class MainController {
 
     private ConnexeApp connexeApp;
     private MazeController mazeController;
+    private MazeSelector mazeSelector;
 
     /**
      * Is called by the main application to give a reference back to itself.
