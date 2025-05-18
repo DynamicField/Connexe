@@ -5,19 +5,13 @@ import fr.connexe.algo.Cell;
 import fr.connexe.algo.GraphMaze;
 import fr.connexe.algo.Point;
 import fr.connexe.algo.generation.MazeGenLog;
-import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.layout.*;
 
 public class MazeRenderer {
 
     private MazeGenLog log;
     private GraphMaze graphMaze;
-
-    private Region lastSelectedCell = null;
-    private String lastSelectedSide = null;
-    private Region lastNeighborCell = null;
-    private String lastNeighborSide = null;
+    private final MazeSelector mazeSelector = new MazeSelector();
 
     public MazeRenderer() {}
 
@@ -99,11 +93,11 @@ public class MazeRenderer {
                         .append(bottomWidth).append(" ")
                         .append(leftWidth).append(";");
 
+                mazeSelector.selectWall(gridCell, arrayMaze, row, col, grid);
+
                 gridCell.setStyle(style.toString());
                 // Mémorise le style initial pour le reset
                 gridCell.getProperties().put("initialStyle", style.toString());
-
-                selectWall(gridCell, arrayMaze, row, col, grid);
 
                 GridPane.setHgrow(gridCell, Priority.ALWAYS);
                 GridPane.setVgrow(gridCell, Priority.ALWAYS);
@@ -113,143 +107,6 @@ public class MazeRenderer {
             }
         }
         return grid;
-    }
-
-    public void selectWall(Region gridCell, ArrayMaze arrayMaze, int row, int col, GridPane grid) {
-        gridCell.setOnMouseClicked(event -> {
-            double x = event.getX();
-            double y = event.getY();
-            double width = gridCell.getWidth();
-            double height = gridCell.getHeight();
-            double margin = 15;
-
-            String selectedSide = null;
-            int neighborRow = row, neighborCol = col;
-            String neighborSide = null;
-
-            if (y < margin) {
-                selectedSide = "top";
-                neighborRow = row - 1;
-                neighborSide = "bottom";
-            } else if (y > height - margin) {
-                selectedSide = "bottom";
-                neighborRow = row + 1;
-                neighborSide = "top";
-            } else if (x < margin) {
-                selectedSide = "left";
-                neighborCol = col - 1;
-                neighborSide = "right";
-            } else if (x > width - margin) {
-                selectedSide = "right";
-                neighborCol = col + 1;
-                neighborSide = "left";
-            }
-
-            // Réinitialise le mur précédent (et celui du voisin)
-            if (lastSelectedCell != null && lastSelectedSide != null) {
-                resetBorderColor(lastSelectedCell, lastSelectedSide);
-            }
-            if (lastNeighborCell != null && lastNeighborSide != null) {
-                resetBorderColor(lastNeighborCell, lastNeighborSide);
-            }
-
-            if (selectedSide != null) {
-                setBorderColor(gridCell, selectedSide);
-                lastSelectedCell = gridCell;
-                lastSelectedSide = selectedSide;
-
-                // Met à jour le mur opposé de la cellule voisine si elle existe
-                if (neighborRow >= 0 && neighborCol >= 0 &&
-                        neighborRow < arrayMaze.getHeight() && neighborCol < arrayMaze.getWidth()) {
-                    Region neighborCell = getCellFromGrid(grid, neighborCol, neighborRow);
-                    if (neighborCell != null && neighborSide != null) {
-                        setBorderColor(neighborCell, neighborSide);
-                        lastNeighborCell = neighborCell;
-                        lastNeighborSide = neighborSide;
-                    } else {
-                        lastNeighborCell = null;
-                        lastNeighborSide = null;
-                    }
-                } else {
-                    lastNeighborCell = null;
-                    lastNeighborSide = null;
-                }
-            }
-        });
-    }
-
-    // Met le bord sélectionné en rouge
-    private void setBorderColor(Region cell, String side) {
-        String style = cell.getStyle();
-        String[] colors = {"black", "black", "black", "black"};
-        java.util.regex.Matcher m = java.util.regex.Pattern
-                .compile("-fx-border-color: ([^;]+);")
-                .matcher(style);
-        if (m.find()) {
-            String[] currentColors = m.group(1).split(" ");
-            for (int i = 0; i < Math.min(4, currentColors.length); i++) {
-                colors[i] = currentColors[i];
-            }
-        }
-        switch (side) {
-            case "top":    colors[0] = "red"; break;
-            case "right":  colors[1] = "red"; break;
-            case "bottom": colors[2] = "red"; break;
-            case "left":   colors[3] = "red"; break;
-        }
-        style = style.replaceAll("-fx-border-color: [^;]+;", "");
-        style += "-fx-border-color: " + String.join(" ", colors) + ";";
-        cell.setStyle(style);
-    }
-
-    // Remet le bord sélectionné à sa couleur d'origine (noir ou transparent)
-    private void resetBorderColor(Region cell, String side) {
-        String style = cell.getStyle();
-        String[] colors = {"black", "black", "black", "black"};
-        java.util.regex.Matcher m = java.util.regex.Pattern
-                .compile("-fx-border-color: ([^;]+);")
-                .matcher(style);
-        if (m.find()) {
-            String[] currentColors = m.group(1).split(" ");
-            for (int i = 0; i < Math.min(4, currentColors.length); i++) {
-                colors[i] = currentColors[i];
-            }
-        }
-        // Récupère la couleur initiale du côté concerné
-        String initialStyle = (String) cell.getProperties().get("initialStyle");
-        String[] initialColors = {"black", "black", "black", "black"};
-        if (initialStyle != null) {
-            java.util.regex.Matcher mInit = java.util.regex.Pattern
-                    .compile("-fx-border-color: ([^;]+);")
-                    .matcher(initialStyle);
-            if (mInit.find()) {
-                String[] baseColors = mInit.group(1).split(" ");
-                for (int i = 0; i < Math.min(4, baseColors.length); i++) {
-                    initialColors[i] = baseColors[i];
-                }
-            }
-        }
-        switch (side) {
-            case "top":    colors[0] = initialColors[0]; break;
-            case "right":  colors[1] = initialColors[1]; break;
-            case "bottom": colors[2] = initialColors[2]; break;
-            case "left":   colors[3] = initialColors[3]; break;
-        }
-        style = style.replaceAll("-fx-border-color: [^;]+;", "");
-        style += "-fx-border-color: " + String.join(" ", colors) + ";";
-        cell.setStyle(style);
-    }
-
-    private Region getCellFromGrid(Parent grid, int col, int row) {
-        if (!(grid instanceof GridPane)) return null;
-        for (Node node : ((GridPane) grid).getChildren()) {
-            Integer nodeCol = GridPane.getColumnIndex(node);
-            Integer nodeRow = GridPane.getRowIndex(node);
-            if (nodeCol != null && nodeRow != null && nodeCol == col && nodeRow == row) {
-                return (Region) node;
-            }
-        }
-        return null;
     }
 
     public GraphMaze getGraphMaze() {
