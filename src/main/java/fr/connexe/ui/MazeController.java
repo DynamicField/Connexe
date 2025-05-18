@@ -2,20 +2,27 @@ package fr.connexe.ui;
 
 import fr.connexe.algo.GraphMaze;
 import fr.connexe.algo.MazeSerializationException;
+import fr.connexe.algo.Point;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.io.*;
+import java.util.List;
+import java.util.Stack;
 import java.util.function.Supplier;
 
 ///  Controller to display any Maze related operations on the view (creation, editing, solving, etc...)
 public class MazeController {
 
     private MazeRenderer mazeRenderer;
+    private List<Stack<Integer>> stepByStepPath;
+    private boolean isDFS; // necessary for solving animation method having a different behavior for DFS
 
     @FXML
     private VBox vboxLayout;
@@ -60,6 +67,32 @@ public class MazeController {
         }
     }
 
+    public void buildSolutionPath(Stack<Integer> path, long executionTime){
+        GraphMaze maze = mazeRenderer.getGraphMaze();
+        mazeRenderer.clearGridColor();
+        vboxLayout.getChildren().removeIf(node -> node instanceof Label);
+
+        for(int i : path) {
+            Point nodeCoordinates = maze.toPoint(i);
+            Node cell = mazeRenderer.getCellNode(nodeCoordinates);
+            mazeRenderer.setCellColor(cell, "cell-color-path");
+        }
+
+        double executionTimeMs = executionTime / 1000000.0;
+
+        Label timeLabel = new Label("Temps de résolution (algorithme seulement) : " + executionTimeMs + " Ms");
+        Label pathLength = new Label("Cases du chemin final : " + path.size());
+        vboxLayout.getChildren().add(timeLabel);
+        vboxLayout.getChildren().add(pathLength);
+    }
+
+    public void playStepByStepSolution(Supplier<Double> delaySupplier, Runnable onFinished){
+        assert stepByStepPath != null : "StepByStepPath must be set before calling playStepByStepSolution()";
+
+        mazeRenderer.setDelaySupplier(delaySupplier);
+        mazeRenderer.animateSolution(stepByStepPath, isDFS, onFinished);
+    }
+
     /// Saves the current rendered maze into a file
     public void saveMaze(File file) throws MazeSerializationException, IOException {
         assert mazeRenderer.getGraphMaze() != null : "MazeRenderer must have a maze to be saved";
@@ -87,5 +120,17 @@ public class MazeController {
 
     public MazeRenderer getMazeRenderer() {
         return mazeRenderer;
+    }
+
+    public List<Stack<Integer>> getStepByStepPath() {
+        return stepByStepPath;
+    }
+
+    public void setStepByStepPath(List<Stack<Integer>> stepByStepPath) {
+        this.stepByStepPath = stepByStepPath;
+    }
+
+    public void setDFS(boolean DFS) {
+        isDFS = DFS;
     }
 }

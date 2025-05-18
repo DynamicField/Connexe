@@ -1,5 +1,8 @@
 package fr.connexe.algo;
 
+import fr.connexe.algo.generation.MazeGenResult;
+import fr.connexe.algo.generation.MazeGenerator;
+
 import java.util.*;
 
 /// Solves mazes with various algorithms.
@@ -12,7 +15,7 @@ public class MazeSolver {
         // 8 - 9 - 10 - 11
         // -        -    -
         // 12- 13  14 - 15
-        var g = new GraphMaze(4, 4);
+        /*var g = new GraphMaze(4, 4);
         g.connect(0, 1);
         g.connect(0, 4);
         g.connect(2, 3);
@@ -34,6 +37,8 @@ public class MazeSolver {
 
         g.setStart(0);
         g.setEnd(15);
+
+
         System.out.println(g.toArrayMaze());
         Stack<Integer> pile;
         pile=MazeSolver.prepDFS(g,true);
@@ -42,6 +47,8 @@ public class MazeSolver {
         System.out.println("Clockwise:" +pile);
         pile=MazeSolver.solveDjisktra(g);
         System.out.println("Djikstra" +pile);
+
+
         Stack<Stack<Integer>> pile2;
         List<Stack<Integer>> pile3;
         pile3 = MazeSolver.prepDFS2(g);
@@ -49,7 +56,14 @@ public class MazeSolver {
         pile2 = MazeSolver.prepClockwise2(g);
         System.out.println("Clockwise2:"+pile2);
         pile2=MazeSolver.solveDjisktra2(g);
-        System.out.println("Dijkstra2:" +pile2);
+        System.out.println("Dijkstra2:" +pile2);*/
+
+        MazeGenResult g = MazeGenerator.makeDFS(50,50,null);
+        MazeGenerator.introduceChaos(g,0.20f,null);
+        System.out.println(g.maze().toArrayMaze());
+        Stack<Integer> pile;
+        pile=MazeSolver.prepDFS(g.maze(),true);
+        System.out.println("DFS:" +pile);
     }
 
 
@@ -252,6 +266,8 @@ public class MazeSolver {
     private static void solveDFS2(GraphMaze maze, int num, boolean[] visited, Stack<Integer> currentPath, List<Stack<Integer>> allPaths) {
         visited[num] = true;
         currentPath.push(num);
+
+        List<Integer> subList = maze.getEdges()[num];
         boolean deadEnd = true;
         //if the current node is the end, clone the current path in the stack of all paths
         if (num == maze.getEnd()) {

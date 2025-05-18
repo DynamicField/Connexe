@@ -1,0 +1,85 @@
+package fr.connexe.ui;
+
+import fr.connexe.algo.MazeSolver;
+import javafx.fxml.FXML;
+import javafx.scene.control.RadioButton;
+import javafx.stage.Stage;
+
+import java.util.List;
+import java.util.Stack;
+
+public class SolveMazeController {
+    private Stage dialogStage;
+    private MazeController mazeController;
+    boolean okClicked = false;
+
+    @FXML
+    private RadioButton dijkstraRadio;
+
+    @FXML
+    private RadioButton dfsRadio;
+
+    ///  Called when a user clicks on the Solve button
+    @FXML
+    private void handleOk() {
+        okClicked = true;
+
+        // Contains steps in reverse chronological order + final path at last
+        // Index 0 : final step (everything visited)
+        // Index n-1 : first step
+        // Index n : final solution path
+        List<Stack<Integer>> stepByStepPath;
+
+        long startTime;
+        long endTime;
+
+        mazeController.setDFS(false); // reset
+
+        // Check which radio button was selected for solving method,
+        // and executes the solving algorithm to pass the solution to MazeController
+        if(dijkstraRadio.isSelected()) { // Solve for Dijkstra
+            startTime = System.nanoTime();
+            stepByStepPath = MazeSolver.solveDjisktra2(mazeController.getMazeRenderer().getGraphMaze());
+            endTime = System.nanoTime();
+            //solutionPath = MazeSolver.solveDjisktra(mazeController.getMazeRenderer().getGraphMaze());
+        }
+        else if (dfsRadio.isSelected()) { // Solve for DFS
+            startTime = System.nanoTime();
+            stepByStepPath = MazeSolver.prepDFS2(mazeController.getMazeRenderer().getGraphMaze());
+            endTime = System.nanoTime();
+            mazeController.setDFS(true); // necessary for differenciated behavior of DFS animation
+        }
+        else { // Solve for Clockwise
+            startTime = System.nanoTime();
+            stepByStepPath = MazeSolver.prepClockwise2(mazeController.getMazeRenderer().getGraphMaze());
+            endTime = System.nanoTime();
+        }
+
+        mazeController.setStepByStepPath(stepByStepPath);
+        long executionTime = endTime - startTime;
+
+        // Build the solution path (must always be the last stack element of the list)
+        mazeController.buildSolutionPath(stepByStepPath.getLast(), executionTime);
+        System.out.println("Solution path : " + stepByStepPath.getLast());
+
+        dialogStage.close();
+    }
+
+    ///  Called when a user clicks on the Cancel button
+    @FXML
+    private void handleCancel() {
+        dialogStage.close();
+    }
+
+    public void setDialogStage(Stage dialogStage) {
+        this.dialogStage = dialogStage;
+    }
+
+    public void setMazeController(MazeController mazeController) {
+        this.mazeController = mazeController;
+    }
+
+    public boolean isOkClicked() {
+        return okClicked;
+    }
+}

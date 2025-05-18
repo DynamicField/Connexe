@@ -28,6 +28,9 @@ public class MainController {
     @FXML
     private Label speedLabel;
 
+    @FXML
+    private Button solveButton;
+
     private IntegerProperty animationSpeed;
 
     @FXML
@@ -79,6 +82,7 @@ public class MainController {
         if (okClicked) { // Maze is generated, now query the controller to display it on the view
             mazeController.setMazeRenderer(mazeRenderer);
             genButton.setDisable(false);
+            solveButton.setDisable(true);
 
             // Create the maze grid on the view (also displays the maze in the console)
             mazeController.createMazeFX();
@@ -108,6 +112,7 @@ public class MainController {
                 mazeController.setMazeRenderer(mazeRenderer);
                 mazeController.loadMaze(selected);
                 genButton.setDisable(true); // Disable generation animation for opened files (no gen log)
+                solveButton.setDisable(true);
 
                 // Update current opened file path in the app
                 connexeApp.setMazeFilePath(selected);
@@ -182,10 +187,23 @@ public class MainController {
         mazeController.setMazeRenderer(mazeRenderer);
         mazeController.createMazeFX();
         genButton.setDisable(true); // Disable generation animation for example (no gen log)
+        solveButton.setDisable(true);
 
         // Update the app title
         connexeApp.updateStageTitle("Exemple");
         connexeApp.setMazeFilePath(null);
+    }
+
+    @FXML
+    private void handleSolve() throws IOException {
+        if(mazeController.getMazeRenderer() != null){
+            boolean okClicked = connexeApp.showSolveMazeDialog(mazeController);
+            if(okClicked){
+                solveButton.setDisable(false);
+            }
+        } else {
+            showError("Aucun labyrinthe", "Veuillez créer/ouvrir un labyrinthe avant de le résoudre.");
+        }
     }
 
     /// Building button to show the generation step by step animation, for newly created mazes
@@ -194,13 +212,33 @@ public class MainController {
         if(mazeController.getMazeRenderer() != null){
             // Disable buttons when playing animation to prevent unwanted behaviors
             genButton.setDisable(true);
+            solveButton.setDisable(true);
 
             // Pass a dynamic delay supplier, so the renderer can query it during animation to change speed
             mazeController.playStepByStepGeneration(() -> (double) animationSpeed.get(), () -> {
                 genButton.setDisable(false); // re-enable button when animation is finished
+                solveButton.setDisable(false);
             });
         } else {
             showError("Aucun labyrinthe créé", "Veuillez créer un labyrinthe avant de visualiser la génération pas à pas.");
+        }
+    }
+
+    /// Building button to show the generation step by step animation, for newly created mazes
+    @FXML
+    private void handleSolveAnimation(){
+        if(mazeController.getMazeRenderer() != null && mazeController.getStepByStepPath() != null){
+            // Disable buttons when playing animation to prevent unwanted behaviors
+            genButton.setDisable(true);
+            solveButton.setDisable(true);
+
+            // Pass a dynamic delay supplier, so the renderer can query it during animation to change speed
+            mazeController.playStepByStepSolution(() -> (double) animationSpeed.get(), () -> {
+                genButton.setDisable(false); // re-enable button when animation is finished
+                solveButton.setDisable(false);
+            });
+        } else {
+            showError("Aucune précédente solution", "Veuillez d'abord résoudre le labyrinthe avec une méthode choisie avant de jouer l'animation.");
         }
     }
 
@@ -243,5 +281,4 @@ public class MainController {
     public void setMazeController(MazeController mazeController){
         this.mazeController = mazeController;
     }
-
 }

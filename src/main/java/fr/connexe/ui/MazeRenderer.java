@@ -6,10 +6,14 @@ import fr.connexe.algo.GraphMaze;
 import fr.connexe.algo.Point;
 import fr.connexe.algo.generation.MazeGenLog;
 import javafx.animation.PauseTransition;
+import javafx.scene.Node;
 import javafx.scene.layout.*;
 
 import javafx.util.Duration;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Stack;
 import java.util.function.Supplier;
 
 ///  Renderer for a GraphMaze as a JavaFX GridPane
@@ -163,15 +167,17 @@ public class MazeRenderer {
                 if (col == 0 && leftWidth > 0) leftWidth = 4;
                 if (col == cols - 1 && rightWidth > 0) rightWidth = 4;
 
-                // Apply style on cell
+                // Apply inline style (has priority over class styles) on cell for borders (= walls)
                 String style = "-fx-border-color: black; -fx-border-width: "
                         + topWidth + " "
                         + rightWidth + " "
                         + bottomWidth + " "
-                        + leftWidth + ";"
-                        + "-fx-background-color: white;";
+                        + leftWidth + ";";
 
                 gridCell.setStyle(style);
+
+                // Apply default background
+                gridCell.getStyleClass().add("cell-color-default");
 
                 // Allow dynamic resizing of the cell
                 GridPane.setHgrow(gridCell, Priority.ALWAYS);
@@ -180,6 +186,140 @@ public class MazeRenderer {
 
                 grid.add(gridCell, col, row);
             }
+        }
+    }
+
+    public void animateSolution(List<Stack<Integer>> totalSteps,  boolean isDFS, Runnable onFinished){
+        assert graphMaze != null : "GraphMaze must be set before calling animateDijkstraSolution()";
+        assert grid != null : "Grid must be built first before calling animateDijkstraSolution()";
+
+        clearGridColor();
+
+        // Reverse history of all steps in chronological order
+        List<Stack<Integer>> chronologicalSteps = totalSteps.reversed();
+
+        if(isDFS){
+            // Start playing animation from the step of the DFS algorithm (first tested path) (index 0 is the final path)
+            // Flatten all paths into a singular one (skip final path at index 0) to animate node by node
+            List<Integer> flattened = flattenPaths(chronologicalSteps.subList(1, chronologicalSteps.size()));
+            playNodeByNodeDFS(0, flattened, () -> {
+                // When it's finished, play the build of the final solution path
+                playFinalSolutionStep(0, totalSteps.getLast(), onFinished);
+            });
+        } else {
+            // Start playing animation from the first step of the solving algorithm (index 0 is the final path)
+            playSolutionStep(1, chronologicalSteps, () -> {
+                // When it's finished, play the build of the final solution path
+                playFinalSolutionStep(0, totalSteps.getLast(), onFinished);
+            });
+        }
+    }
+
+    private void playSolutionStep(int step, List<Stack<Integer>> totalSteps, Runnable onFinished){
+        if (step > totalSteps.size()-1) { // animation is finished
+            if (onFinished != null) onFinished.run();
+            return;
+        }
+        // Retrieve intermediate step (current stack history)
+        Stack<Integer> stepStack = totalSteps.get(step);
+
+        // Dijkstra and Clockwise keep an entire history of visited nodes, the top of the stack being the newest visited one
+        // Retrieve newest visited vertex (top of the stack) and color its cell visited
+        int visitedVertex = stepStack.peek();
+        Point vertexCoordinates = graphMaze.toPoint(visitedVertex);
+        Node cell = getCellNode(vertexCoordinates);
+        setCellColor(cell, "cell-color-visited");
+
+        // Query the current delay (animation speed) from the supplier
+        double currentDelayMs = delaySupplier != null ? delaySupplier.get() : 500;
+
+        // Wait for a certain time delay without freezing the UI thread then go to the next step
+        PauseTransition pause = new PauseTransition(Duration.millis(currentDelayMs));
+        pause.setOnFinished(e -> playSolutionStep(step + 1, totalSteps, onFinished));
+        pause.play();
+    }
+
+    private void playFinalSolutionStep(int step, Stack<Integer> solution, Runnable onFinished){
+        if (step > solution.size()-1) { // animation is finished
+            if (onFinished != null) onFinished.run();
+            return;
+        }
+
+        Point vertexCoordinates = graphMaze.toPoint(solution.get(step));
+        Node cell = getCellNode(vertexCoordinates);
+        setCellColor(cell, "cell-color-path");
+
+        // Query the current delay (animation speed) from the supplier
+        double currentDelayMs = delaySupplier != null ? delaySupplier.get() : 500;
+
+        // Wait for a certain time delay without freezing the UI thread then go to the next step
+        PauseTransition pause = new PauseTransition(Duration.millis(currentDelayMs));
+        pause.setOnFinished(e -> playFinalSolutionStep(step + 1, solution, onFinished));
+        pause.play();
+
+        if(onFinished != null) onFinished.run();
+    }
+
+    private void playNodeByNodeDFS(int index, List<Integer> visitedNodes, Runnable onFinished) {
+        if (index > visitedNodes.size()-1) { // animation is finished
+            if (onFinished != null) onFinished.run();
+            return;
+        }
+
+        // Retrieve first visited node, color it visited
+        int visitedVertex = visitedNodes.get(index);
+        Point vertexCoordinates = graphMaze.toPoint(visitedVertex);
+        Node cell = getCellNode(vertexCoordinates);
+        setCellColor(cell, "cell-color-visited");
+
+        // Query the current delay (animation speed) from the supplier
+        double currentDelayMs = delaySupplier != null ? delaySupplier.get() : 500;
+
+        // Wait for a certain time delay without freezing the UI thread then go to the next visited node
+        PauseTransition pause = new PauseTransition(Duration.millis(currentDelayMs));
+        pause.setOnFinished(e -> playNodeByNodeDFS(index + 1, visitedNodes, onFinished));
+        pause.play();
+    }
+
+    private List<Integer> flattenPaths(List<Stack<Integer>> totalSteps) {
+        List<Integer> steps = new ArrayList<>();
+        for (Stack<Integer> path : totalSteps) {
+            for (Integer node : path) {
+                steps.add(node); // Append all visited nodes in order
+            }
+        }
+        return steps;
+    }
+
+
+    /// Access the children of the maze's [GridPane] at a specific column and row index given by [Point] coordinates.
+    /// @param coordinates (col, row) coordinates of the cell to retrieve
+    public Node getCellNode(Point coordinates) {
+        for (Node node : grid.getChildren()) {
+            Integer rowIndex = GridPane.getRowIndex(node);
+            Integer colIndex = GridPane.getColumnIndex(node);
+
+            // Handle nulls (they default to 0)
+            if (rowIndex == null) rowIndex = 0;
+            if (colIndex == null) colIndex = 0;
+
+            if (rowIndex == coordinates.y() && colIndex == coordinates.x()) {
+                return node;
+            }
+        }
+        return null; // not found
+    }
+
+    public void setCellColor(Node node, String colorClass){
+        assert colorClass.startsWith("cell-color-") : "colorClass must start with 'cell-color-'";
+
+        node.getStyleClass().removeIf(styleClass -> styleClass.startsWith("cell-color-"));
+        node.getStyleClass().add(colorClass);
+    }
+
+    public void clearGridColor(){
+        for (Node node : grid.getChildren()) {
+            setCellColor(node, "cell-color-default");
         }
     }
 

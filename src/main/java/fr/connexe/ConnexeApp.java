@@ -1,23 +1,17 @@
 package fr.connexe;
 
-import fr.connexe.ui.MazeRenderer;
-import fr.connexe.ui.MainController;
-import fr.connexe.ui.MazeController;
-import fr.connexe.ui.NewMazeDialogController;
+import fr.connexe.ui.*;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.prefs.Preferences;
 
 /// Our entire application, which persists until it is closed.
 ///
@@ -123,6 +117,36 @@ public class ConnexeApp extends Application {
         NewMazeDialogController controller = loader.getController();
         controller.setDialogStage(dialogStage);
         controller.setMazeRenderer(mazeRenderer);
+
+        // Show the dialog and wait until the user closes it
+        dialogStage.showAndWait();
+
+        return controller.isOkClicked();
+    }
+
+    /// Setup and show the dialog box when clicking on the menu item to solve a maze, to select solving method
+    public boolean showSolveMazeDialog(MazeController mazeController) throws IOException{
+        // Load the fxml file and create a new stage for the popup dialog.
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(ConnexeApp.class.getResource("solve-maze-popup.fxml"));
+        BorderPane page = loader.load();
+
+        // Create the dialog Stage.
+        Stage dialogStage = new Stage();
+        dialogStage.setTitle("Résoudre le labyrinthe");
+        dialogStage.initModality(Modality.WINDOW_MODAL);
+        dialogStage.initOwner(stage);
+
+        dialogStage.setMinHeight(250);
+        dialogStage.setMinWidth(400);
+
+        Scene scene = new Scene(page);
+        dialogStage.setScene(scene);
+
+        // Attach the dialog stage to the controller
+        SolveMazeController controller = loader.getController();
+        controller.setDialogStage(dialogStage);
+        controller.setMazeController(mazeController);
 
         // Show the dialog and wait until the user closes it
         dialogStage.showAndWait();
