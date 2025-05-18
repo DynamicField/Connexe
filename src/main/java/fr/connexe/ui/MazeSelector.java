@@ -11,8 +11,7 @@ public class MazeSelector {
     private Region lastSelectedCell = null;
     private Region lastNeighborCell = null;
 
-    public MazeSelector(
-    ) {}
+    public MazeSelector() {}
 
     public void selectWall(Region gridCell, ArrayMaze arrayMaze, int row, int col, GridPane grid) {
         gridCell.setOnMouseClicked(event -> {
