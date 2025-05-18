@@ -36,7 +36,7 @@ public class MazeSolver {
         g.setEnd(15);
         System.out.println(g.toArrayMaze());
         Stack<Integer> pile;
-        pile=MazeSolver.prepDFS(g,true);
+        pile=MazeSolver.prepDFS(g,1);
         System.out.println("DFS:" +pile);
         pile=MazeSolver.prepClockwise(g);
         System.out.println("Clockwise:" +pile);
@@ -104,9 +104,9 @@ public class MazeSolver {
      * @param mode mode for an Easter egg (and because Yani wanted to keep mode in the parameters for this function)
      * @return stack of nodes to visit to solve the maze in the shortest way (if no path can solve it then return an empty stack)
      */
-    public static Stack<Integer> prepDFS(GraphMaze maze, boolean mode) {
+    public static Stack<Integer> prepDFS(GraphMaze maze, int mode) {
         //Easter egg
-        if(mode) {
+        if(mode==1) {
             System.out.println("Romu");
         }
         else{
