@@ -200,6 +200,7 @@ public class MainController {
         connexeApp.setMazeFilePath(null);
     }
 
+    /// Menu action to solve a maze. When clicked, shows the dialog box with the solving algorithm options for the user to select.
     @FXML
     private void handleSolve() throws IOException {
         if(mazeController.getMazeRenderer() != null){
@@ -256,6 +257,8 @@ public class MainController {
         }
     }
 
+    /// Handle behavior of stop animation button. When clicked, stops the current running animation and fast-forward
+    /// to the end result of the animation.
     @FXML
     private void handleStopAnimation(){
         mazeController.endCurrentAnimation();

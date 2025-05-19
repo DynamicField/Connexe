@@ -69,14 +69,21 @@ public class MazeController {
         }
     }
 
+    /// Build the solution path of the selected algorithm in the [SolveMazeController]
+    /// Display the stats of the chosen solving algorithm
+    /// (solving algorithm execution time, number of cells in path, number of visited cells)
+    /// @param executionTime execution time of the solving method
     public void buildSolutionPath(long executionTime){
         GraphMaze maze = mazeRenderer.getGraphMaze();
+
+        // Clear maze view beforehand
         mazeRenderer.clearGridColor();
         vboxLayout.getChildren().removeIf(node -> node instanceof Label);
 
         // Solution path must always be at the end of the step by step list
         Stack<Integer> solutionPath = stepByStepPath.getLast();
 
+        // Color each cell of the solution path
         for(int i : solutionPath) {
             Point nodeCoordinates = maze.toPoint(i);
             Node cell = mazeRenderer.getCellNode(nodeCoordinates);
@@ -85,12 +92,18 @@ public class MazeController {
 
         double executionTimeMs = executionTime / 1000000.0;
 
+        // Display stats (solving algorithm execution time, number of cells in path, number of visited cells)
         Label timeLabel = new Label("Temps de résolution (algorithme seulement) : " + executionTimeMs + " Ms");
         Label pathLength = new Label("Cases du chemin final : " + solutionPath.size());
         Label visitedLength = new Label("Cases visitées : " + getUniqueVisitedNodeCount(stepByStepPath));
         vboxLayout.getChildren().addAll(timeLabel, pathLength, visitedLength);
     }
 
+    /// Play step by step animation of the solving algorithm
+    /// @param delaySupplier supplier to provide the delay between frames (in ms) (= speed) dynamically on demand,
+    /// as the speed might change during the animation so it is necessary to query it each time
+    /// @param onFinished piece of code to run later when the animation is finished.
+    /// Used to re-enable buttons.
     public void playStepByStepSolution(Supplier<Double> delaySupplier, Runnable onFinished){
         assert stepByStepPath != null : "StepByStepPath must be set before calling playStepByStepSolution()";
 
@@ -98,17 +111,21 @@ public class MazeController {
         mazeRenderer.animateSolution(stepByStepPath, isDFS, onFinished);
     }
 
+    /// End the current running animation and display the end view
+    /// If the current running animation was the maze generation, display the end maze
+    /// If the current running animation was the solving, show the end result with the path found and visited cells colored
     public void endCurrentAnimation() {
         mazeRenderer.stopAnimation();
         if(mazeRenderer.isLastAnimIsGeneration()){
-            createMazeFX(); // rebuild grid as it was by default
+            createMazeFX(); // Rebuild generated grid as it was by default
         } else {
-            // rebuild grid with end state of animation (visited cells + final path)
+            // Rebuild grid with end state of animation (visited cells + final path)
             mazeRenderer.finishStepByStepSolving(stepByStepPath, isDFS);
         }
     }
 
     /// Saves the current rendered maze into a file
+    /// @param file file to save the maze to
     public void saveMaze(File file) throws MazeSerializationException, IOException {
         assert mazeRenderer.getGraphMaze() != null : "MazeRenderer must have a maze to be saved";
 
@@ -119,6 +136,7 @@ public class MazeController {
     }
 
     /// Loads a file containing maze data and renders it on the view
+    /// @param file file to load in the view
     public void loadMaze(File file) throws MazeSerializationException, IOException {
         // Open an input stream with the given file, then close it automatically
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
@@ -149,6 +167,9 @@ public class MazeController {
         isDFS = DFS;
     }
 
+    /// Flatten a [List<Stack<Integer>>] to a [Set<Integer>]
+    /// and get the total number of visited nodes of a step by step algorithm
+    /// @return total number of visited nodes of the `List<Stack<Integer>>` step by step solving history
     public int getUniqueVisitedNodeCount(List<Stack<Integer>> stepByStepPath) {
         Set<Integer> visited = new HashSet<>();
         for (Stack<Integer> stack : stepByStepPath) {
