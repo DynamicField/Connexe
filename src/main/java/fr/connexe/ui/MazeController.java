@@ -13,7 +13,9 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.io.*;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 import java.util.function.Supplier;
 
@@ -67,12 +69,15 @@ public class MazeController {
         }
     }
 
-    public void buildSolutionPath(Stack<Integer> path, long executionTime){
+    public void buildSolutionPath(long executionTime){
         GraphMaze maze = mazeRenderer.getGraphMaze();
         mazeRenderer.clearGridColor();
         vboxLayout.getChildren().removeIf(node -> node instanceof Label);
 
-        for(int i : path) {
+        // Solution path must always be at the end of the step by step list
+        Stack<Integer> solutionPath = stepByStepPath.getLast();
+
+        for(int i : solutionPath) {
             Point nodeCoordinates = maze.toPoint(i);
             Node cell = mazeRenderer.getCellNode(nodeCoordinates);
             mazeRenderer.setCellColor(cell, "cell-color-path");
@@ -81,9 +86,9 @@ public class MazeController {
         double executionTimeMs = executionTime / 1000000.0;
 
         Label timeLabel = new Label("Temps de résolution (algorithme seulement) : " + executionTimeMs + " Ms");
-        Label pathLength = new Label("Cases du chemin final : " + path.size());
-        vboxLayout.getChildren().add(timeLabel);
-        vboxLayout.getChildren().add(pathLength);
+        Label pathLength = new Label("Cases du chemin final : " + solutionPath.size());
+        Label visitedLength = new Label("Cases visitées : " + getUniqueVisitedNodeCount(stepByStepPath));
+        vboxLayout.getChildren().addAll(timeLabel, pathLength, visitedLength);
     }
 
     public void playStepByStepSolution(Supplier<Double> delaySupplier, Runnable onFinished){
@@ -91,6 +96,16 @@ public class MazeController {
 
         mazeRenderer.setDelaySupplier(delaySupplier);
         mazeRenderer.animateSolution(stepByStepPath, isDFS, onFinished);
+    }
+
+    public void endCurrentAnimation() {
+        mazeRenderer.stopAnimation();
+        if(mazeRenderer.isLastAnimIsGeneration()){
+            createMazeFX(); // rebuild grid as it was by default
+        } else {
+            // rebuild grid with end state of animation (visited cells + final path)
+            mazeRenderer.finishStepByStepSolving(stepByStepPath, isDFS);
+        }
     }
 
     /// Saves the current rendered maze into a file
@@ -132,5 +147,13 @@ public class MazeController {
 
     public void setDFS(boolean DFS) {
         isDFS = DFS;
+    }
+
+    public int getUniqueVisitedNodeCount(List<Stack<Integer>> stepByStepPath) {
+        Set<Integer> visited = new HashSet<>();
+        for (Stack<Integer> stack : stepByStepPath) {
+            visited.addAll(stack);
+        }
+        return visited.size();
     }
 }

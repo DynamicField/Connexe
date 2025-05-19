@@ -62,7 +62,7 @@ public class MazeSolver {
         MazeGenerator.introduceChaos(g,0.20f,null);
         System.out.println(g.maze().toArrayMaze());
         Stack<Integer> pile;
-        pile=MazeSolver.prepDFS(g.maze(),true);
+        pile=MazeSolver.prepDFS(g.maze(),1);
         System.out.println("DFS:" +pile);
     }
 

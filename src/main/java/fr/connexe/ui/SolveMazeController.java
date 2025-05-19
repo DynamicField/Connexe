@@ -55,11 +55,10 @@ public class SolveMazeController {
             endTime = System.nanoTime();
         }
 
+        // Build the solution path
         mazeController.setStepByStepPath(stepByStepPath);
         long executionTime = endTime - startTime;
-
-        // Build the solution path (must always be the last stack element of the list)
-        mazeController.buildSolutionPath(stepByStepPath.getLast(), executionTime);
+        mazeController.buildSolutionPath(executionTime);
         System.out.println("Solution path : " + stepByStepPath.getLast());
 
         dialogStage.close();

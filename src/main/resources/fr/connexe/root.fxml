@@ -88,6 +88,15 @@
                         </ImageView>
                      </graphic>
                   </Button>
+                  <Button fx:id="stopButton" disable="true" mnemonicParsing="false" onAction="#handleStopAnimation">
+                     <graphic>
+                        <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@images/stopIcon.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                  </Button>
                   <HBox alignment="CENTER" spacing="10.0">
                      <children>
                         <Label nodeOrientation="LEFT_TO_RIGHT" text="Vitesse" />

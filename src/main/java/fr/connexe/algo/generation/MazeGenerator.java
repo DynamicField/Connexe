@@ -219,7 +219,7 @@ public class MazeGenerator {
         probability = Math.clamp(probability, 1.0f / (2 * maze.getNumCells()), 1.0f);
 
         // Find the path from the start point to the end point using the DFS algorithm.
-        Integer[] path = MazeSolver.prepDFS(maze, false).toArray(new Integer[0]);
+        Integer[] path = MazeSolver.prepDFS(maze, 0).toArray(new Integer[0]);
 
         // If the path is too short, we can't introduce any chaos!
         if (path.length < 2) {

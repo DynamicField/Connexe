@@ -3,7 +3,10 @@ package fr.connexe.ui;
 import fr.connexe.ConnexeApp;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
+import javafx.concurrent.Task;
 import javafx.fxml.FXML;
+import javafx.scene.Cursor;
+import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -30,6 +33,9 @@ public class MainController {
 
     @FXML
     private Button solveButton;
+
+    @FXML
+    private Button stopButton;
 
     private IntegerProperty animationSpeed;
 
@@ -213,11 +219,15 @@ public class MainController {
             // Disable buttons when playing animation to prevent unwanted behaviors
             genButton.setDisable(true);
             solveButton.setDisable(true);
+            stopButton.setDisable(false); // enable stop button to stop animation
 
             // Pass a dynamic delay supplier, so the renderer can query it during animation to change speed
             mazeController.playStepByStepGeneration(() -> (double) animationSpeed.get(), () -> {
                 genButton.setDisable(false); // re-enable button when animation is finished
-                solveButton.setDisable(false);
+                if(mazeController.getStepByStepPath() != null){
+                    solveButton.setDisable(false); // re-enable solve button too if user already used a solving algorithm once
+                }
+                stopButton.setDisable(true); // animation is finished, disable stop button
             });
         } else {
             showError("Aucun labyrinthe créé", "Veuillez créer un labyrinthe avant de visualiser la génération pas à pas.");
@@ -231,16 +241,33 @@ public class MainController {
             // Disable buttons when playing animation to prevent unwanted behaviors
             genButton.setDisable(true);
             solveButton.setDisable(true);
+            stopButton.setDisable(false); // enable stop button to stop animation
 
             // Pass a dynamic delay supplier, so the renderer can query it during animation to change speed
             mazeController.playStepByStepSolution(() -> (double) animationSpeed.get(), () -> {
-                genButton.setDisable(false); // re-enable button when animation is finished
-                solveButton.setDisable(false);
+                if(mazeController.getMazeRenderer().getLog() != null){
+                    genButton.setDisable(false);  // if maze was generated, re-enable generation animation button
+                }
+                solveButton.setDisable(false);// re-enable button when animation is finished
+                stopButton.setDisable(true); // animation is finished, disable stop button
             });
         } else {
             showError("Aucune précédente solution", "Veuillez d'abord résoudre le labyrinthe avec une méthode choisie avant de jouer l'animation.");
         }
     }
+
+    @FXML
+    private void handleStopAnimation(){
+        mazeController.endCurrentAnimation();
+        if(mazeController.getMazeRenderer().getLog() != null){
+            genButton.setDisable(false); // re-enable generation animation button if maze was generated
+        }
+        if(mazeController.getStepByStepPath() != null){
+            solveButton.setDisable(false); // re-enable solving animation button if maze was solved with one chosen algorithm
+        }
+        stopButton.setDisable(true); // disable stop button after the animation is stopped.
+    }
+
 
     /// Initialize config for a FileChooser
     /// Only accepts a file of ".con" extension

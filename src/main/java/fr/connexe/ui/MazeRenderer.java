@@ -23,6 +23,8 @@ public class MazeRenderer {
     private GraphMaze graphMaze;
     private GridPane grid; // currently displayed maze grid
     private Supplier<Double> delaySupplier; // supplier to query speed value during animations
+    private PauseTransition currentPause;
+    private boolean lastAnimIsGeneration;
 
 
     /// Initialize a maze renderer about to take a maze which parameters will be set by a user
@@ -75,6 +77,7 @@ public class MazeRenderer {
         assert log != null : "MazeGenLog must be set before calling animateGridBuild()";
         assert grid != null : "Grid must be built first before calling animateGridBuild()";
 
+        lastAnimIsGeneration = true;
         int totalSteps = log.size();
         playStep(1, totalSteps, onFinished);
     }
@@ -100,10 +103,12 @@ public class MazeRenderer {
         // Query the current delay (animation speed) from the supplier
         double currentDelayMs = delaySupplier != null ? delaySupplier.get() : 500;
 
+        stopCurrentPause(); // stop previous animation if needed
+
         // Wait for a certain time delay without freezing the UI thread then go to the next step
-        PauseTransition pause = new PauseTransition(Duration.millis(currentDelayMs));
-        pause.setOnFinished(e -> playStep(step + 1, totalSteps, onFinished));
-        pause.play();
+        currentPause = new PauseTransition(Duration.millis(currentDelayMs));
+        currentPause.setOnFinished(e -> playStep(step + 1, totalSteps, onFinished));
+        currentPause.play();
     }
 
     /// Initialize an empty [GridPane] with the graph's dimensions.
@@ -194,6 +199,7 @@ public class MazeRenderer {
         assert grid != null : "Grid must be built first before calling animateDijkstraSolution()";
 
         clearGridColor();
+        lastAnimIsGeneration = false;
 
         // Reverse history of all steps in chronological order
         List<Stack<Integer>> chronologicalSteps = totalSteps.reversed();
@@ -233,10 +239,12 @@ public class MazeRenderer {
         // Query the current delay (animation speed) from the supplier
         double currentDelayMs = delaySupplier != null ? delaySupplier.get() : 500;
 
+        stopCurrentPause(); // stop previous animation if needed
+
         // Wait for a certain time delay without freezing the UI thread then go to the next step
-        PauseTransition pause = new PauseTransition(Duration.millis(currentDelayMs));
-        pause.setOnFinished(e -> playSolutionStep(step + 1, totalSteps, onFinished));
-        pause.play();
+        currentPause = new PauseTransition(Duration.millis(currentDelayMs));
+        currentPause.setOnFinished(e -> playSolutionStep(step + 1, totalSteps, onFinished));
+        currentPause.play();
     }
 
     private void playFinalSolutionStep(int step, Stack<Integer> solution, Runnable onFinished){
@@ -252,10 +260,12 @@ public class MazeRenderer {
         // Query the current delay (animation speed) from the supplier
         double currentDelayMs = delaySupplier != null ? delaySupplier.get() : 500;
 
+        stopCurrentPause(); // stop previous animation if needed
+
         // Wait for a certain time delay without freezing the UI thread then go to the next step
-        PauseTransition pause = new PauseTransition(Duration.millis(currentDelayMs));
-        pause.setOnFinished(e -> playFinalSolutionStep(step + 1, solution, onFinished));
-        pause.play();
+        currentPause = new PauseTransition(Duration.millis(currentDelayMs));
+        currentPause.setOnFinished(e -> playFinalSolutionStep(step + 1, solution, onFinished));
+        currentPause.play();
 
         if(onFinished != null) onFinished.run();
     }
@@ -275,18 +285,66 @@ public class MazeRenderer {
         // Query the current delay (animation speed) from the supplier
         double currentDelayMs = delaySupplier != null ? delaySupplier.get() : 500;
 
-        // Wait for a certain time delay without freezing the UI thread then go to the next visited node
-        PauseTransition pause = new PauseTransition(Duration.millis(currentDelayMs));
-        pause.setOnFinished(e -> playNodeByNodeDFS(index + 1, visitedNodes, onFinished));
-        pause.play();
+        stopCurrentPause(); // stop previous animation if needed
+
+        // Wait for a certain time delay without freezing the UI thread then go to the next step
+        currentPause = new PauseTransition(Duration.millis(currentDelayMs));
+        currentPause.setOnFinished(e -> playNodeByNodeDFS(index + 1, visitedNodes, onFinished));
+        currentPause.play();
+    }
+
+    public void finishStepByStepSolving(List<Stack<Integer>> totalSteps,  boolean isDFS){
+        assert graphMaze != null : "GraphMaze must be set before calling animateDijkstraSolution()";
+        assert grid != null : "Grid must be built first before calling animateDijkstraSolution()";
+
+        clearGridColor();
+
+
+        // Reverse history of all steps in chronological order
+        List<Stack<Integer>> chronologicalSteps = totalSteps.reversed();
+
+        if(isDFS){
+            // Flatten all paths into a singular one (skip final path at index 0)
+            List<Integer> flattened = flattenPaths(chronologicalSteps.subList(1, chronologicalSteps.size()));
+            for(int visitedVertex : flattened){
+                Point vertexCoordinates = graphMaze.toPoint(visitedVertex);
+                Node cell = getCellNode(vertexCoordinates);
+                setCellColor(cell, "cell-color-visited");
+            }
+        } else {
+            for(Stack<Integer> step : chronologicalSteps){
+                int visitedVertex = step.peek();
+                Point vertexCoordinates = graphMaze.toPoint(visitedVertex);
+                Node cell = getCellNode(vertexCoordinates);
+                setCellColor(cell, "cell-color-visited");
+            }
+        }
+
+        Stack<Integer> solutionPath =  totalSteps.getLast();
+
+        for(int solutionVertex : solutionPath){
+            Point vertexCoordinates = graphMaze.toPoint(solutionVertex);
+            Node cell = getCellNode(vertexCoordinates);
+            setCellColor(cell, "cell-color-path");
+        }
+    }
+
+    public void stopAnimation() {
+        stopCurrentPause();
+    }
+
+    private void stopCurrentPause() {
+        if (currentPause != null) {
+            currentPause.stop();
+            currentPause = null;
+        }
     }
 
     private List<Integer> flattenPaths(List<Stack<Integer>> totalSteps) {
         List<Integer> steps = new ArrayList<>();
         for (Stack<Integer> path : totalSteps) {
-            for (Integer node : path) {
-                steps.add(node); // Append all visited nodes in order
-            }
+            // Append all visited nodes in order
+            steps.addAll(path);
         }
         return steps;
     }
@@ -345,5 +403,9 @@ public class MazeRenderer {
 
     public void setDelaySupplier(Supplier<Double> delaySupplier) {
         this.delaySupplier = delaySupplier;
+    }
+
+    public boolean isLastAnimIsGeneration(){
+        return lastAnimIsGeneration;
     }
 }
