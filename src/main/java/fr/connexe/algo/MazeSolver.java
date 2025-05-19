@@ -58,7 +58,7 @@ public class MazeSolver {
      * @param num       the node currently visited
      * @param visited   boolean for all nodes to know if they are already visited or not in
      * @param currentPath the stack of nodes representing the path that is actually visited
-     * @param allPaths list of stack of nodes representing all paths to the end
+     * @param allPaths list of stack of nodes representing all paths visited
      */
     @SuppressWarnings("unchecked")
     private static void solveDFS(GraphMaze maze, int num, boolean[] visited, Stack<Integer> currentPath, List<Stack<Integer>> allPaths) {
@@ -79,7 +79,7 @@ public class MazeSolver {
         }
         //backtrack once all the paths created from this node are saved in allPaths
         currentPath.pop();
-        visited[num] = false;
+
     }
 
     /**
@@ -265,17 +265,16 @@ public class MazeSolver {
                 }
             }
         }
-        if (deadEnd) {
+        if (deadEnd && num!=maze.getEnd()) {
             allPaths.add((Stack<Integer>) currentPath.clone());
         }
         currentPath.pop();
-        visited[num] = false;
     }
 
 
     /**
      * @param maze the maze to solve
-     * @return stack of stacks of nodes to visit to solve the maze in the shortest way with a copy of the best path on top of the stack
+     * @return stack of stacks of nodes to visit to solve the maze with a copy of the path on top of the stack
     */
     public static List<Stack<Integer>> prepDFS2(GraphMaze maze) {
         boolean[] visited = new boolean[maze.getEdges().length];
@@ -285,7 +284,6 @@ public class MazeSolver {
         solveDFS2(maze, maze.getStart(), visited, currentPath, allPaths);
         Stack<Integer> shortest;
         shortest=shortest(allPaths, maze);
-        Collections.reverse(allPaths);
         allPaths.add(shortest);
 
         return allPaths;
