@@ -36,9 +36,11 @@ public class MazeSolver {
         g.setEnd(15);
         System.out.println(g.toArrayMaze());
         Stack<Integer> pile;
-        pile = MazeSolver.prepLeftHand(g);
+        pile = MazeSolver.prepDFS(g,1);
         System.out.println("DFS:" + pile);
-        /*pile = MazeSolver.prepClockwise(g);
+        pile=MazeSolver.prepLeftHand(g);
+        System.out.println("LeftHand:" + pile);
+        pile = MazeSolver.prepClockwise(g);
         System.out.println("Clockwise:" + pile);
         pile = MazeSolver.solveDjisktra(g);
         System.out.println("Djikstra" + pile);
@@ -49,7 +51,7 @@ public class MazeSolver {
         pile2 = MazeSolver.prepClockwise2(g);
         System.out.println("Clockwise2:" + pile2);
         pile2 = MazeSolver.solveDjisktra2(g);
-        System.out.println("Dijkstra2:" + pile2);*/
+        System.out.println("Dijkstra2:" + pile2);
     }
 
 
