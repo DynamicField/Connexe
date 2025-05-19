@@ -10,6 +10,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import java.io.*;
+import java.util.function.Supplier;
 
 ///  Controller to display any Maze related operations on the view (creation, editing, solving, etc...)
 public class MazeController {
@@ -22,7 +23,10 @@ public class MazeController {
     ///  Display a maze in the VBox of the main scene
     public void createMazeFX(){
         vboxLayout.getChildren().clear();
-        GridPane dynamicGrid = mazeRenderer.buildGrid();
+
+        // Build the maze for the current renderer and retrieve its grid to add it to the view
+        mazeRenderer.buildGrid();
+        GridPane dynamicGrid = mazeRenderer.getGrid();
 
         // Wrap the grid in a StackPane to center and constrain its size
         StackPane root = new StackPane();
@@ -44,20 +48,37 @@ public class MazeController {
         System.out.println(mazeRenderer.getGraphMaze());
     }
 
+    /// Replays the generation of the maze step by step as an animation
+    /// @param delaySupplier supplier to provide the delay between frames (in ms) (= speed) dynamically on demand,
+    /// as the speed might change during the animation so it is necessary to query it each time
+    /// @param onFinished piece of code to run later when the animation is finished.
+    /// Used to re-enable buttons.
+    public void playStepByStepGeneration(Supplier<Double> delaySupplier, Runnable onFinished){
+        if(mazeRenderer.getLog() != null) {
+            mazeRenderer.setDelaySupplier(delaySupplier);
+            mazeRenderer.animateGridBuild(onFinished);
+        }
+    }
+
     /// Saves the current rendered maze into a file
-    public void saveMaze(File file) throws MazeSerializationException, FileNotFoundException {
+    public void saveMaze(File file) throws MazeSerializationException, IOException {
         assert mazeRenderer.getGraphMaze() != null : "MazeRenderer must have a maze to be saved";
-        FileOutputStream fileOutputStream = new FileOutputStream(file);
-        mazeRenderer.getGraphMaze().save(fileOutputStream);
+
+        // Open an output stream with the given file, then close it automatically
+        try (FileOutputStream fileOutputStream = new FileOutputStream(file)) {
+            mazeRenderer.getGraphMaze().save(fileOutputStream);
+        }
     }
 
     /// Loads a file containing maze data and renders it on the view
-    public void loadMaze(File file) throws MazeSerializationException, FileNotFoundException {
-        FileInputStream fileInputStream = new FileInputStream(file);
-        GraphMaze maze = GraphMaze.load(fileInputStream);
-        mazeRenderer.setGraphMaze(maze);
-        mazeRenderer.setLog(null); // remove log of previous generation
-        createMazeFX();
+    public void loadMaze(File file) throws MazeSerializationException, IOException {
+        // Open an input stream with the given file, then close it automatically
+        try (FileInputStream fileInputStream = new FileInputStream(file)) {
+            GraphMaze maze = GraphMaze.load(fileInputStream);
+            mazeRenderer.setGraphMaze(maze);
+            mazeRenderer.setLog(null); // remove log of previous generation
+            createMazeFX();
+        }
     }
 
     public void setMazeRenderer(MazeRenderer mazeRenderer) {
