@@ -147,32 +147,43 @@ public class MazeRenderer {
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
                 Region gridCell = new Region();
+                StringBuilder style = new StringBuilder("-fx-background-color: white;");
 
                 // Retrieve information of the cell from the ArrayMaze
                 Point vertexCoordinates = new Point(col, row);
                 Cell mazeCell = arrayMaze.getCell(vertexCoordinates);
 
-                // Calculate border widths if wall exists in that cell
-                int topWidth = mazeCell.wallUp() ? 2 : 0;
-                int rightWidth = mazeCell.wallRight() ? 2 : 0;
-                int bottomWidth = mazeCell.wallDown() ? 2 : 0;
-                int leftWidth = mazeCell.wallLeft() ? 2 : 0;
+                //Black=Wall, Transparent=Empty
+                int topWidth = 2, rightWidth = 2, bottomWidth = 2, leftWidth = 2;
+                String topColor = mazeCell.wallUp() ? "black" : "transparent";
+                String rightColor = mazeCell.wallRight() ? "black" : "transparent";
+                String bottomColor = mazeCell.wallDown() ? "black" : "transparent";
+                String leftColor = mazeCell.wallLeft() ? "black" : "transparent";
 
-                // Boost outer borders to 4px to visually balance internal shared borders
-                if (row == 0 && topWidth > 0) topWidth = 4;
-                if (row == rows - 1 && bottomWidth > 0) bottomWidth = 4;
-                if (col == 0 && leftWidth > 0) leftWidth = 4;
-                if (col == cols - 1 && rightWidth > 0) rightWidth = 4;
+                //If the wall is within the border, the width of the border is increased to make it more aesthetic.
+                if (row == 0) topWidth = 4;
+                if (row == rows - 1) bottomWidth = 4;
+                if (col == 0) leftWidth = 4;
+                if (col == cols - 1) rightWidth = 4;
 
-                // Apply style on cell
-                String style = "-fx-border-color: black; -fx-border-width: "
-                        + topWidth + " "
-                        + rightWidth + " "
-                        + bottomWidth + " "
-                        + leftWidth + ";"
-                        + "-fx-background-color: white;";
+                style.append("-fx-border-color: ")
+                        .append(topColor).append(" ")
+                        .append(rightColor).append(" ")
+                        .append(bottomColor).append(" ")
+                        .append(leftColor).append(";");
 
-                gridCell.setStyle(style);
+                style.append(" -fx-border-width: ")
+                        .append(topWidth).append(" ")
+                        .append(rightWidth).append(" ")
+                        .append(bottomWidth).append(" ")
+                        .append(leftWidth).append(";");
+
+                //Remembers the initial style for reset
+                gridCell.setStyle(style.toString());
+                gridCell.getProperties().put("initialStyle", style.toString());
+
+                mazeSelector.selectWall(gridCell, arrayMaze, row, col, grid);
+
 
                 // Allow dynamic resizing of the cell
                 GridPane.setHgrow(gridCell, Priority.ALWAYS);

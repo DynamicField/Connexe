@@ -25,6 +25,7 @@ public class MazeSelector {
      @param grid the grid containing the maze cells (used to retrieve the cell at the clicked position)
      */
     public void selectWall(Region gridCell, ArrayMaze arrayMaze, int row, int col, GridPane grid) {
+        //We retrieve the x/y coordinates of the user's click and take the nearest wall with a margin of error of 10 pixels
         gridCell.setOnMouseClicked(event -> {
             double x = event.getX();
             double y = event.getY();
