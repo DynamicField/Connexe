@@ -1,8 +1,5 @@
 package fr.connexe.algo;
 
-import fr.connexe.algo.generation.MazeGenResult;
-import fr.connexe.algo.generation.MazeGenerator;
-
 import java.util.*;
 
 /// Solves mazes with various algorithms.
@@ -15,7 +12,7 @@ public class MazeSolver {
         // 8 - 9 - 10 - 11
         // -        -    -
         // 12- 13  14 - 15
-        /*var g = new GraphMaze(4, 4);
+        var g = new GraphMaze(4, 4);
         g.connect(0, 1);
         g.connect(0, 4);
         g.connect(2, 3);
@@ -31,80 +28,70 @@ public class MazeSolver {
         g.connect(9, 10);
         g.connect(10, 11);
         g.connect(10, 14);
-        g.connect(11,15);
-        g.connect(12,13);
-        g.connect(14,15);
+        g.connect(11, 15);
+        g.connect(12, 13);
+        g.connect(14, 15);
 
         g.setStart(0);
         g.setEnd(15);
-
-
         System.out.println(g.toArrayMaze());
         Stack<Integer> pile;
-        pile=MazeSolver.prepDFS(g,1);
-        System.out.println("DFS:" +pile);
-        pile=MazeSolver.prepClockwise(g);
-        System.out.println("Clockwise:" +pile);
-        pile=MazeSolver.solveDjisktra(g);
-        System.out.println("Djikstra" +pile);
-
-
+        pile = MazeSolver.prepDFS(g,1);
+        System.out.println("DFS:" + pile);
+        pile=MazeSolver.prepLeftHand(g);
+        System.out.println("LeftHand:" + pile);
+        pile = MazeSolver.prepClockwise(g);
+        System.out.println("Clockwise:" + pile);
+        pile = MazeSolver.solveDijkstra(g);
+        System.out.println("Djikstra" + pile);
         Stack<Stack<Integer>> pile2;
         List<Stack<Integer>> pile3;
         pile3 = MazeSolver.prepDFS2(g);
-        System.out.println("DFS2:" +pile3);
+        System.out.println("DFS2:" + pile3);
         pile2 = MazeSolver.prepClockwise2(g);
-        System.out.println("Clockwise2:"+pile2);
-        pile2=MazeSolver.solveDjisktra2(g);
-        System.out.println("Dijkstra2:" +pile2);*/
-
-        MazeGenResult g = MazeGenerator.makeDFS(50,50,null);
-        MazeGenerator.introduceChaos(g,0.20f,null);
-        System.out.println(g.maze().toArrayMaze());
-        Stack<Integer> pile;
-        pile=MazeSolver.prepDFS(g.maze(),1);
-        System.out.println("DFS:" +pile);
+        System.out.println("Clockwise2:" + pile2);
+        pile2 = MazeSolver.solveDijkstra2(g);
+        System.out.println("Dijkstra2:" + pile2);
     }
 
 
-    /**Goes through every path and compare them to get the best path to take to finish the maze
-     * @param maze the maze to solve
-     * @param num       the node currently visited
-     * @param visited   boolean for all nodes to know if they are already visited or not in
-     * @param currentPath the stack of nodes representing the path that is actually visited
-     * @param allPaths list of stack of nodes representing all paths visited
-     */
+    /// Goes through every path and compare them to get the best path to take to finish the maze
+    /// @param maze the maze to solve
+    /// @param num the node currently visited
+    /// @param visited boolean for all nodes to know if they are already visited or not in
+    /// @param currentPath the stack of nodes representing the path that is actually visited
+    /// @param allPaths list of stack of nodes representing all paths visited
+    /// @return all the paths to the end or dead ends
     @SuppressWarnings("unchecked")
-    private static void solveDFS(GraphMaze maze, int num, boolean[] visited, Stack<Integer> currentPath, List<Stack<Integer>> allPaths) {
-        //the actual node is noted as visited and is pushed in the current path
+    private static List<Stack<Integer>> solveDFS(GraphMaze maze, int num, boolean[] visited, Stack<Integer> currentPath, List<Stack<Integer>> allPaths) {
         visited[num] = true;
         currentPath.push(num);
         //if the current node is the end, clone the current path in the stack of all paths
         if (num == maze.getEnd()) {
             allPaths.add((Stack<Integer>) currentPath.clone());
-        }
-        else {
-            //for each son, it checks if the son was already visited in this path and if it isn't, call this function with the son as the actual node
+        } else {
             for (int son : maze.getEdges()[num]) {
                 if (!visited[son]) {
-                    solveDFS(maze, son, visited, currentPath, allPaths);
+                    return solveDFS(maze, son, visited, currentPath, allPaths);
                 }
             }
         }
-        //backtrack once all the paths created from this node are saved in allPaths
+        if (num != maze.getEnd()) {
+            allPaths.add((Stack<Integer>) currentPath.clone());
+            return allPaths;
+        }
         currentPath.pop();
-
+        return allPaths;
     }
 
-    /**
-     *
-     * @param allPaths the list of stacks of nodes which represent all the paths to the end of a maze
-     */
-    private static  Stack<Integer> shortest(List<Stack<Integer>> allPaths, GraphMaze g) {
+
+    /// @param allPaths the list of stacks of nodes which represent all the paths visited
+    /// @return the shortest path to the enf if there is one
+    private static Stack<Integer> shortest(List<Stack<Integer>> allPaths, GraphMaze g) {
         //create a new stack and whenever there is a path shorter than the ones before this one, it is copied and replace the last shortest if there was one
         Stack<Integer> shortest = new Stack<>();
         for (Stack<Integer> path : allPaths) {
-            if ((shortest.isEmpty() || path.size() < shortest.size())&& path.contains(g.getEnd())) {
+            if ((shortest.isEmpty() || path.size() < shortest.size()) && path.contains(g.getEnd())) {
                 shortest = path;
             }
         }
@@ -113,17 +100,15 @@ public class MazeSolver {
     }
 
 
-    /** create whatever the function DFS needs to call it and returns the shortest path from the paths solveDFS returned
-     * @param maze the maze to solve
-     * @param mode mode for an Easter egg (and because Yani wanted to keep mode in the parameters for this function)
-     * @return stack of nodes to visit to solve the maze in the shortest way (if no path can solve it then return an empty stack)
-     */
+    /// create whatever the function DFS needs to call it and returns the shortest path from the paths solveDFS returned
+    /// @param maze the maze to solve
+    /// @param mode mode for an Easter egg (and because Yani wanted to keep mode in the parameters for this function)
+    /// @return stack of nodes to visit to solve the maze in the shortest way (if no path can solve it then return an empty stack)
     public static Stack<Integer> prepDFS(GraphMaze maze, int mode) {
         //Easter egg
-        if(mode==1) {
+        if (mode == 1) {
             System.out.println("Romu");
-        }
-        else{
+        } else {
             System.out.println("Eva");
 
         }
@@ -137,14 +122,27 @@ public class MazeSolver {
         return shortest(allPaths, maze);
     }
 
+    /// @param maze the maze to solve
+    /// @return stack of stacks of nodes to visit to solve the maze with a copy of the path on top of the stack
+    public static List<Stack<Integer>> prepDFS2(GraphMaze maze) {
+        boolean[] visited = new boolean[maze.getEdges().length];
+        Stack<Integer> currentPath = new Stack<>();
+        List<Stack<Integer>> allPaths = new ArrayList<>();
 
-    /** The methode of the left hand if we consider that the object/ person in the maze is facing at the right wall
-     * @param maze    the maze to solve
-     * @param num     the node currently visited
-     * @param visited the nodes already visited without the dead ends
-     * @param blocked the nodes that lead to a dead end
-     * @return visited (if no path is found then it's a stack with only the start that is returned)
-     */
+        solveDFS(maze, maze.getStart(), visited, currentPath, allPaths);
+        Stack<Integer> shortest;
+        shortest = shortest(allPaths, maze);
+        allPaths.add(shortest);
+
+        return allPaths;
+    }
+
+    /// The methode of the left hand if we consider that the object/ person in the maze is facing at the right wall
+    /// @param maze the maze to solve
+    /// @param num the node currently visited
+    /// @param visited the nodes already visited without the dead ends
+    /// @param blocked the nodes that lead to a dead end
+    /// @return visited (if no path is found then it's a stack with only the start that is returned)
     private static Stack<Integer> solveClockwise(GraphMaze maze, int num, Stack<Integer> visited, Stack<Integer> blocked) {
         if (maze.getEnd() == num) {
             return visited;
@@ -177,17 +175,16 @@ public class MazeSolver {
         } else {//if the node doesn't have any son, consider it as a dead end (remove it from the visited nodes),blocks it and calls the node who called this one if it isn't the start (if it's the start, just return an empty stack)
             blocked.push(num);
             visited.pop();
-            if(!visited.isEmpty()){
+            if (!visited.isEmpty()) {
                 return visited;
             }
             return solveClockwise(maze, visited.peek(), visited, blocked);
         }
     }
 
-    /** create whatever the function Clockwise needs to call it and returns what it returns
-     * @param maze the maze to solve
-     * @return stack of nodes to visit to solve the maze (not always the shortest way) (if no path is found, return an empty stack)
-     */
+    /// create whatever the function Clockwise needs to call it and returns what it returns
+    /// @param maze the maze to solve
+    /// @return stack of nodes to visit to solve the maze (not always the shortest way) (if no path is found, return an empty stack)
     public static Stack<Integer> prepClockwise(GraphMaze maze) {
         //create whatever the function solveClockwise needs
         Stack<Integer> pile = new Stack<>();
@@ -203,12 +200,11 @@ public class MazeSolver {
         return pile;
     }
 
-    /** Goes through the maze as a BFS until it reaches the end or if it doesn't have any more place to go
-     * Then returns the best path to the end (if there isn't a path, it returns an empty stack)
-     * @param maze the maze to solve
-     * @return stack of nodes which is the best path (if no path is found, return an empty stack)
-     */
-    public static Stack<Integer> solveDjisktra(GraphMaze maze) {
+    /// Goes through the maze as a BFS until it reaches the end or if it doesn't have any more place to go
+    /// Then returns the best path to the end (if there isn't a path, it returns an empty stack)
+    /// @param maze the maze to solve
+    /// @return stack of nodes which is the best path (if no path is found, return an empty stack)
+    public static Stack<Integer> solveDijkstra(GraphMaze maze) {
         //create whatever the function needs
         int n = maze.getEdges().length;
         int[] dist = new int[n];
@@ -255,63 +251,12 @@ public class MazeSolver {
         return path;
     }
 
-    /**
-     * @param maze the maze to solve
-     * @param num       the node currently visited
-     * @param visited   boolean for all nodes to know if they are already visited or not in
-     * @param currentPath the stack of nodes representing the path that is actually visited
-     * @param allPaths list of stack of nodes representing all paths to the end
-    */
-    @SuppressWarnings("unchecked")
-    private static void solveDFS2(GraphMaze maze, int num, boolean[] visited, Stack<Integer> currentPath, List<Stack<Integer>> allPaths) {
-        visited[num] = true;
-        currentPath.push(num);
 
-        List<Integer> subList = maze.getEdges()[num];
-        boolean deadEnd = true;
-        //if the current node is the end, clone the current path in the stack of all paths
-        if (num == maze.getEnd()) {
-            allPaths.add((Stack<Integer>) currentPath.clone());
-        }
-        else {
-            for (int son : maze.getEdges()[num]) {
-                if (!visited[son]) {
-                    deadEnd = false;
-                    solveDFS2(maze, son, visited, currentPath, allPaths);
-                }
-            }
-        }
-        if (deadEnd && num!=maze.getEnd()) {
-            allPaths.add((Stack<Integer>) currentPath.clone());
-        }
-        currentPath.pop();
-    }
-
-
-    /**
-     * @param maze the maze to solve
-     * @return stack of stacks of nodes to visit to solve the maze with a copy of the path on top of the stack
-    */
-    public static List<Stack<Integer>> prepDFS2(GraphMaze maze) {
-        boolean[] visited = new boolean[maze.getEdges().length];
-        Stack<Integer> currentPath = new Stack<>();
-        List<Stack<Integer>> allPaths = new ArrayList<>();
-
-        solveDFS2(maze, maze.getStart(), visited, currentPath, allPaths);
-        Stack<Integer> shortest;
-        shortest=shortest(allPaths, maze);
-        allPaths.add(shortest);
-
-        return allPaths;
-    }
-
-    /**
-     * @param maze the maze to solve
-     * @param num the node where currently visited
-     * @param visited nodes that we visited without the dead ends
-     * @param blocked the nodes that lead to a dead end
-     * @return visited
-     */
+    /// @param maze the maze to solve
+    /// @param num the node where currently visited
+    /// @param visited nodes that we visited without the dead ends
+    /// @param blocked the nodes that lead to a dead end
+    /// @return visited
     @SuppressWarnings("unchecked")
     private static Stack<Stack<Integer>> solveClockwise2(GraphMaze maze, int num, Stack<Integer> visited, Stack<Integer> blocked, Stack<Stack<Integer>> pile) {
         // at each call, save the current path
@@ -360,10 +305,8 @@ public class MazeSolver {
     }
 
 
-    /**
-     * @param maze the maze to solve
-     * @return stack of stacks of nodes to visit to solve the maze (not always the shortest way)
-     */
+    /// @param maze the maze to solve
+    /// @return stack of stacks of nodes to visit to solve the maze (not always the shortest way)
     @SuppressWarnings("unchecked")
     public static Stack<Stack<Integer>> prepClockwise2(GraphMaze maze) {
         //create whatever is needed for solveClockwise2
@@ -374,29 +317,28 @@ public class MazeSolver {
         //push the start in the stack
         visited.push(maze.getStart());
         //calls the function solveClockwise2
-        tempPile=solveClockwise2(maze, maze.getStart(), visited, blocked, tempPile);
+        tempPile = solveClockwise2(maze, maze.getStart(), visited, blocked, tempPile);
         //invert the stack of stacks
-        do{
+        do {
             pile.push(tempPile.pop());
-        }while(!tempPile.isEmpty());
+        } while (!tempPile.isEmpty());
         //add the path to the end at the start of the stack
         pile.push((Stack<Integer>) visited.clone());
         //return the stack of stacks
         return pile;
     }
 
-    /** Goes through the maze as a BFS until it reaches the end or if it doesn't have any more place to go and return every step with the best path to the end in first position of the pile (if there isn't a path, it returns an empty stack)
-     * @param maze the maze to solve
-     * @return Stack of Stacks of nodes where the best path is at the top of the stack
-     */
+    /// Goes through the maze as a BFS until it reaches the end or if it doesn't have any more place to go and return every step with the best path to the end in first position of the pile (if there isn't a path, it returns an empty stack)
+    /// @param maze the maze to solve
+    /// @return Stack of Stacks of nodes where the best path is at the top of the stack
     @SuppressWarnings("unchecked")
-    public static Stack<Stack<Integer>> solveDjisktra2(GraphMaze maze) {
+    public static Stack<Stack<Integer>> solveDijkstra2(GraphMaze maze) {
         //create whatever is needed for the function
         int n = maze.getEdges().length;
         int[] dist = new int[n];
         int[] fathers = new int[n];
         boolean[] visited = new boolean[n];
-        Stack<Integer> visit= new Stack<>();
+        Stack<Integer> visit = new Stack<>();
         Stack<Stack<Integer>> pile = new Stack<>();
         Stack<Stack<Integer>> tempPile = new Stack<>();
 
@@ -418,7 +360,7 @@ public class MazeSolver {
             }
             visited[current] = true;
             visit.push(current);
-            tempPile.push((Stack<Integer>)visit.clone());
+            tempPile.push((Stack<Integer>) visit.clone());
             if (current == maze.getEnd()) {
                 break;
             }
@@ -433,12 +375,12 @@ public class MazeSolver {
         //invert the stack of stacks
         do {
             pile.push(tempPile.pop());
-        }while(!tempPile.isEmpty());
+        } while (!tempPile.isEmpty());
 
         //when there is no more node in the queue check if the distance of the end was modified
         Stack<Integer> path = new Stack<>();
         if (dist[maze.getEnd()] == Integer.MAX_VALUE) {
-            pile.push((Stack<Integer>)path.clone());
+            pile.push((Stack<Integer>) path.clone());
             return pile;
         }
 
@@ -448,9 +390,78 @@ public class MazeSolver {
         }
         //and push the shortest path at the start of the stack of stacks
         path.push(maze.getStart());
-        pile.push((Stack<Integer>)path.clone());
+        pile.push((Stack<Integer>) path.clone());
         return pile;
     }
 
+    /// @param maze the maze to solve
+    /// @param num the node actually visited
+    /// @param dir the direction faced when visiting the node
+    /// @param visited the stack of nodes visited (without the blocked nodes)
+    /// @param blocked the list of nodes that lead to a dead end
+    /// @return the path to the end
+    private static Stack<Integer> solveLeftHand(GraphMaze maze, int num, char dir, Stack<Integer> visited, List<Integer> blocked) {
+        visited.push(num);
+        if (num == maze.getEnd()) return visited;
 
+        int width = maze.getWidth();
+        List<Integer> sons = maze.getEdges()[num];
+
+        int[] dirx = new int[4]; // left, front, right, back
+        char[] nextDir = new char[4];
+
+        switch (dir) {//set up the directions used in order and the directions for the next node
+            case 'L':
+                dirx = new int[]{+width, -1, -width, +1};
+                nextDir = new char[]{'D', 'L', 'U', 'R'};
+                break;
+            case 'U':
+                dirx = new int[]{-1, -width, +1, +width};
+                nextDir = new char[]{'L', 'U', 'R', 'D'};
+                break;
+            case 'R':
+                dirx = new int[]{-width, +1, +width, -1};
+                nextDir = new char[]{'U', 'R', 'D', 'L'};
+                break;
+            case 'D':
+                dirx = new int[]{+1, +width, -1, -width};
+                nextDir = new char[]{'R', 'D', 'L', 'U'};
+                break;
+        }
+    //check if it's possible to go to the node at the left, then ahead, then at the right and finally behind the node depending upon the direction used
+        //and return the recursion of the first node usable
+        for (int i = 0; i < 4; i++) {
+            int next = num + dirx[i];
+            if (next >= 0 && sons.contains(next) && !visited.contains(next) && !blocked.contains(next)) {
+                return solveLeftHand(maze, next, nextDir[i], visited, blocked);
+            }
+        }
+
+        // if no allowed path, go back and block this node (remove this and the last node visited to prevent errors)
+        int t = visited.pop();
+        blocked.add(t);
+        visited.pop();
+        if (!visited.isEmpty()) {
+            return solveLeftHand(maze, visited.peek(), dir, visited, blocked);
+        }
+        //if the actual node is the start and there is no usable node, return an empty stack
+        return new Stack<>();
+    }
+
+
+    ///prepare everything needed for solveLeftHand and calls it
+    /// @param maze the maze to solve
+    /// @return the path to the end
+    public static Stack<Integer> prepLeftHand(GraphMaze maze) {
+        Stack<Integer> pile = new Stack<>();
+        Stack<Integer> visited = new Stack<>();
+        List<Integer> blocked = new LinkedList<>();
+        //calls the function solveLeftHand
+        visited = solveLeftHand(maze, maze.getStart(), 'R', visited, blocked);
+        //since the top of the stack is the end, flip upside down the stack and return it
+        while (!visited.isEmpty()) {
+            pile.push(visited.pop());
+        }
+        return pile;
+    }
 }
