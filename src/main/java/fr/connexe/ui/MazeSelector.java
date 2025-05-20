@@ -17,7 +17,7 @@ public class MazeSelector {
     public MazeSelector() {}
 
     /**
-    Select a wall when it's clicked. There is a margin of 10 around the cell to make it easier to click.
+     Select a wall when it's clicked. There is a margin of 10 around the cell to make it easier to click.
      @param gridCell the cell that was clicked
      @param arrayMaze the maze
      @param row the row of the cell
@@ -144,3 +144,4 @@ public class MazeSelector {
         return null;
     }
 }
+

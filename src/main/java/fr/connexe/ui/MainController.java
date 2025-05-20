@@ -66,7 +66,7 @@ public class MainController {
         boolean okClicked = connexeApp.showNewMazeDialog(mazeRenderer);
         if (okClicked) { // Maze is generated, now query the controller to display it on the view
             change.setDisable(false);
-            mazeController.createMazeFX();
+            mazeController.createMazeFX(mazeRenderer);
         }
     }
 
@@ -108,9 +108,8 @@ public class MainController {
         }
     }
 
-    public void handleChange(){
-
-    }
+    /// For editing the maze (not used yet)
+    public void handleChange(){}
 
     ///  Closes the app
     @FXML
@@ -126,6 +125,6 @@ public class MainController {
         // Initialize a renderer taking a maze generated from user parameters through the creation dialog box
         MazeRenderer mazeRenderer = new MazeRenderer();
         mazeRenderer.setDefaultExample();
-        mazeController.createMazeFX();
+        mazeController.createMazeFX(mazeRenderer);
     }
 }
