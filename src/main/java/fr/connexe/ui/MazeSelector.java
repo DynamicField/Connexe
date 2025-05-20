@@ -5,6 +5,7 @@ import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
+import javafx.scene.input.KeyCode;
 
 /**
  * Class to manage the selection of walls in the maze.
@@ -27,6 +28,9 @@ public class MazeSelector {
     public void selectWall(Region gridCell, ArrayMaze arrayMaze, int row, int col, GridPane grid) {
         //We retrieve the x/y coordinates of the user's click and take the nearest wall with a margin of error of 10 pixels
         gridCell.setOnMouseClicked(event -> {
+            //Required to use keyboard commands
+            gridCell.requestFocus();
+
             double x = event.getX();
             double y = event.getY();
             double width = gridCell.getWidth();
@@ -87,6 +91,17 @@ public class MazeSelector {
         });
     }
 
+    public String[] getColors(String style){
+        java.util.regex.Matcher m = java.util.regex.Pattern
+                .compile("-fx-border-color: ([^;]+);")
+                .matcher(style);
+        if (m.find()) {
+            //and make a table of it
+            return m.group(1).split(" ");
+        }
+        return null;
+    }
+
     /**
      * Sets the border color of a cell, which was selected by selectWall, to red.
      * @param gridCell the cell that was clicked
@@ -94,16 +109,7 @@ public class MazeSelector {
      */
     public void setBorderColor(Region gridCell, String side) {
         String style = gridCell.getStyle(); //Style format (only '-fx-border-color' is important here): -fx-background-color: white; -fx-border-color: top:color1 right:color2 left:color3 bottom:color4; -fx-border-width: 2 2 2 2;
-        String[] colors = {"", "", "", ""};
-        //Recover the 4 colors in the style
-        java.util.regex.Matcher m = java.util.regex.Pattern
-                .compile("-fx-border-color: ([^;]+);")
-                .matcher(style);
-        if (m.find()) {
-            //and make a table of it
-            String[] baseColors = m.group(1).split(" ");
-            System.arraycopy(baseColors, 0, colors, 0, 4);
-        }
+        String[] colors = getColors(style);
         switch (side) {
             case "top":    colors[0] = "red"; break;
             case "right":  colors[1] = "red"; break;
@@ -143,5 +149,41 @@ public class MazeSelector {
             }
         }
         return null;
+    }
+
+    public void removeBorder(Region gridCell) {
+        gridCell.setOnKeyPressed(event -> {
+            if(event.getCode() == javafx.scene.input.KeyCode.BACK_SPACE){
+                String style = gridCell.getStyle(); //Style format (only '-fx-border-color' is important here): -fx-background-color: white; -fx-border-color: top:color1 right:color2 left:color3 bottom:color4; -fx-border-width: 2 2 2 2;
+                String[] colors = getColors(style);
+                if (colors != null) {
+                    for (int i = 0; i < colors.length; i++) {
+                        if ("red".equals(colors[i]))
+                            colors[i] = "transparent";
+                    }
+                    style = style.replaceAll("-fx-border-color: [^;]+;", "");
+                    style += "-fx-border-color: " + String.join(" ", colors) + ";";
+                    gridCell.setStyle(style);
+                }
+            }
+        });
+    }
+
+    public void addBorder(Region gridCell) {
+        gridCell.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                String style = gridCell.getStyle(); //Style format (only '-fx-border-color' is important here): -fx-background-color: white; -fx-border-color: top:color1 right:color2 left:color3 bottom:color4; -fx-border-width: 2 2 2 2;
+                String[] colors = getColors(style);
+                if (colors != null) {
+                    for (int i = 0; i < colors.length; i++) {
+                        if ("red".equals(colors[i]))
+                            colors[i] = "black";
+                    }
+                    style = style.replaceAll("-fx-border-color: [^;]+;", "");
+                    style += "-fx-border-color: " + String.join(" ", colors) + ";";
+                    gridCell.setStyle(style);
+                }
+            }
+        });
     }
 }
