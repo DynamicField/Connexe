@@ -119,21 +119,20 @@ public class MazeRenderer {
         int cols = graphMaze.getWidth();
 
         GridPane grid = new GridPane();
-        double cellScale = Math.max(rows, cols);
 
         // Set constraints for the GridPane to preserve a view ratio depending on its number of rows and columns
 
         // Set column constraints (once per column)
         for (int i = 0; i < cols; i++) {
             ColumnConstraints colConstraints = new ColumnConstraints();
-            colConstraints.setPercentWidth(100.0 / cellScale);
+            colConstraints.setPercentWidth(100.0 / cols);
             grid.getColumnConstraints().add(colConstraints);
         }
 
         // Set row constraints (once per row)
         for (int i = 0; i < rows; i++) {
             RowConstraints rowConstraints = new RowConstraints();
-            rowConstraints.setPercentHeight(100.0 / cellScale);
+            rowConstraints.setPercentHeight(100.0 / rows);
             grid.getRowConstraints().add(rowConstraints);
         }
 

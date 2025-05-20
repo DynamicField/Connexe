@@ -3,28 +3,30 @@ package fr.connexe.ui;
 import fr.connexe.algo.GraphMaze;
 import fr.connexe.algo.MazeSerializationException;
 import fr.connexe.algo.Point;
+import fr.connexe.ui.game.ControllerHub;
+import fr.connexe.ui.game.GameSession;
+import fr.connexe.ui.game.KeyboardHub;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.StackPane;
-import javafx.scene.layout.VBox;
-
+import javafx.scene.layout.*;
+import org.jetbrains.annotations.Nullable;
 import java.io.*;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
-import java.util.Set;
-import java.util.Stack;
 import java.util.function.Supplier;
 
 ///  Controller to display any Maze related operations on the view (creation, editing, solving, etc...)
 public class MazeController {
-
     private MazeRenderer mazeRenderer;
     private List<Stack<Integer>> stepByStepPath;
     private boolean isDFS; // necessary for solving animation method having a different behavior for DFS
+
+    // Gaming state
+    private KeyboardHub keyboardHub;
+    private @Nullable ControllerHub controllerHub; // can be null
+    private @Nullable GameSession gameSession;
 
     @FXML
     private VBox vboxLayout;
@@ -41,16 +43,15 @@ public class MazeController {
         StackPane root = new StackPane();
         root.getChildren().add(dynamicGrid);
 
+        VBox.setVgrow(root, Priority.ALWAYS);
+
+        GameSession overlay = new GameSession(mazeRenderer.getGraphMaze(), keyboardHub, controllerHub);
+        Pane overlayPane = overlay.deploy(root);
+
         // Add margin space to the grid inside the StackPane
         StackPane.setMargin(dynamicGrid, new Insets(20)); // 20 px margin on all sides
+        StackPane.setMargin(overlayPane, new Insets(20)); // 20 px margin on all sides
 
-        // Bind GridPane size to VBox size minus margin (for dynamic growth)
-        dynamicGrid.maxWidthProperty().bind(vboxLayout.widthProperty().subtract(40));
-        dynamicGrid.maxHeightProperty().bind(vboxLayout.heightProperty().subtract(40));
-        dynamicGrid.prefWidthProperty().bind(vboxLayout.widthProperty().subtract(40));
-        dynamicGrid.prefHeightProperty().bind(vboxLayout.heightProperty().subtract(40));
-
-        dynamicGrid.setAlignment(Pos.CENTER);
         vboxLayout.getChildren().add(root);
 
         // Console view
@@ -145,6 +146,11 @@ public class MazeController {
             mazeRenderer.setLog(null); // remove log of previous generation
             createMazeFX();
         }
+    }
+
+    public void setInputHubs(KeyboardHub keyboardHub, ControllerHub controllerHub) {
+        this.keyboardHub = keyboardHub;
+        this.controllerHub = controllerHub;
     }
 
     public void setMazeRenderer(MazeRenderer mazeRenderer) {

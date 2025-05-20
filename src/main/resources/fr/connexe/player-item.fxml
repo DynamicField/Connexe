@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.shape.*?>
+
+<VBox prefWidth="128.0" spacing="12.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fr.connexe.ui.game.lobby.PlayerItemController">
+   <children>
+      <Label fx:id="playerLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" text="Joueur X" />
+      <StackPane>
+         <children>
+            <Circle fx:id="icon" fill="#9dd0ff" radius="28.0" stroke="BLACK" strokeType="INSIDE" strokeWidth="0.0" />
+         </children>
+      </StackPane>
+      <ComboBox fx:id="inputComboBox" maxWidth="1.7976931348623157E308" promptText="Clavier" />
+      <Button maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleDelete" text="Supprimer" textFill="#e42121">
+         <VBox.margin>
+            <Insets top="-8.0" />
+         </VBox.margin>
+      </Button>
+      <Label fx:id="gamepadLabel" alignment="CENTER" maxWidth="1.7976931348623157E308" />
+   </children>
+</VBox>

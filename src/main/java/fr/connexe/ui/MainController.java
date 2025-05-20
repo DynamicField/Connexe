@@ -268,6 +268,10 @@ public class MainController {
         stopButton.setDisable(true); // disable stop button after the animation is stopped.
     }
 
+    @FXML
+    private void handleArcade() throws IOException {
+        connexeApp.showPlayArcadeDialog();
+    }
 
     /// Initialize config for a FileChooser
     /// Only accepts a file of ".con" extension
