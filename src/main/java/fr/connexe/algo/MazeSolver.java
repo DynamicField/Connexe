@@ -47,6 +47,8 @@ public class MazeSolver {
         Stack<Stack<Integer>> pile2;
         List<Stack<Integer>> pile3;
         pile3 = MazeSolver.prepDFS2(g);
+        pile2 = MazeSolver.prepLeftHand2(g);
+        System.out.println("LeftHand2:" + pile2);
         System.out.println("DFS2:" + pile3);
         pile2 = MazeSolver.prepClockwise2(g);
         System.out.println("Clockwise2:" + pile2);
@@ -400,9 +402,13 @@ public class MazeSolver {
     /// @param visited the stack of nodes visited (without the blocked nodes)
     /// @param blocked the list of nodes that lead to a dead end
     /// @return the path to the end
-    private static Stack<Integer> solveLeftHand(GraphMaze maze, int num, char dir, Stack<Integer> visited, List<Integer> blocked) {
+    @SuppressWarnings("unchecked")
+    private static Stack<Stack<Integer>> solveLeftHand(GraphMaze maze, int num, char dir, Stack<Integer> visited, List<Integer> blocked, Stack<Stack<Integer>> paths) {
         visited.push(num);
-        if (num == maze.getEnd()) return visited;
+        paths.push((Stack<Integer>) visited.clone());
+        if (num == maze.getEnd()){
+            return paths;
+        }
 
         int width = maze.getWidth();
         List<Integer> sons = maze.getEdges()[num];
@@ -432,8 +438,8 @@ public class MazeSolver {
         //and return the recursion of the first node usable
         for (int i = 0; i < 4; i++) {
             int next = num + dirx[i];
-            if (next >= 0 && sons.contains(next) && !visited.contains(next) && !blocked.contains(next)) {
-                return solveLeftHand(maze, next, nextDir[i], visited, blocked);
+            if (next >= 0 && next< maze.getNumCells() && sons.contains(next) && !visited.contains(next) && !blocked.contains(next)) {
+                return solveLeftHand(maze, next, nextDir[i], visited, blocked, paths);
             }
         }
 
@@ -442,8 +448,9 @@ public class MazeSolver {
         blocked.add(t);
         visited.pop();
         if (!visited.isEmpty()) {
-            return solveLeftHand(maze, visited.peek(), dir, visited, blocked);
+            return solveLeftHand(maze, visited.peek(), dir, visited, blocked, paths);
         }
+        paths.push((Stack<Integer>) visited.clone());
         //if the actual node is the start and there is no usable node, return an empty stack
         return new Stack<>();
     }
@@ -456,12 +463,30 @@ public class MazeSolver {
         Stack<Integer> pile = new Stack<>();
         Stack<Integer> visited = new Stack<>();
         List<Integer> blocked = new LinkedList<>();
+        Stack<Stack<Integer>> paths = new Stack<>();
         //calls the function solveLeftHand
-        visited = solveLeftHand(maze, maze.getStart(), 'R', visited, blocked);
+        paths = solveLeftHand(maze, maze.getStart(), 'R', visited, blocked, paths);
         //since the top of the stack is the end, flip upside down the stack and return it
+        visited=paths.pop();
         while (!visited.isEmpty()) {
             pile.push(visited.pop());
         }
         return pile;
     }
+    public static Stack<Stack<Integer>> prepLeftHand2(GraphMaze maze) {
+        Stack<Integer> visited = new Stack<>();
+        List<Integer> blocked = new LinkedList<>();
+        Stack<Stack<Integer>> tempPaths = new Stack<>();
+        Stack<Stack<Integer>> paths = new Stack<>();
+        //calls the function solveLeftHand
+        tempPaths = solveLeftHand(maze, maze.getStart(), 'R', visited, blocked, tempPaths);
+        //since the top of the stack is the end, flip upside down the stack, add at the top the final path and return it
+        Stack<Integer> pile = tempPaths.peek();
+        do {
+            paths.push(tempPaths.pop());
+        }while (!tempPaths.isEmpty());
+        paths.push(pile);
+        return paths;
+    }
 }
+
