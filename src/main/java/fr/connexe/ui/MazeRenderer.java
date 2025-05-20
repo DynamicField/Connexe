@@ -19,6 +19,7 @@ public class MazeRenderer {
     private GraphMaze graphMaze;
     private GridPane grid; // currently displayed maze grid
     private Supplier<Double> delaySupplier; // supplier to query speed value during animations
+    private final MazeSelector mazeSelector = new MazeSelector();
 
 
     /// Initialize a maze renderer about to take a maze which parameters will be set by a user

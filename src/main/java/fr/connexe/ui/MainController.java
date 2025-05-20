@@ -9,6 +9,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.stage.FileChooser;
+import javafx.scene.control.MenuItem;
 
 import java.io.File;
 import java.io.IOException;
@@ -18,6 +19,14 @@ public class MainController {
 
     private ConnexeApp connexeApp;
     private MazeController mazeController;
+
+    @FXML
+    private MenuItem change;
+
+    @FXML
+    public void initializeEdit() {
+        change.setDisable(true);
+    }
 
     @FXML
     private Button genButton;
@@ -79,6 +88,7 @@ public class MainController {
         if (okClicked) { // Maze is generated, now query the controller to display it on the view
             mazeController.setMazeRenderer(mazeRenderer);
             genButton.setDisable(false);
+            change.setDisable(false);
 
             // Create the maze grid on the view (also displays the maze in the console)
             mazeController.createMazeFX();
@@ -166,6 +176,9 @@ public class MainController {
             showError("Aucun labyrinthe créé", "Veuillez créer un labyrinthe avant de le sauvegarder.");
         }
     }
+
+    //Not used yet
+    public void handleChange(){}
 
     ///  Closes the app
     @FXML
