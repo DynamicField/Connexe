@@ -7,17 +7,14 @@ import fr.connexe.ui.NewMazeDialogController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.prefs.Preferences;
 
 /// Our entire application, which persists until it is closed.
 ///
@@ -53,6 +50,9 @@ public class ConnexeApp extends Application {
         FXMLLoader fxmlLoader = new FXMLLoader(ConnexeApp.class.getResource("root.fxml"));
         rootLayout = fxmlLoader.load();
         MainController controller = fxmlLoader.getController();
+
+        //Disable the edit button
+        controller.initializeEdit();
 
         // Create the scene with the FXML file, set its title and size and bind the layout size to the scene size
         Scene scene = new Scene(rootLayout, 800, 500);

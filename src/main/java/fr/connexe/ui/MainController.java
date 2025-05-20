@@ -1,9 +1,15 @@
 package fr.connexe.ui;
 
 import fr.connexe.ConnexeApp;
+import javafx.beans.property.IntegerProperty;
+import javafx.beans.property.SimpleIntegerProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.stage.FileChooser;
+import javafx.scene.control.MenuItem;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,32 +20,61 @@ public class MainController {
     private ConnexeApp connexeApp;
     private MazeController mazeController;
 
-     /// Is called by the main application to give a reference back to itself.
-     /// @param connexeApp main application
-    public void setConnexeApp(ConnexeApp connexeApp) {
-        this.connexeApp = connexeApp;
+    @FXML
+    private MenuItem change;
+
+    @FXML
+    public void initializeEdit() {
+        change.setDisable(true);
     }
 
-     /// References the MazeController to call its building methods from the menu bar options (new, edit...)
-     /// @param mazeController the MazeController to use maze related methods from (building, etc...)
-    public void setMazeController(MazeController mazeController){
-        this.mazeController = mazeController;
-    }
+    @FXML
+    private Button genButton;
 
-    /// Initialize config for a FileChooser
-    /// Only accepts a file of ".con" extension
-    /// Opens by default the last directory a user saved into/opened
-    private FileChooser initFileChooser(){
-        // Create a new file chooser dialog popup and set the opened directory to the last visited one
-        FileChooser fileChooser = new FileChooser();
-        File lastDir = Settings.getLastVisitedDirectory();
-        if (lastDir != null) fileChooser.setInitialDirectory(lastDir);
+    @FXML
+    private Slider speedSlider;
 
-        // Set extension filter to only allow .con files
-        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter(
-                "Fichiers CON (*.con)", "*.con");
-        fileChooser.getExtensionFilters().add(extFilter);
-        return fileChooser;
+    @FXML
+    private Label speedLabel;
+
+    private IntegerProperty animationSpeed;
+
+    @FXML
+    private void initialize() {
+        // Default animation delay between frames is 500ms (x1 speed)
+        // IntegerProperty allows to dynamically check its value changes and update the animation accordingly
+        animationSpeed = new SimpleIntegerProperty(500);
+
+        // Listen to slider value changes to update the animation delay
+        speedSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
+            speedLabel.setText("x" + newVal.intValue());
+            switch(newVal.intValue()){
+                case 2:
+                    animationSpeed.set(300);
+                    break;
+                case 3:
+                    animationSpeed.set(100);
+                    break;
+                case 4:
+                    animationSpeed.set(50);
+                    break;
+                case 5:
+                    animationSpeed.set(20);
+                    break;
+                case 6:
+                    animationSpeed.set(10);
+                    break;
+                case 7:
+                    animationSpeed.set(5);
+                    break;
+                case 8:
+                    animationSpeed.set(1);
+                    break;
+                default:
+                    animationSpeed.set(500);
+                    break;
+            }
+        });
     }
 
     /// Option to create a new maze.
@@ -52,6 +87,8 @@ public class MainController {
         boolean okClicked = connexeApp.showNewMazeDialog(mazeRenderer);
         if (okClicked) { // Maze is generated, now query the controller to display it on the view
             mazeController.setMazeRenderer(mazeRenderer);
+            genButton.setDisable(false);
+            change.setDisable(false);
 
             // Create the maze grid on the view (also displays the maze in the console)
             mazeController.createMazeFX();
@@ -80,6 +117,7 @@ public class MainController {
                 MazeRenderer mazeRenderer = new MazeRenderer();
                 mazeController.setMazeRenderer(mazeRenderer);
                 mazeController.loadMaze(selected);
+                genButton.setDisable(true); // Disable generation animation for opened files (no gen log)
 
                 // Update current opened file path in the app
                 connexeApp.setMazeFilePath(selected);
@@ -139,6 +177,9 @@ public class MainController {
         }
     }
 
+    //Not used yet
+    public void handleChange(){}
+
     ///  Closes the app
     @FXML
     private void handleExit() {
@@ -153,10 +194,43 @@ public class MainController {
         mazeRenderer.setDefaultExample();
         mazeController.setMazeRenderer(mazeRenderer);
         mazeController.createMazeFX();
+        genButton.setDisable(true); // Disable generation animation for example (no gen log)
 
         // Update the app title
         connexeApp.updateStageTitle("Exemple");
         connexeApp.setMazeFilePath(null);
+    }
+
+    /// Building button to show the generation step by step animation, for newly created mazes
+    @FXML
+    private void handleGenerationAnimation(){
+        if(mazeController.getMazeRenderer() != null){
+            // Disable buttons when playing animation to prevent unwanted behaviors
+            genButton.setDisable(true);
+
+            // Pass a dynamic delay supplier, so the renderer can query it during animation to change speed
+            mazeController.playStepByStepGeneration(() -> (double) animationSpeed.get(), () -> {
+                genButton.setDisable(false); // re-enable button when animation is finished
+            });
+        } else {
+            showError("Aucun labyrinthe créé", "Veuillez créer un labyrinthe avant de visualiser la génération pas à pas.");
+        }
+    }
+
+    /// Initialize config for a FileChooser
+    /// Only accepts a file of ".con" extension
+    /// Opens by default the last directory a user saved into/opened
+    private FileChooser initFileChooser(){
+        // Create a new file chooser dialog popup and set the opened directory to the last visited one
+        FileChooser fileChooser = new FileChooser();
+        File lastDir = Settings.getLastVisitedDirectory();
+        if (lastDir != null) fileChooser.setInitialDirectory(lastDir);
+
+        // Set extension filter to only allow .con files
+        FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter(
+                "Fichiers CON (*.con)", "*.con");
+        fileChooser.getExtensionFilters().add(extFilter);
+        return fileChooser;
     }
 
     /// Show an error dialog box
@@ -170,4 +244,17 @@ public class MainController {
 
         alert.showAndWait();
     }
+
+    /// Is called by the main application to give a reference back to itself.
+    /// @param connexeApp main application
+    public void setConnexeApp(ConnexeApp connexeApp) {
+        this.connexeApp = connexeApp;
+    }
+
+    /// References the MazeController to call its building methods from the menu bar options (new, edit...)
+    /// @param mazeController the MazeController to use maze related methods from (building, etc...)
+    public void setMazeController(MazeController mazeController){
+        this.mazeController = mazeController;
+    }
+
 }
