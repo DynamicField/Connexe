@@ -452,7 +452,7 @@ public class MazeSolver {
         }
         paths.push((Stack<Integer>) visited.clone());
         //if the actual node is the start and there is no usable node, return an empty stack
-        return new Stack<>();
+        return paths;
     }
 
 
