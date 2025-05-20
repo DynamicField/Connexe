@@ -9,6 +9,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.stage.FileChooser;
+import javafx.scene.control.MenuItem;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,6 +21,14 @@ public class MainController {
     private MazeController mazeController;
 
     @FXML
+    private MenuItem change;
+
+    @FXML
+    public void initializeEdit() {
+        change.setDisable(true);
+    }
+
+    @FXML
     private Button genButton;
 
     @FXML
@@ -27,12 +36,6 @@ public class MainController {
 
     @FXML
     private Label speedLabel;
-
-    @FXML
-    private Button solveButton;
-
-    @FXML
-    private Button stopButton;
 
     private IntegerProperty animationSpeed;
 
@@ -85,7 +88,7 @@ public class MainController {
         if (okClicked) { // Maze is generated, now query the controller to display it on the view
             mazeController.setMazeRenderer(mazeRenderer);
             genButton.setDisable(false);
-            solveButton.setDisable(true);
+            change.setDisable(false);
 
             // Create the maze grid on the view (also displays the maze in the console)
             mazeController.createMazeFX();
@@ -115,7 +118,6 @@ public class MainController {
                 mazeController.setMazeRenderer(mazeRenderer);
                 mazeController.loadMaze(selected);
                 genButton.setDisable(true); // Disable generation animation for opened files (no gen log)
-                solveButton.setDisable(true);
 
                 // Update current opened file path in the app
                 connexeApp.setMazeFilePath(selected);
@@ -175,6 +177,9 @@ public class MainController {
         }
     }
 
+    //Not used yet
+    public void handleChange(){}
+
     ///  Closes the app
     @FXML
     private void handleExit() {
@@ -190,24 +195,10 @@ public class MainController {
         mazeController.setMazeRenderer(mazeRenderer);
         mazeController.createMazeFX();
         genButton.setDisable(true); // Disable generation animation for example (no gen log)
-        solveButton.setDisable(true);
 
         // Update the app title
         connexeApp.updateStageTitle("Exemple");
         connexeApp.setMazeFilePath(null);
-    }
-
-    /// Menu action to solve a maze. When clicked, shows the dialog box with the solving algorithm options for the user to select.
-    @FXML
-    private void handleSolve() throws IOException {
-        if(mazeController.getMazeRenderer() != null){
-            boolean okClicked = connexeApp.showSolveMazeDialog(mazeController);
-            if(okClicked){
-                solveButton.setDisable(false);
-            }
-        } else {
-            showError("Aucun labyrinthe", "Veuillez créer/ouvrir un labyrinthe avant de le résoudre.");
-        }
     }
 
     /// Building button to show the generation step by step animation, for newly created mazes
@@ -216,58 +207,15 @@ public class MainController {
         if(mazeController.getMazeRenderer() != null){
             // Disable buttons when playing animation to prevent unwanted behaviors
             genButton.setDisable(true);
-            solveButton.setDisable(true);
-            stopButton.setDisable(false); // enable stop button to stop animation
 
             // Pass a dynamic delay supplier, so the renderer can query it during animation to change speed
             mazeController.playStepByStepGeneration(() -> (double) animationSpeed.get(), () -> {
                 genButton.setDisable(false); // re-enable button when animation is finished
-                if(mazeController.getStepByStepPath() != null){
-                    solveButton.setDisable(false); // re-enable solve button too if user already used a solving algorithm once
-                }
-                stopButton.setDisable(true); // animation is finished, disable stop button
             });
         } else {
             showError("Aucun labyrinthe créé", "Veuillez créer un labyrinthe avant de visualiser la génération pas à pas.");
         }
     }
-
-    /// Building button to show the generation step by step animation, for newly created mazes
-    @FXML
-    private void handleSolveAnimation(){
-        if(mazeController.getMazeRenderer() != null && mazeController.getStepByStepPath() != null){
-            // Disable buttons when playing animation to prevent unwanted behaviors
-            genButton.setDisable(true);
-            solveButton.setDisable(true);
-            stopButton.setDisable(false); // enable stop button to stop animation
-
-            // Pass a dynamic delay supplier, so the renderer can query it during animation to change speed
-            mazeController.playStepByStepSolution(() -> (double) animationSpeed.get(), () -> {
-                if(mazeController.getMazeRenderer().getLog() != null){
-                    genButton.setDisable(false);  // if maze was generated, re-enable generation animation button
-                }
-                solveButton.setDisable(false);// re-enable button when animation is finished
-                stopButton.setDisable(true); // animation is finished, disable stop button
-            });
-        } else {
-            showError("Aucune précédente solution", "Veuillez d'abord résoudre le labyrinthe avec une méthode choisie avant de jouer l'animation.");
-        }
-    }
-
-    /// Handle behavior of stop animation button. When clicked, stops the current running animation and fast-forward
-    /// to the end result of the animation.
-    @FXML
-    private void handleStopAnimation(){
-        mazeController.endCurrentAnimation();
-        if(mazeController.getMazeRenderer().getLog() != null){
-            genButton.setDisable(false); // re-enable generation animation button if maze was generated
-        }
-        if(mazeController.getStepByStepPath() != null){
-            solveButton.setDisable(false); // re-enable solving animation button if maze was solved with one chosen algorithm
-        }
-        stopButton.setDisable(true); // disable stop button after the animation is stopped.
-    }
-
 
     /// Initialize config for a FileChooser
     /// Only accepts a file of ".con" extension
@@ -308,4 +256,5 @@ public class MainController {
     public void setMazeController(MazeController mazeController){
         this.mazeController = mazeController;
     }
+
 }
