@@ -39,9 +39,9 @@ public class SolveMazeController {
         // and executes the solving algorithm to pass the solution to MazeController
         if(dijkstraRadio.isSelected()) { // Solve for Dijkstra
             startTime = System.nanoTime();
-            stepByStepPath = MazeSolver.solveDjisktra2(mazeController.getMazeRenderer().getGraphMaze());
+            stepByStepPath = MazeSolver.solveDijkstra2(mazeController.getMazeRenderer().getGraphMaze());
             endTime = System.nanoTime();
-            //solutionPath = MazeSolver.solveDjisktra(mazeController.getMazeRenderer().getGraphMaze());
+            //solutionPath = MazeSolver.solveDijkstra(mazeController.getMazeRenderer().getGraphMaze());
         }
         else if (dfsRadio.isSelected()) { // Solve for DFS
             startTime = System.nanoTime();
