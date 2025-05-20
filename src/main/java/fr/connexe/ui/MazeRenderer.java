@@ -183,6 +183,7 @@ public class MazeRenderer {
                 gridCell.getProperties().put("initialStyle", style.toString());
 
                 mazeSelector.selectWall(gridCell, arrayMaze, row, col, grid);
+                mazeSelector.removeBorder(gridCell);
 
 
                 // Allow dynamic resizing of the cell
