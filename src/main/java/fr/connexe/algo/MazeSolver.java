@@ -63,7 +63,7 @@ public class MazeSolver {
     /// @param allPaths list of stack of nodes representing all paths visited
     /// @return all the paths to the end or dead ends
     @SuppressWarnings("unchecked")
-    private static List<Stack<Integer>> solveDFS(GraphMaze maze, int num, boolean[] visited, Stack<Integer> currentPath, List<Stack<Integer>> allPaths) {
+    private static void solveDFS(GraphMaze maze, int num, boolean[] visited, Stack<Integer> currentPath, List<Stack<Integer>> allPaths) {
         visited[num] = true;
         currentPath.push(num);
         //if the current node is the end, clone the current path in the stack of all paths
@@ -72,16 +72,16 @@ public class MazeSolver {
         } else {
             for (int son : maze.getEdges()[num]) {
                 if (!visited[son]) {
-                    return solveDFS(maze, son, visited, currentPath, allPaths);
+                     solveDFS(maze, son, visited, currentPath, allPaths);
                 }
             }
         }
         if (num != maze.getEnd()) {
             allPaths.add((Stack<Integer>) currentPath.clone());
-            return allPaths;
+
         }
         currentPath.pop();
-        return allPaths;
+
     }
 
 
