@@ -404,9 +404,9 @@ public class MazeSolver {
     /// @return the path to the end
     @SuppressWarnings("unchecked")
     private static Stack<Stack<Integer>> solveLeftHand(GraphMaze maze, int num, char dir, Stack<Integer> visited, List<Integer> blocked, Stack<Stack<Integer>> paths) {
-        visited.push(num);
+        visited.push(num);//push the node actually visited in the stack of nodes visited and create a copy of this stack in the stack of steps
         paths.push((Stack<Integer>) visited.clone());
-        if (num == maze.getEnd()){
+        if (num == maze.getEnd()){//if it's the end, return the stack of steps with the end at the top of the stack
             return paths;
         }
 
@@ -435,7 +435,7 @@ public class MazeSolver {
                 break;
         }
     //check if it's possible to go to the node at the left, then ahead, then at the right and finally behind the node depending upon the direction used
-        //and return the recursion of the first node usable
+        //and return the stack of recursions of the first node usable
         for (int i = 0; i < 4; i++) {
             int next = num + dirx[i];
             if (next >= 0 && next< maze.getNumCells() && sons.contains(next) && !visited.contains(next) && !blocked.contains(next)) {
@@ -451,7 +451,7 @@ public class MazeSolver {
             return solveLeftHand(maze, visited.peek(), dir, visited, blocked, paths);
         }
         paths.push((Stack<Integer>) visited.clone());
-        //if the actual node is the start and there is no usable node, return an empty stack
+        //if the actual node is the start and there is no usable node, return an empty stack as the path to the end
         return paths;
     }
 
