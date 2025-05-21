@@ -417,30 +417,30 @@ public class MazeSolver {
         int width = maze.getWidth();
         List<Integer> sons = maze.getEdges()[num];
 
-        int[] dirx = new int[4]; // left, front, right, back
-        char[] nextDir = new char[4];
+        int[] dirx = new int[3]; // left, front, right
+        char[] nextDir = new char[3];
 
-        switch (dir) {//set up the directions used in order and the directions for the next node
+        switch (dir) {//set up the directions used in order and the directions for the next node (without the node visited just before)
             case 'L':
-                dirx = new int[]{+width, -1, -width, +1};
-                nextDir = new char[]{'D', 'L', 'U', 'R'};
+                dirx = new int[]{+width, -1, -width};
+                nextDir = new char[]{'D', 'L', 'U'};
                 break;
             case 'U':
-                dirx = new int[]{-1, -width, +1, +width};
-                nextDir = new char[]{'L', 'U', 'R', 'D'};
+                dirx = new int[]{-1, -width, +1};
+                nextDir = new char[]{'L', 'U', 'R'};
                 break;
             case 'R':
-                dirx = new int[]{-width, +1, +width, -1};
-                nextDir = new char[]{'U', 'R', 'D', 'L'};
+                dirx = new int[]{-width, +1, +width};
+                nextDir = new char[]{'U', 'R', 'D'};
                 break;
             case 'D':
-                dirx = new int[]{+1, +width, -1, -width};
-                nextDir = new char[]{'R', 'D', 'L', 'U'};
+                dirx = new int[]{+1, +width, -1};
+                nextDir = new char[]{'R', 'D', 'L'};
                 break;
         }
     //check if it's possible to go to the node at the left, then ahead, then at the right and finally behind the node depending upon the direction used
         //and return the stack of recursions of the first node usable
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 3; i++) {
             int next = num + dirx[i];
             if (next >= 0 && next< maze.getNumCells() && sons.contains(next) && !visited.contains(next) && !blocked.contains(next)) {
                 return solveLeftHand(maze, next, nextDir[i], visited, blocked, paths);
