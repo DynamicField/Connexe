@@ -2,6 +2,7 @@ package fr.connexe.ui.game;
 
 import fr.connexe.algo.GraphMaze;
 import fr.connexe.algo.Point;
+import fr.connexe.ui.game.input.ControllerHub;
 import fr.connexe.ui.game.input.PlayerInputSource;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -47,10 +48,10 @@ public class Player {
 
     /// Creates a new player based off a player profile and its index in the players list.
     ///
-    /// @param profile The profile of the player.
+    /// @param profile  The profile of the player.
     /// @param startPos The starting position of the player in the maze
     /// @param gameMode The game mode of the game session this player participates in
-    /// @param index The index of the player in the players list.
+    /// @param index    The index of the player in the players list.
     public Player(PlayerProfile profile, Point startPos, GameMode gameMode, int index) {
         // Initialize every field of this class with default values, and some data given by the profile.
         this.profile = profile;
@@ -81,10 +82,11 @@ public class Player {
     /// Runs frame update logic for this player.
     /// Updates the current state and runs any animation (moving, stunned and all that),
     ///
-    /// @param maze The maze to use for collision checking.
-    /// @param deltaTime The time since the last frame, in seconds.
+    /// @param maze          The maze to use for collision checking.
+    /// @param deltaTime     The time since the last frame, in seconds.
     /// @param lastTimestamp The last timestamp in nanoseconds.
-    public void update(GraphMaze maze, double deltaTime, long lastTimestamp) {
+    /// @param controllerHub The controller hub to use for haptic feedback.
+    public void update(GraphMaze maze, double deltaTime, long lastTimestamp, @Nullable ControllerHub controllerHub) {
         final double MOV_DURATION = 0.15f; // Duration of the moving animation, in seconds
 
         // Do stuff based on the current state of the player.
@@ -183,8 +185,19 @@ public class Player {
                 if (dist > 0) {
                     // The further we are from the end, the longer the pulse lasts.
                     // Down to 0.125 when adjacent to the end.
-                    double fullPulseDuration = Math.min(3, dist*0.125);
-                    pulseProgress = (pulseProgress + deltaTime / fullPulseDuration) % 1;
+                    double fullPulseDuration = Math.min(3, dist * 0.125);
+
+                    // Update the pulse progress, modulo 1 to loop back to 0.
+                    double newProgress = pulseProgress + deltaTime / fullPulseDuration;
+                    pulseProgress = newProgress % 1;
+
+                    if (newProgress > pulseProgress
+                            && inputSource instanceof PlayerInputSource.Controller(int controllerIndex)
+                            && controllerHub != null) {
+                        System.out.println("brrr");
+                        // We completed a pulse cycle, let's do haptic feedback!
+                        controllerHub.vibrateController(controllerIndex, 0.2f, 0.2f, 50);
+                    }
                 }
             }
         }
@@ -193,8 +206,8 @@ public class Player {
     /// Updates the JavaFX avatar of this player. Must be called every frame after updating all entities.
     ///
     /// @param toFXCoordinates The function to convert world coordinates to JavaFX coordinates.
-    /// @param cellHeight The height of the maze cell in JavaFX coordinates.
-    /// @param cellWidth The width of the maze cell in JavaFX coordinates.
+    /// @param cellHeight      The height of the maze cell in JavaFX coordinates.
+    /// @param cellWidth       The width of the maze cell in JavaFX coordinates.
     public void render(Function<Vector2, Vector2> toFXCoordinates, double cellHeight, double cellWidth) {
         // Resize the icon based on the dimensions of the maze.
         // Make sure it fits inside the cell without touching the borders.
@@ -219,7 +232,7 @@ public class Player {
             double smoothProgress = GameMath.easeExp(pulseProgress, -1.5);
 
             double pulseRadius = icon.getRadius() * GameMath.lerp(0.9, 1.4, smoothProgress);
-            double pulseOpacity = GameMath.lerp(1, 0, (smoothProgress-0.6)/0.4);
+            double pulseOpacity = GameMath.lerp(1, 0, (smoothProgress - 0.6) / 0.4);
 
             Vector2 pulseCoordinates = fxCoordinates.subtract(
                     new Vector2(pulseRadius + icon.getStrokeWidth(), pulseRadius + icon.getStrokeWidth())

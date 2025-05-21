@@ -336,7 +336,7 @@ public class GameSession {
 
             // Update animation and current state for each player.
             for (Player p : players) {
-                p.update(maze, deltaTime, lastTimestamp);
+                p.update(maze, deltaTime, lastTimestamp, controllerHub);
             }
         }
 

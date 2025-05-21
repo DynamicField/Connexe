@@ -37,7 +37,7 @@ public class ControllerHub {
 
             // Actually Initialize SDL
             sdlInitialized = true;
-            if (SDL.SDL_Init(SDL.SDL_INIT_GAMECONTROLLER | SDL.SDL_INIT_JOYSTICK | SDL.SDL_INIT_EVENTS) != 0) {
+            if (SDL.SDL_Init(SDL.SDL_INIT_GAMECONTROLLER | SDL.SDL_INIT_JOYSTICK | SDL.SDL_INIT_EVENTS | SDL.SDL_INIT_HAPTIC) != 0) {
                 throw new InputSystemException("Failed to initalize SDL.", new SDL_Error());
             }
 
@@ -131,6 +131,32 @@ public class ControllerHub {
         // Update the last state and return it!
         lastState = new State(snapshots);
         return lastState;
+    }
+
+    /// Vibrates the controller at the given index with intensities and duration.
+    ///
+    /// Does nothing if the controller isn't connected or if the index is out of bounds.
+    ///
+    /// @param controllerIndex the index of the controller to vibrate
+    /// @param leftIntensity the intensity of the left motor, clamped between 0 and 1
+    /// @param rightIntensity the intensity of the right motor, clamped between 0 and 1
+    /// @param durationMS the duration of the vibration in milliseconds
+    public void vibrateController(int controllerIndex, double leftIntensity, double rightIntensity, int durationMS) {
+        if (controllerIndex < 0 || controllerIndex >= controllers.size()) {
+            return;
+        }
+
+        LocalController controller = controllers.get(controllerIndex);
+        if (controller == null) {
+            return;
+        }
+
+        // Clamp the intensities between 0 and 1
+        leftIntensity = Math.clamp(leftIntensity, 0, 1);
+        rightIntensity = Math.clamp(rightIntensity, 0, 1);
+
+        // Rumble!!!
+        SDL.SDL_JoystickRumble(controller.instanceId, (int)(leftIntensity*0xFFFF), (int)(rightIntensity*0xFFFF), durationMS);
     }
 
     private void addController(LocalController controller) {
