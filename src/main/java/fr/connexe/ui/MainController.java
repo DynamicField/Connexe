@@ -177,10 +177,15 @@ public class MainController {
         }
     }
 
-    //Not used yet
+    /// Enables the maze editor mode. Content moved in setMazeEditor() for better reusability
     public void handleChange(){
-        MazeSelector mazeSelector = this.mazeController.getMazeRenderer().getMazeSelector();
-        mazeSelector.setEditMode(true);
+        setMazeEditor(true);
+    }
+
+    /// Enables the maze editor mode
+    public void setMazeEditor(boolean editMode) {
+        MazeEditor mazeChange = this.mazeController.getMazeRenderer().getMazeSelector();
+        mazeChange.setEditMode(editMode);
     }
 
     ///  Closes the app

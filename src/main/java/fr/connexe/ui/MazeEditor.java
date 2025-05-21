@@ -6,13 +6,14 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 
 /// Class to manage the selection of walls in the maze.
-public class MazeSelector {
+public class MazeEditor {
     //When selecting another wall, the old one must be unselected
     private Region lastSelectedCell = null;
     private Region lastNeighborCell = null;
     protected Boolean isEditMode = false;
 
-    public MazeSelector() {}
+    /// Constructor for the maze editor.
+    public MazeEditor() {}
 
     /// Enables maze editing.
     /// @param editMode true to enable editing, false to disable it
