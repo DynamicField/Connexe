@@ -40,28 +40,22 @@ public class SolveMazeController {
 
         // Check which radio button was selected for solving method,
         // and executes the solving algorithm to pass the solution to MazeController
+        // Also measures the execution time of the chosen solving method
+        startTime = System.nanoTime();
         if(dijkstraRadio.isSelected()) { // Solve for Dijkstra
-            startTime = System.nanoTime();
             stepByStepPath = MazeSolver.solveDijkstra2(mazeController.getMazeRenderer().getGraphMaze());
-            endTime = System.nanoTime();
-            //solutionPath = MazeSolver.solveDijkstra(mazeController.getMazeRenderer().getGraphMaze());
         }
         else if (dfsRadio.isSelected()) { // Solve for DFS
-            startTime = System.nanoTime();
             stepByStepPath = MazeSolver.prepDFS2(mazeController.getMazeRenderer().getGraphMaze());
-            endTime = System.nanoTime();
-            mazeController.setDFS(true); // necessary for differenciated behavior of DFS animation
+            mazeController.setDFS(true); // necessary for differentiated behavior of DFS animation
         }
         else if (clockwiseRadio.isSelected()){ // Solve for Clockwise
-            startTime = System.nanoTime();
             stepByStepPath = MazeSolver.prepClockwise2(mazeController.getMazeRenderer().getGraphMaze());
-            endTime = System.nanoTime();
         }
         else { // Solve for Left-Hand
-            startTime = System.nanoTime();
             stepByStepPath = MazeSolver.prepLeftHand2(mazeController.getMazeRenderer().getGraphMaze());
-            endTime = System.nanoTime();
         }
+        endTime = System.nanoTime();
 
         // Build the solution path
         mazeController.setStepByStepPath(stepByStepPath);

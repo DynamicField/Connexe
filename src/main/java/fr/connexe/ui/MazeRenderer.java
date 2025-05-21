@@ -79,15 +79,15 @@ public class MazeRenderer {
 
         lastAnimIsGeneration = true;
         int totalSteps = log.size();
-        playStep(1, totalSteps, onFinished);
+        playGenerationStep(1, totalSteps, onFinished);
     }
 
-    /// Animate the current step
+    /// Animate the current step of the generation animation
     /// @param step step number in the logs
     /// @param totalSteps total number of steps during generation (from the logs)
     /// @param onFinished piece of code to run later when the animation is finished.
     /// (to re-enable buttons for example)
-    private void playStep(int step, int totalSteps, Runnable onFinished) {
+    private void playGenerationStep(int step, int totalSteps, Runnable onFinished) {
         if (step > totalSteps) { // animation is finished
             if (onFinished != null) onFinished.run();
             return;
@@ -107,7 +107,7 @@ public class MazeRenderer {
 
         // Wait for a certain time delay without freezing the UI thread then go to the next step
         currentPause = new PauseTransition(Duration.millis(currentDelayMs));
-        currentPause.setOnFinished(e -> playStep(step + 1, totalSteps, onFinished));
+        currentPause.setOnFinished(e -> playGenerationStep(step + 1, totalSteps, onFinished));
         currentPause.play();
     }
 
@@ -143,7 +143,7 @@ public class MazeRenderer {
     /// For a given [ArrayMaze], initialize regions in the corresponding [GridPane] cells
     /// and build their walls (as borders).
     /// This method is used not only to build the current renderer's maze ([#buildGrid()]), but also
-    /// used for the generation animation ([#animateGridBuild(Duration)])
+    /// used for the generation animation ([#animateGridBuild(Runnable)])
     /// to build the grid for intermediate [ArrayMaze] steps
     /// @param arrayMaze the maze that needs to be rendered, either `MazeRenderer`'s finished `ArrayMaze`, either
     /// an intermediate step of its generation
