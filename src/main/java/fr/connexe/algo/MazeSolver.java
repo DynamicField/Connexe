@@ -28,8 +28,9 @@ public class MazeSolver {
         g.connect(9, 10);
         g.connect(10, 11);
         g.connect(10, 14);
-
+        g.connect(11, 15);
         g.connect(12, 13);
+        g.connect(14, 15);
 
 
         g.setStart(0);
