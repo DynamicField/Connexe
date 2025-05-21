@@ -178,7 +178,10 @@ public class MainController {
     }
 
     //Not used yet
-    public void handleChange(){}
+    public void handleChange(){
+        MazeSelector mazeSelector = this.mazeController.getMazeRenderer().getMazeSelector();
+        mazeSelector.setEditMode(true);
+    }
 
     ///  Closes the app
     @FXML
