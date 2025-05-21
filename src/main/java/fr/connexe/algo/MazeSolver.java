@@ -63,7 +63,6 @@ public class MazeSolver {
     /// @param visited boolean for all nodes to know if they are already visited or not in
     /// @param currentPath the stack of nodes representing the path that is actually visited
     /// @param allPaths list of stack of nodes representing all paths visited
-    /// @return all the paths to the end or dead ends
     @SuppressWarnings("unchecked")
     private static void solveDFS(GraphMaze maze, int num, boolean[] visited, Stack<Integer> currentPath, List<Stack<Integer>> allPaths) {
         visited[num] = true;
