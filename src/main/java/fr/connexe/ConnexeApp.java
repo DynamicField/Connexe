@@ -1,9 +1,10 @@
 package fr.connexe;
 
 import fr.connexe.ui.*;
-import fr.connexe.ui.game.ControllerHub;
-import fr.connexe.ui.game.InputSystemException;
-import fr.connexe.ui.game.KeyboardHub;
+import fr.connexe.ui.game.GameStartConfig;
+import fr.connexe.ui.game.input.ControllerHub;
+import fr.connexe.ui.game.input.InputSystemException;
+import fr.connexe.ui.game.input.KeyboardHub;
 import fr.connexe.ui.game.lobby.PlayArcadeDialogController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
@@ -17,6 +18,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
 /// Our entire application, which persists until it is closed.
 ///
@@ -26,7 +28,9 @@ public class ConnexeApp extends Application {
     private BorderPane rootLayout;
     private File mazeFilePath;
 
-    private final @Nullable ControllerHub controllerHub; // can be null
+    // Receives controller input for the entire app; null when SDL2 is broken.
+    private final @Nullable ControllerHub controllerHub;
+    // Receives keyboard input for the entire app. Always initialized.
     private KeyboardHub keyboardHub; // initialized later on
 
     /// Creates a new instance of the [ConnexeApp] and initializes the controller hub as soon as possible.
@@ -172,7 +176,10 @@ public class ConnexeApp extends Application {
         return controller.isOkClicked();
     }
 
-    public boolean showPlayArcadeDialog() throws IOException {
+    /// Shows the dialog box to start a new arcade game.
+    ///
+    /// @return the chosen game configuration if one has been chosen; otherwise, an empty optional will be given.
+    public Optional<GameStartConfig> showPlayArcadeDialog() throws IOException {
         // Load the fxml file and create a new stage for the popup dialog.
         FXMLLoader loader = new FXMLLoader();
         loader.setLocation(ConnexeApp.class.getResource("play-arcade-popup.fxml"));
@@ -197,7 +204,7 @@ public class ConnexeApp extends Application {
         // Show the dialog and wait until the user closes it
         dialogStage.showAndWait();
 
-        return controller.isOKClicked();
+        return Optional.ofNullable(controller.getFinalConfig());
     }
 
     public File getMazeFilePath() {

@@ -3,9 +3,12 @@ package fr.connexe.ui;
 import fr.connexe.algo.GraphMaze;
 import fr.connexe.algo.MazeSerializationException;
 import fr.connexe.algo.Point;
-import fr.connexe.ui.game.ControllerHub;
+import fr.connexe.ui.game.GameStartConfig;
+import fr.connexe.ui.game.input.ControllerHub;
 import fr.connexe.ui.game.GameSession;
-import fr.connexe.ui.game.KeyboardHub;
+import fr.connexe.ui.game.input.KeyboardHub;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
@@ -18,21 +21,31 @@ import java.util.List;
 import java.util.function.Supplier;
 
 ///  Controller to display any Maze related operations on the view (creation, editing, solving, etc...)
+///
+/// Also handles game sessions displayed on top of the maze, with the [#beginGame(fr.connexe.ui.game.GameStartConfig)]
+/// and [#stopGame()] methods.
 public class MazeController {
+    // --- Maze algorithms state ---
     private MazeRenderer mazeRenderer;
     private List<Stack<Integer>> stepByStepPath;
     private boolean isDFS; // necessary for solving animation method having a different behavior for DFS
 
-    // Gaming state
-    private KeyboardHub keyboardHub;
-    private @Nullable ControllerHub controllerHub; // can be null
-    private @Nullable GameSession gameSession;
+    // --- Gaming state ---
+    private KeyboardHub keyboardHub; // Receives keyboard input
+    private @Nullable ControllerHub controllerHub; // Receives controller input; can be null
+    private @Nullable GameSession gameSession; // The current game session displayed on top of the maze.
+    private final BooleanProperty gameRunning = new SimpleBooleanProperty(); // Indicates if the game's running
 
     @FXML
     private VBox vboxLayout;
 
-    ///  Display a maze in the VBox of the main scene
+    private StackPane root; // Root element of the vboxLayout
+
+    ///  Display a maze in the VBox of the main scene. If an arcade game is running, stops it immediately.
     public void createMazeFX(){
+        // Stop the current game session if we already have one.
+        stopGame();
+
         vboxLayout.getChildren().clear();
 
         // Build the maze for the current renderer and retrieve its grid to add it to the view
@@ -40,18 +53,14 @@ public class MazeController {
         GridPane dynamicGrid = mazeRenderer.getGrid();
 
         // Wrap the grid in a StackPane to center and constrain its size
-        StackPane root = new StackPane();
+        root = new StackPane();
         root.getChildren().add(dynamicGrid);
 
+        // Add margin for the root StackPane, and make it grow to fill the VBox as much as possible
+        VBox.setMargin(root, new Insets(10));
         VBox.setVgrow(root, Priority.ALWAYS);
 
-        GameSession overlay = new GameSession(mazeRenderer.getGraphMaze(), keyboardHub, controllerHub);
-        Pane overlayPane = overlay.deploy(root);
-
-        // Add margin space to the grid inside the StackPane
-        StackPane.setMargin(dynamicGrid, new Insets(20)); // 20 px margin on all sides
-        StackPane.setMargin(overlayPane, new Insets(20)); // 20 px margin on all sides
-
+        // Add the root StackPane to the VBox
         vboxLayout.getChildren().add(root);
 
         // Console view
@@ -65,6 +74,7 @@ public class MazeController {
     /// Used to re-enable buttons.
     public void playStepByStepGeneration(Supplier<Double> delaySupplier, Runnable onFinished){
         if(mazeRenderer.getLog() != null) {
+            stopGame(); // Stop the ongoing game session if we're currently playing.
             mazeRenderer.setDelaySupplier(delaySupplier);
             mazeRenderer.animateGridBuild(onFinished);
         }
@@ -108,6 +118,7 @@ public class MazeController {
     public void playStepByStepSolution(Supplier<Double> delaySupplier, Runnable onFinished){
         assert stepByStepPath != null : "StepByStepPath must be set before calling playStepByStepSolution()";
 
+        stopGame(); // Stop the ongoing game session if we're currently playing.
         mazeRenderer.setDelaySupplier(delaySupplier);
         mazeRenderer.animateSolution(stepByStepPath, isDFS, onFinished);
     }
@@ -117,7 +128,12 @@ public class MazeController {
     /// If the current running animation was the solving, show the end result with the path found and visited cells colored
     public void endCurrentAnimation() {
         mazeRenderer.stopAnimation();
-        if(mazeRenderer.isLastAnimIsGeneration()){
+        resetMaze();
+    }
+
+    // Resets the maze to its "idle" state, the state where no animation is running.
+    private void resetMaze() {
+        if (mazeRenderer.isLastAnimIsGeneration() || stepByStepPath == null) {
             createMazeFX(); // Rebuild generated grid as it was by default
         } else {
             // Rebuild grid with end state of animation (visited cells + final path)
@@ -144,7 +160,46 @@ public class MazeController {
             GraphMaze maze = GraphMaze.load(fileInputStream);
             mazeRenderer.setGraphMaze(maze);
             mazeRenderer.setLog(null); // remove log of previous generation
+            stepByStepPath = null; // Remove the step by step path of the previous maze.
             createMazeFX();
+        }
+    }
+
+    /// Begins a new game session with the current maze.
+    ///
+    /// @param config players and chosen game modes for the game
+    /// @throws IllegalStateException when there's no maze loaded
+    public void beginGame(GameStartConfig config) {
+        // Do various checks.
+        if (mazeRenderer.getGraphMaze() == null) {
+            throw new IllegalStateException("MazeRenderer must have a maze to start a game");
+        }
+        if (gameSession != null) {
+            throw new IllegalStateException("Game session already started");
+        }
+
+        assert root != null; // We have a root since we have a maze loaded
+
+        // Refresh the current maze to clear off any resolved path (that would be cheating!)
+        createMazeFX();
+
+        // Create and deploy a game session.
+        gameSession = new GameSession(config, mazeRenderer.getGraphMaze(), keyboardHub, controllerHub, this::stopGame);
+        gameSession.deploy(root, vboxLayout);
+        gameRunning.set(true);
+    }
+
+    /// Stops the ongoing game session and removes the overlay. Does nothing if no game's running.
+    public void stopGame() {
+        if (gameSession != null) {
+            // Undeploy the current game session and reset everything.
+            gameSession.undeploy();
+            gameSession = null;
+            gameRunning.set(false);
+
+            // Reset the maze to the pre-game state. If we had a generation path on screen before player,
+            // this will make it come back.
+            resetMaze();
         }
     }
 
@@ -155,6 +210,7 @@ public class MazeController {
 
     public void setMazeRenderer(MazeRenderer mazeRenderer) {
         this.mazeRenderer = mazeRenderer;
+        stepByStepPath = null; // Remove the step by step path of the previous maze.
     }
 
     public MazeRenderer getMazeRenderer() {
@@ -171,6 +227,20 @@ public class MazeController {
 
     public void setDFS(boolean DFS) {
         isDFS = DFS;
+    }
+
+    /// Returns a property indicating if a game's currently running or not.
+    ///
+    /// @return a property indicating if a game's currently running or not.
+    public BooleanProperty gameRunningProperty() {
+        return gameRunning;
+    }
+
+    /// Returns whether a game is currently running or not.
+    ///
+    /// @return true if a game is currently running, false otherwise.
+    public boolean isGameRunning() {
+        return gameRunning.get();
     }
 
     /// Flatten a [List<Stack<Integer>>] to a [Set<Integer>]

@@ -1,171 +1,463 @@
 package fr.connexe.ui.game;
 
+import fr.connexe.ConnexeApp;
 import fr.connexe.algo.GraphMaze;
+import fr.connexe.algo.Point;
+import fr.connexe.ui.game.hud.EfficiencyHUDController;
+import fr.connexe.ui.game.hud.HUDController;
+import fr.connexe.ui.game.hud.SwiftnessHUDController;
+import fr.connexe.ui.game.input.ControllerHub;
+import fr.connexe.ui.game.input.KeyboardHub;
+import fr.connexe.ui.game.input.PlayerInputSource;
 import javafx.animation.AnimationTimer;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Pos;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.input.KeyCode;
+import javafx.scene.layout.Background;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import javafx.scene.text.TextAlignment;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Objects;
+import java.io.IOException;
+import java.util.*;
 
+/// An ongoing game in arcade mode; handles player input, game state, and rendering.
+///
+/// A [GameSession] can be started with a [GameStartConfig] containing all players and the chosen game mode, as well as
+/// the maze to play with, and input hubs (keyboard/controller).
+///
+/// ## UI Structure
+///
+/// The game session is composed of three UI elements:
+/// - the **game overlay**: the **main UI element** where players are displayed on top of the maze
+/// - the **game over overlay**: displayed on top of the maze when the game is over
+/// - the **HUD**: displayed below the maze, contains info about the game: game mode, leaderboard, etc.
+///   (controlled by a [HUDController])
+///
+/// The UI is automatically created by the [GameSession] using the [#deploy(StackPane, Pane)]
+/// method. It requires two parent panes (one for overlays; one for the HUD).
+///
+/// The [GameSession] can be stopped at any time by using the [#undeploy()] method, which will
+/// remove all UI elements and stop the game.
+///
+/// When the main overlay is detached from its parent, the session is automatically undeployed.
+///
+/// ## Coordinate spaces
+///
+/// The [GameSession] uses two coordinate spaces, both work using floating points:
+/// - the **maze/world coordinate space**: based off the center of the maze cells; the point at `(x, y)` refers
+///   to the **center of the `(x, y)` cell displayed in JavaFX maze**.
+/// - the **JavaFX coordinate space**: based off the raw JavaFX coordinates using the `Pane`'s width and height.
+///
+/// We usually work with the **maze coordinate space**, which allows us to easily place players on the screen.
+/// For instance, when a player is at the cell `(1, 2)`, its position is `(1, 2)`!
+///
+/// ## Input
+///
+/// The [GameSession] uses two input mechanisms:
+/// - the [KeyboardHub] to receive currently pressed keys
+/// - the [ControllerHub] to receive controller input (optional)
+///
+/// Controller input is polled every frame using [ControllerHub#poll()].
+///
+/// Players move using whichever input source they've chosen using the [PlayerInputSource] class.
+///
+/// Disconnected controllers are silently ignored.
+///
+/// ## Game loop
+///
+/// The game loop is handled by an [AnimationTimer] which calls the `tick` method every frame.
+/// We use a variable delta time to run any animations or game logic.
+///
+/// During each frame, we:
+/// - poll input from the keyboard and controller
+/// - update the players' positions and animations based on their input
+/// - update the JavaFX nodes for each player (even if game is over)
+/// - update the HUD
+/// - check if the game is over
 public class GameSession {
-    private final GraphMaze maze;
-    private final KeyboardHub keyboardHub;
-    private final @Nullable ControllerHub controllerHub;
-    private final AnimationTimer tickTimer;
+    private final GraphMaze maze; // The maze where the action happens!
+    private final KeyboardHub keyboardHub; // To receive keyboard key presses
+    private final @Nullable ControllerHub controllerHub; // To receive controller input
+    private final Runnable closeGame; // The function called to undeploy the game properly (by the MazeController)
+    private final AnimationTimer tickTimer; // Timer called every frame to run the tick() function
 
-    private final Pane overlay;
+    private final Pane gameOverlay; // The main game overlay with all players on top of the maze
+    private @Nullable Pane gameOverOverlay; // The overlay displayed when the game's over; null when gameOver = false
+    private @Nullable StackPane overlayParent; // The parent container of all overlays; null when not initialized yet
 
-    private long lastTimestamp = 0; // nanoseconds
-    private @Nullable Pane parent; // null when not initialized yet
+    private final Pane hud; // The "HUD" which is really just a JavaFX container below the maze (and below the overlay).
+    private final HUDController hudController; // The controller associated with the HUD
+    private @Nullable Pane hudParent; // The parent container of the HUD. Usually a VBox.
+
+    private long startTimestamp = 0; // Epoch timestamp of the first frame (after deploy()).
+    private long lastTimestamp = 0; // Epoch timestamp of the last frame.
 
     private double cellWidth; // Width of a cell in the JavaFX coordinate space
     private double cellHeight; // Height of a cell in the JavaFX coordinate space
 
-    private final List<Player> players = new ArrayList<>();
+    private final GameMode gameMode; // The chosen game mode
+    private final List<Player> players = new ArrayList<>(); // All players on the game
+    private boolean gameOver = false; // True when the game's over and we have a winner!
 
-    private static final float JOYSTICK_THRESHOLD = 0.75f;
+    private static final float JOYSTICK_THRESHOLD = 0.75f; // Threshold for a joystick axis to be considered pressed
 
-    public GameSession(GraphMaze maze, KeyboardHub keyboardHub, @Nullable ControllerHub controllerHub) {
+    /// Begins a new game session with the given configuration, maze, and input systems.
+    ///
+    /// @param config        the game start configuration with all players and chosen game mode
+    /// @param maze          the maze players are battling in
+    /// @param keyboardHub   the keyboard input hub to receive keyboard key presses
+    /// @param controllerHub the controller input hub to receive controller input (optional)
+    /// @param closeGame     the function called when the user wants to close the game (should undeploy the session)
+    public GameSession(GameStartConfig config,
+                       GraphMaze maze,
+                       KeyboardHub keyboardHub,
+                       @Nullable ControllerHub controllerHub,
+                       Runnable closeGame) {
+        // Initialize all our dependencies (input & maze)
         this.maze = maze;
         this.keyboardHub = Objects.requireNonNull(keyboardHub); // Make sure it isn't null.
         this.controllerHub = controllerHub;
+        this.closeGame = closeGame;
 
-        this.overlay = new Pane();
-        overlay.setVisible(false); // Hidden until the first tick happens.
+        // Create an empty game overlay, we'll fill it with players later on.
+        this.gameOverlay = new Pane();
+        // Set its preferred width and height to 0, so it doesn't extend the size of the parent pane
+        // but still takes over the entire maze (due to how StackPane works).
+        gameOverlay.setPrefHeight(0);
+        gameOverlay.setPrefWidth(0);
 
-        addPlayer(new Player(new PlayerInputSource.KeyboardArrows()));
+        // Load the HUD and setup its controller
+        try {
+            FXMLLoader loader = createHUDLoader(config.mode());
+            this.hud = loader.load();
+            this.hudController = loader.getController();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
 
-        tickTimer = new AnimationTimer() {
+        // Configure the game mode and players
+        this.gameMode = config.mode();
+        Point startPos = maze.getStartPoint();
+        for (PlayerProfile profile : config.players()) {
+            // Add a player into the list, and register its avatar in the gameOverlay.
+            addPlayer(new Player(profile, startPos, players.size()));
+        }
+
+        // Create the tick timer.
+        this.tickTimer = new AnimationTimer() {
             @Override
             public void handle(long now) {
-                if (lastTimestamp == 0) {
-                    lastTimestamp = now;
-                } else {
-                    long deltaTime = now - lastTimestamp;
-                    lastTimestamp = now;
-                    tick((float) deltaTime / 1_000_000_000.0f);
+                // Calculate the delta time and update the last time stamp.
+                long deltaTime = now - lastTimestamp;
+                lastTimestamp = now;
 
-                    overlay.setVisible(true); // Show the pane when the first tick happens.
-                }
+                // Tick now, and convert nanoseconds to seconds.
+                tick((float) deltaTime / 1_000_000_000.0f);
             }
         };
     }
 
-    public Pane deploy(Pane overlayParent) {
-        overlayParent.getChildren().add(overlay);
-        tickTimer.start();
-
-        this.parent = overlayParent;
-        return overlay;
+    // Makes the FXMLLoader for the HUD, with the right controller.
+    private static FXMLLoader createHUDLoader(GameMode mode) {
+        return new FXMLLoader(ConnexeApp.class.getResource("arcade-hud.fxml"), null, null,
+                _ -> switch (mode) {
+                    case EFFICIENCY -> new EfficiencyHUDController();
+                    case SWIFTNESS -> new SwiftnessHUDController();
+                    default -> throw new RuntimeException("Not implemented");
+                });
     }
 
+    /// Starts the game session in the given panes.
+    ///
+    /// Adds all necessary UI elements into the two panes. Begins the game loop as soon as possible.
+    ///
+    /// @param overlayParent the parent pane for the game overlay and game over overlay
+    /// @param hudParent     the parent pane for the HUD
+    public void deploy(StackPane overlayParent, Pane hudParent) {
+        // Configure the game overlay
+        this.overlayParent = overlayParent;
+        overlayParent.getChildren().add(gameOverlay);
+
+        // Also redeploy the game over overlay if for some reason we're redeploying the game.
+        if (gameOverOverlay != null) {
+            overlayParent.getChildren().add(gameOverOverlay);
+        }
+
+        // Configure the HUD
+        this.hudParent = hudParent;
+        hudParent.getChildren().add(hud);
+
+        // Begin the ticking timer now. Run one tick now to setup player positions.
+        tick(1 / 60f);
+        lastTimestamp = System.nanoTime();
+        startTimestamp = lastTimestamp; // Set the start timestamp
+        tickTimer.start();
+    }
+
+    /// Stops the game session and removes all UI elements from their parents.
+    ///
+    /// Does nothing when the game isn't deployed already.
     public void undeploy() {
-        if (parent == null) {
+        if (overlayParent == null || hudParent == null) {
+            // Not deployed; do nothing.
             return;
         }
 
-        if (overlay.getParent() != null) {
-            parent.getChildren().remove(overlay);
+        if (gameOverlay.getParent() != null) {
+            // Remove the game overlay.
+            overlayParent.getChildren().remove(gameOverlay);
+
+            // Remove the game over overlay if it exists.
+            if (gameOverOverlay != null) {
+                overlayParent.getChildren().remove(gameOverOverlay);
+            }
         }
+
+        if (hud.getParent() != null) {
+            // Remove the HUD.
+            hudParent.getChildren().remove(hud);
+        }
+
+        // Stop the timer and free all resources.
         tickTimer.stop();
-        parent = null;
+        overlayParent = null;
+        hudParent = null;
+        gameOverOverlay = null;
     }
 
+    // Adds a player in the list and registers it in the overlay.
     private void addPlayer(Player player) {
         players.add(player);
-        overlay.getChildren().add(player.getIcon());
+        gameOverlay.getChildren().add(player.getIcon());
     }
 
-    private void removePlayer(Player player) {
-        players.remove(player);
-        overlay.getChildren().remove(player.getIcon());
-    }
-
+    // Called every frame to update players and the HUD.
     private void tick(float deltaTime) {
-        if (overlay.getParent() == null) {
+        if (gameOverlay.getParent() == null) {
+            // We don't have a parent anymore, so the game is invisible... Consider the game to be done and undeploy.
             undeploy();
             return;
         }
 
-        overlay.requestFocus();
+        // Make sure we have the focus so KeyboardHub can fetch all key presses correctly.
+        gameOverlay.requestFocus();
 
         // First, update the cell width and height based on the current size of the pane.
-        double paneWidth = overlay.getWidth();
-        double paneHeight = overlay.getHeight();
+        double paneWidth = gameOverlay.getWidth();
+        double paneHeight = gameOverlay.getHeight();
         cellWidth = paneWidth / maze.getWidth();
         cellHeight = paneHeight / maze.getHeight();
 
-        ControllerHub.State controllers = ControllerHub.State.EMPTY;
-        if (controllerHub != null) {
-            controllers = controllerHub.poll();
-        }
+        if (!gameOver) {
+            // Fetch controller input; default to none
+            ControllerHub.State controllers = ControllerHub.State.EMPTY;
+            if (controllerHub != null) {
+                controllers = controllerHub.poll();
+            }
 
-        EnumSet<KeyCode> pressedKeys = keyboardHub.getPressedKeys();
+            // Fetch keyboard input
+            EnumSet<KeyCode> pressedKeys = keyboardHub.getPressedKeys();
 
-        for (Player p : players) {
-            switch (p.getInputSource()) {
-                case PlayerInputSource.Controller(int slot) -> controllers.getController(slot).ifPresent(s -> {
-                    if (s.dpadRightPressed() || s.leftJoystickX() > JOYSTICK_THRESHOLD) {
-                        p.acceptMoveInput(1, 0);
-                    } else if (s.dpadLeftPressed() || s.leftJoystickX() < -JOYSTICK_THRESHOLD) {
-                        p.acceptMoveInput(-1, 0);
-                    } else if (s.dpadUpPressed() || s.leftJoystickY() < -JOYSTICK_THRESHOLD) {
-                        p.acceptMoveInput(0, -1);
-                    } else if (s.dpadDownPressed() || s.leftJoystickY() > JOYSTICK_THRESHOLD) {
-                        p.acceptMoveInput(0, 1);
-                    }
-                });
-                case PlayerInputSource.KeyboardZQSD _ -> {
-                    if (pressedKeys.contains(KeyCode.Z)) {
-                        p.acceptMoveInput(0, -1);
-                    } else if (pressedKeys.contains(KeyCode.S)) {
-                        p.acceptMoveInput(0, 1);
-                    } else if (pressedKeys.contains(KeyCode.Q)) {
-                        p.acceptMoveInput(-1, 0);
-                    } else if (pressedKeys.contains(KeyCode.D)) {
-                        p.acceptMoveInput(1, 0);
-                    }
-                }
-                case PlayerInputSource.KeyboardArrows _ -> {
-                    if (pressedKeys.contains(KeyCode.UP)) {
-                        p.acceptMoveInput(0, -1);
-                    } else if (pressedKeys.contains(KeyCode.DOWN)) {
-                        p.acceptMoveInput(0, 1);
-                    } else if (pressedKeys.contains(KeyCode.LEFT)) {
-                        p.acceptMoveInput(-1, 0);
-                    } else if (pressedKeys.contains(KeyCode.RIGHT)) {
-                        p.acceptMoveInput(1, 0);
-                    }
-                }
-                default -> {}
+            // Process input for each player
+            for (Player p : players) {
+                processPlayerInput(p, controllers, pressedKeys);
+            }
+
+            // Update animation and current state for each player.
+            for (Player p : players) {
+                p.update(maze, deltaTime, lastTimestamp);
             }
         }
 
+        // Render (= update JavaFX nodes) for each player, even when the game isn't over so we can handle resizes.
         for (Player p : players) {
-            p.update(maze, deltaTime);
+            p.render(this::toFXCoordinates, cellHeight, cellWidth);
         }
 
-        for (Player p : players) {
-            // Resize the icon based on the dimensions of the maze.
-            // Make sure it fits inside the cell without touching the borders.
-            p.getIcon().setRadius(Math.max(2, Math.min(cellHeight, cellWidth) * 0.45 - 3));
+        if (!gameOver) {
+            // Update the HUD (when the game's not over)
+            switch (hudController) {
+                case EfficiencyHUDController eff -> eff.update(playersSorted());
+                case SwiftnessHUDController swi -> swi.update(playersSorted(), startTimestamp);
+            }
 
-            // Take our world coordinates and convert them to JavaFX coordinates.
-            Vector2 fxCoordinates = toFXCoordinates(p.getWorldPosition());
-            fxCoordinates = fxCoordinates.subtract(
-                    new Vector2(
-                            p.getIcon().getRadius(),
-                            p.getIcon().getRadius()
-                    )
-            );
-            p.getIcon().relocate(fxCoordinates.x(), fxCoordinates.y());
+            // Check if the game is now over (we have a winner! chicken dinner!).
+            checkGameOver();
         }
     }
 
+    // Handle incoming keyboard/controller input for a player depending on their chosen input source.
+    private static void processPlayerInput(Player p, ControllerHub.State controllers, EnumSet<KeyCode> pressedKeys) {
+        switch (p.getInputSource()) {
+            case PlayerInputSource.Controller(int slot) -> controllers.getController(slot).ifPresent(s -> {
+                // We have a controller at the specified slot; now see if the buttons are pressed.
+                if (s.dpadRightPressed() || s.leftJoystickX() > JOYSTICK_THRESHOLD) {
+                    p.acceptMoveInput(1, 0);
+                } else if (s.dpadLeftPressed() || s.leftJoystickX() < -JOYSTICK_THRESHOLD) {
+                    p.acceptMoveInput(-1, 0);
+                } else if (s.dpadUpPressed() || s.leftJoystickY() < -JOYSTICK_THRESHOLD) {
+                    p.acceptMoveInput(0, -1);
+                } else if (s.dpadDownPressed() || s.leftJoystickY() > JOYSTICK_THRESHOLD) {
+                    p.acceptMoveInput(0, 1);
+                }
+            });
+            case PlayerInputSource.KeyboardZQSD _ -> {
+                // Handle ZQSD keys
+                if (pressedKeys.contains(KeyCode.Z)) {
+                    p.acceptMoveInput(0, -1);
+                } else if (pressedKeys.contains(KeyCode.S)) {
+                    p.acceptMoveInput(0, 1);
+                } else if (pressedKeys.contains(KeyCode.Q)) {
+                    p.acceptMoveInput(-1, 0);
+                } else if (pressedKeys.contains(KeyCode.D)) {
+                    p.acceptMoveInput(1, 0);
+                }
+            }
+            case PlayerInputSource.KeyboardArrows _ -> {
+                // Handle arrow keys.
+                if (pressedKeys.contains(KeyCode.UP)) {
+                    p.acceptMoveInput(0, -1);
+                } else if (pressedKeys.contains(KeyCode.DOWN)) {
+                    p.acceptMoveInput(0, 1);
+                } else if (pressedKeys.contains(KeyCode.LEFT)) {
+                    p.acceptMoveInput(-1, 0);
+                } else if (pressedKeys.contains(KeyCode.RIGHT)) {
+                    p.acceptMoveInput(1, 0);
+                }
+            }
+        }
+    }
+
+    // Returns the leaderboard of players if it makes sense for the current game mode.
+    private List<Player> playersSorted() {
+        return switch (gameMode) {
+            case EFFICIENCY -> players.stream().sorted(Comparator.comparing(Player::getMovesDone)).toList();
+            case SWIFTNESS -> players.stream().sorted(Comparator.comparing(p -> {
+                // If the player hasn't reached the end yet, put it at the end of the list.
+                if (!p.hasReachedEnd()) {
+                    return Long.MAX_VALUE;
+                } else {
+                    return p.getReachedEndAt();
+                }
+            })).toList();
+            default -> throw new IllegalStateException("Can't get a sorted players list for game mode " + gameMode);
+        };
+    }
+
+    // Checks if the game is over.
+    private void checkGameOver() {
+        assert !gameOver; // Obviously don't do it when the game's already over!
+
+        switch (gameMode) {
+            case EFFICIENCY -> {
+                // An efficiency game is over when all players have reached the end.
+                long playersAtTheEnd = players.stream().filter(Player::hasReachedEnd).count();
+                if (playersAtTheEnd == players.size()) {
+                    // GAME OVER!
+                    // Put all players in first place into a list, and make a "winners" string.
+                    final long maxMoves = players.stream().mapToLong(Player::getMovesDone).min().orElse(0);
+                    String winners = makeWinnersString(
+                            players.stream().filter(x -> x.getMovesDone() == maxMoves).toList()
+                    );
+                    declareGameOver(winners);
+                }
+            }
+            case SWIFTNESS -> {
+                // A swiftness game is over when all players have reached the end.
+                long playersAtTheEnd = players.stream().filter(Player::hasReachedEnd).count();
+                if (playersAtTheEnd >= players.size()) {
+                    // GAME OVER!
+                    // We'll only take one winner for this though. The chances of having two players
+                    // winning at the exact same frame are so slim I'd rather save five minutes of my time.
+                    declareGameOver("Joueur " + (playersSorted().getFirst().getIndex() + 1) + " est premier !");
+                }
+            }
+        }
+    }
+
+    // Make a sentence based on a list of winners.
+    private String makeWinnersString(List<Player> players) {
+        var sb = new StringBuilder();
+
+        for (int i = 0; i < players.size(); i++) {
+            Player p = players.get(i);
+
+            if (i > 0) {
+                // Second or later players: prepend the player with a comma; unless it's the last one then we do "et"
+                sb.append(i != (players.size() - 1) ? ", " : " et ");
+            }
+
+            // Append the player string.
+            sb.append("Joueur ").append(p.getIndex() + 1);
+        }
+
+        // French grammar moment
+        if (players.size() > 1) {
+            sb.append(" ont gagné !");
+        } else {
+            sb.append(" a gagné !");
+        }
+
+        return sb.toString();
+    }
+
+    // Declare the game over and build the "game over" overlay.
+    private void declareGameOver(String description) {
+        assert !gameOver;
+        assert gameOverOverlay == null;
+        assert overlayParent != null;
+
+        // This is indeed the time at which the game is finally over.
+        gameOver = true;
+
+        // Make the game over overlay, which is just a VBox that covers all the screen.
+        var overlay = new VBox();
+        overlay.setBackground(Background.fill(Color.gray(0.0, 0.7)));
+        overlay.setAlignment(Pos.CENTER);
+        overlay.setSpacing(16);
+
+        // Make the title label, which should be fairly large.
+        var title = new Label("FIN DE LA PARTIE");
+        title.setFont(Font.font("", FontWeight.BOLD, 32));
+        title.setAlignment(Pos.CENTER);
+        title.setMaxWidth(Double.MAX_VALUE);
+        title.setTextFill(Color.WHITE);
+
+        // Make the description label with the given text
+        var desc = new Label(description);
+        desc.setFont(Font.font("", FontWeight.NORMAL, 24));
+        desc.setAlignment(Pos.CENTER);
+        desc.setMaxWidth(Double.MAX_VALUE);
+        desc.setTextFill(Color.WHITE);
+        desc.setTextAlignment(TextAlignment.CENTER);
+
+        // Make the close button which should call the "closeGame" function (and not deploy()!).
+        var closeButton = new Button("Fermer");
+        closeButton.setOnAction(_ -> {
+            closeGame.run();
+            assert overlayParent == null
+                    : "The game session wasn't undeployed after running the closeGame lambda given in the constructor!";
+        });
+        closeButton.setMinWidth(160);
+        closeButton.setAlignment(Pos.CENTER);
+
+        // Add all children to the overlay
+        overlay.getChildren().addAll(title, desc, closeButton);
+
+        // Display the overlay!
+        gameOverOverlay = overlay;
+        overlayParent.getChildren().add(overlay);
+    }
+
+    // Converts a point in the maze coordinate space to the JavaFX coordinate space.
     private Vector2 toFXCoordinates(Vector2 v) {
         return new Vector2(
                 cellWidth * v.x() + cellWidth / 2,

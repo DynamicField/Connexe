@@ -1,0 +1,79 @@
+.hud-banner {
+    -fx-background-color: linear-gradient(to right, #9daef6, #bea4ff);
+    -fx-background-radius: 8px;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(three-pass-box, rgba(78, 93, 152, 0.5), 8, 0, 0, 2);
+    -fx-padding: 10px;
+    -fx-border-radius: 8px;
+}
+
+.hud-sep {
+    -fx-pref-width: 1px;
+}
+
+.hud-sep .line {
+    -fx-border-color: black;
+    -fx-pref-width: 1px;
+    -fx-border-width: 1px;
+}
+
+/*
+Common classes
+ */
+
+.player-place {
+    -fx-background-radius: 4px;
+    -fx-padding: 0 8px;
+    -fx-min-width: 44px;
+    -fx-alignment: center;
+}
+
+.player-place.first {
+    -fx-background-color: #eaa002;
+    -fx-font-weight: bold;
+}
+
+.player-place.second {
+    -fx-background-color: #c6c6c6;
+}
+
+.player-place.third {
+    -fx-background-color: #a14900;
+    -fx-text-fill: white;
+}
+
+.player-place.not-in-podium {
+    -fx-border-color: #575757;
+    -fx-border-radius: 4px;
+    -fx-border-width: 1px;
+}
+
+.player-name {
+    -fx-max-height: 9999px;
+    -fx-alignment: center-left;
+}
+
+.player-score {
+    -fx-alignment: center-right;
+    -fx-max-width: infinity;
+    -fx-max-height: infinity;
+}
+
+.reached-end {
+    -fx-background-color: linear-gradient(to right, #18b800, rgba(97, 255, 96, 0));
+    -fx-background-radius: 4px;
+}
+
+.hud-player {
+    -fx-font-size: 20px;
+    -fx-pref-width: 300px;
+    -fx-padding: 4px;
+}
+
+/*
+Swiftness classes
+ */
+
+.player-time {
+    -fx-font-family: monospace;
+}

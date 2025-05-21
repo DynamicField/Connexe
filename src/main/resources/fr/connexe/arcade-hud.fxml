@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<!-- IMPORTANT: The controller is created with a custom controller factory in GameSession. So the abstract class here isn't a mistake. -->
+<HBox maxWidth="1.7976931348623157E308" prefHeight="100.0" styleClass="hud-banner" stylesheets="@styles/arcade.css" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fr.connexe.ui.game.hud.HUDController">
+   <children>
+      <Label fx:id="gameModeLabel" alignment="CENTER" maxHeight="1.7976931348623157E308" text="EFFICACITÉ">
+         <font>
+            <Font name="System Bold" size="24.0" />
+         </font>
+         <HBox.margin>
+            <Insets left="8.0" right="16.0" />
+         </HBox.margin>
+      </Label>
+      <Separator maxWidth="1.0" orientation="VERTICAL" prefHeight="200.0" prefWidth="1.0" styleClass="hud-sep">
+         <HBox.margin>
+            <Insets />
+         </HBox.margin>
+      </Separator>
+      <FlowPane fx:id="playersPane" alignment="CENTER_LEFT" hgap="40.0" prefHeight="200.0" prefWidth="200.0" vgap="24.0" HBox.hgrow="ALWAYS">
+         <HBox.margin>
+            <Insets left="16.0" right="16.0" />
+         </HBox.margin></FlowPane>
+   </children>
+</HBox>

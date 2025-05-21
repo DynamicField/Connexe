@@ -14,4 +14,5 @@ open module fr.connexe {
     exports fr.connexe.ui.game;
     exports fr.connexe.algo.generation;
     exports fr.connexe.ui.game.lobby;
+    exports fr.connexe.ui.game.input;
 }

@@ -5,7 +5,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.*?>
 
-<BorderPane minHeight="390.0" minWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fr.connexe.ui.game.lobby.PlayArcadeDialogController">
+<BorderPane minHeight="320.0" minWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fr.connexe.ui.game.lobby.PlayArcadeDialogController">
    <center>
       <VBox BorderPane.alignment="CENTER">
          <children>
@@ -33,7 +33,7 @@
                   <Insets bottom="5.0" />
                </VBox.margin>
             </HBox>
-            <ListView id="playersView" fx:id="playerList" orientation="HORIZONTAL" prefHeight="180.0" VBox.vgrow="NEVER" />
+            <ListView id="playersView" fx:id="playerList" orientation="HORIZONTAL" prefHeight="190.0" VBox.vgrow="NEVER" />
             <Label text="Mode de jeu">
                <VBox.margin>
                   <Insets bottom="5.0" top="10.0" />
@@ -41,18 +41,18 @@
                <font>
                   <Font name="System Bold" size="13.0" />
                </font></Label>
-            <VBox prefHeight="200.0" prefWidth="100.0" spacing="5.0">
+            <VBox spacing="5.0">
                <children>
-                   <fx:define>
-                       <ToggleGroup fx:id="gameMode" />
-                   </fx:define>
-                  <RadioButton mnemonicParsing="false" text="Efficacité : le joueur au chemin le plus efficace gagne !">
+                  <fx:define>
+                     <ToggleGroup fx:id="gameMode" />
+                  </fx:define>
+                  <RadioButton fx:id="radioEfficiency" mnemonicParsing="false" selected="true" text="Efficacité : le joueur au chemin le plus efficace gagne !">
                      <toggleGroup>
                         <ToggleGroup fx:id="gameMode" />
                      </toggleGroup></RadioButton>
-                  <RadioButton layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="Rapidité : le joueur le plus rapide gagne !" toggleGroup="$gameMode" />
-                  <RadioButton layoutX="10.0" layoutY="32.0" mnemonicParsing="false" text="Furtivité : le point d'arrivée est caché ; le premier à le trouver gagne !" toggleGroup="$gameMode" />
-                  <RadioButton layoutX="10.0" layoutY="54.0" mnemonicParsing="false" text="Versatilité : un joueur sème le chaos dans le labyrinthe ; coopérez pour atteindre l'arrivée !" toggleGroup="$gameMode" />
+                  <RadioButton fx:id="radioSwiftness" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="Rapidité : le joueur le plus rapide gagne !" toggleGroup="$gameMode" />
+                  <RadioButton fx:id="radioFurtivity" layoutX="10.0" layoutY="32.0" mnemonicParsing="false" text="Furtivité : le point d'arrivée est caché ; le premier à le trouver gagne !" toggleGroup="$gameMode" />
+                  <RadioButton fx:id="radioVersatility" layoutX="10.0" layoutY="54.0" mnemonicParsing="false" text="Versatilité : un joueur sème le chaos dans le labyrinthe ; coopérez pour atteindre l'arrivée !" toggleGroup="$gameMode" />
                </children>
                <opaqueInsets>
                   <Insets />
@@ -70,7 +70,7 @@
       <HBox spacing="16.0" BorderPane.alignment="CENTER">
          <children>
             <Button maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleGameCancel" text="Annuler" />
-            <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleGameStart" text="Lancer la partie" HBox.hgrow="ALWAYS">
+            <Button fx:id="startButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleGameStart" text="Lancer la partie" HBox.hgrow="ALWAYS">
                <font>
                   <Font size="24.0" />
                </font>

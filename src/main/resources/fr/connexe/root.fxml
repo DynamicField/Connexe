@@ -98,7 +98,7 @@
                         <Insets left="20.0" right="20.0" />
                      </padding>
                   </HBox>
-                  <Button mnemonicParsing="false" onAction="#handleArcade" text="Arcade" />
+                  <Button fx:id="arcadeButton" disable="true" mnemonicParsing="false" onAction="#handleArcade" text="Arcade" />
               </items>
                <VBox.margin>
                   <Insets />
