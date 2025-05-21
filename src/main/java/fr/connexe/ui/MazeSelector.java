@@ -4,7 +4,6 @@ import fr.connexe.algo.ArrayMaze;
 import javafx.scene.Node;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
-import javafx.scene.input.KeyCode;
 
 ///Class to manage the selection of walls in the maze.
 public class MazeSelector {
@@ -132,51 +131,55 @@ public class MazeSelector {
      ///@param col the column of the cell
      ///@param row the row of the cell
      ///@return the cell at the given position in the grid, or null if the cell doesn't exist in the grid or is not a Region.
-    public Region getCellFromGrid(GridPane grid, int col, int row) {
-        int nodeCol; int nodeRow;
-        for (Node node : grid.getChildren()) {
-            nodeCol = GridPane.getColumnIndex(node);
-            nodeRow = GridPane.getRowIndex(node);
-            if (nodeCol == col && nodeRow == row) {
-                return (Region) node;
-            }
-        }
-        return null;
-    }
+     public Region getCellFromGrid(GridPane grid, int col, int row) {
+         for (Node node : grid.getChildren()) {
+             Integer nodeCol = GridPane.getColumnIndex(node);
+             Integer nodeRow = GridPane.getRowIndex(node);
+             if (nodeCol != null && nodeRow != null && nodeCol == col && nodeRow == row) {
+                 if (node instanceof Region) {
+                     return (Region) node;
+                 }
+             }
+         }
+         return null;
+     }
+
+     public void interactBorder(GridPane grid, Region gridCell){
+         grid.setOnKeyPressed(event -> {
+             if(event.getCode() == javafx.scene.input.KeyCode.BACK_SPACE){
+                 removeBorder(gridCell);
+             }
+             else if(event.getCode() == javafx.scene.input.KeyCode.ENTER){
+                 addBorder(gridCell);
+             }
+         });
+     }
 
     public void removeBorder(Region gridCell) {
-        gridCell.setOnKeyPressed(event -> {
-            if(event.getCode() == javafx.scene.input.KeyCode.BACK_SPACE){
-                String style = gridCell.getStyle(); //Style format (only '-fx-border-color' is important here): -fx-background-color: white; -fx-border-color: top:color1 right:color2 left:color3 bottom:color4; -fx-border-width: 2 2 2 2;
-                String[] colors = getColors(style);
-                if (colors != null) {
-                    for (int i = 0; i < colors.length; i++) {
-                        if ("red".equals(colors[i]))
-                            colors[i] = "transparent";
-                    }
-                    style = style.replaceAll("-fx-border-color: [^;]+;", "");
-                    style += "-fx-border-color: " + String.join(" ", colors) + ";";
-                    gridCell.setStyle(style);
-                }
+        String style = gridCell.getStyle(); //Style format (only '-fx-border-color' is important here): -fx-background-color: white; -fx-border-color: top:color1 right:color2 left:color3 bottom:color4; -fx-border-width: 2 2 2 2;
+        String[] colors = getColors(style);
+        if (colors != null) {
+            for (int i = 0; i < colors.length; i++) {
+                if ("red".equals(colors[i]))
+                    colors[i] = "transparent";
             }
-        });
+            style = style.replaceAll("-fx-border-color: [^;]+;", "");
+            style += "-fx-border-color: " + String.join(" ", colors) + ";";
+            gridCell.setStyle(style);
+        }
     }
 
     public void addBorder(Region gridCell) {
-        gridCell.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER) {
-                String style = gridCell.getStyle(); //Style format (only '-fx-border-color' is important here): -fx-background-color: white; -fx-border-color: top:color1 right:color2 left:color3 bottom:color4; -fx-border-width: 2 2 2 2;
-                String[] colors = getColors(style);
-                if (colors != null) {
-                    for (int i = 0; i < colors.length; i++) {
-                        if ("red".equals(colors[i]))
-                            colors[i] = "black";
-                    }
-                    style = style.replaceAll("-fx-border-color: [^;]+;", "");
-                    style += "-fx-border-color: " + String.join(" ", colors) + ";";
-                    gridCell.setStyle(style);
-                }
+        String style = gridCell.getStyle(); //Style format (only '-fx-border-color' is important here): -fx-background-color: white; -fx-border-color: top:color1 right:color2 left:color3 bottom:color4; -fx-border-width: 2 2 2 2;
+        String[] colors = getColors(style);
+        if (colors != null) {
+            for (int i = 0; i < colors.length; i++) {
+                if ("red".equals(colors[i]))
+                    colors[i] = "black";
             }
-        });
+            style = style.replaceAll("-fx-border-color: [^;]+;", "");
+            style += "-fx-border-color: " + String.join(" ", colors) + ";";
+            gridCell.setStyle(style);
+        }
     }
 }
