@@ -2,14 +2,11 @@ package fr.connexe.ui;
 
 import fr.connexe.algo.ArrayMaze;
 import javafx.scene.Node;
-import javafx.scene.Parent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 import javafx.scene.input.KeyCode;
 
-/**
- * Class to manage the selection of walls in the maze.
- */
+///Class to manage the selection of walls in the maze.
 public class MazeSelector {
     //When selecting another wall, the old one must be unselected
     private Region lastSelectedCell = null;
@@ -17,14 +14,17 @@ public class MazeSelector {
 
     public MazeSelector() {}
 
-    /**
-     Select a wall when it's clicked. There is a margin of 10 around the cell to make it easier to click.
-     @param gridCell the cell that was clicked
-     @param arrayMaze the maze
-     @param row the row of the cell
-     @param col the column of the cell
-     @param grid the grid containing the maze cells (used to retrieve the cell at the clicked position)
-     */
+    ///Four possible directions for the walls of the labyrinth.
+    public enum Side {
+        TOP, RIGHT, BOTTOM, LEFT
+    }
+
+     ///Select a wall when it's clicked. There is a margin of 10 around the cell to make it easier to click.
+     ///@param gridCell the cell that was clicked
+     ///@param arrayMaze the maze
+     ///@param row the row of the cell
+     ///@param col the column of the cell
+     ///@param grid the grid containing the maze cells (used to retrieve the cell at the clicked position)
     public void selectWall(Region gridCell, ArrayMaze arrayMaze, int row, int col, GridPane grid) {
         //We retrieve the x/y coordinates of the user's click and take the nearest wall with a margin of error of 10 pixels
         gridCell.setOnMouseClicked(event -> {
@@ -37,28 +37,28 @@ public class MazeSelector {
             double height = gridCell.getHeight();
             double margin = 10;
 
-            String selectedSide = null;
+            Side selectedSide = null;
             //Walls consist of the current cell wall (top, right, bottom, left) and the wall adjacent to the current cell wall (so for top -> bottom, right -> left, bottom -> top, left -> right)
             //So to delete and recover a "wall" in the graphical interface, you must be able to delete and reappear these two walls at the same time.
-            String neighborSide = null;
+            Side neighborSide = null;
             int neighborRow = row, neighborCol = col;
 
             if (y < margin) {
-                selectedSide = "top";
+                selectedSide = Side.TOP;
                 neighborRow = row - 1;
-                neighborSide = "bottom";
+                neighborSide = Side.BOTTOM;
             } else if (y > height - margin) {
-                selectedSide = "bottom";
+                selectedSide = Side.BOTTOM;
                 neighborRow = row + 1;
-                neighborSide = "top";
+                neighborSide = Side.TOP;
             } else if (x < margin) {
-                selectedSide = "left";
+                selectedSide = Side.LEFT;
                 neighborCol = col - 1;
-                neighborSide = "right";
+                neighborSide = Side.RIGHT;
             } else if (x > width - margin) {
-                selectedSide = "right";
+                selectedSide = Side.RIGHT;
                 neighborCol = col + 1;
-                neighborSide = "left";
+                neighborSide = Side.LEFT;
             }
 
             //Resets the previous wall
@@ -102,46 +102,39 @@ public class MazeSelector {
         return null;
     }
 
-    /**
-     * Sets the border color of a cell, which was selected by selectWall, to red.
-     * @param gridCell the cell that was clicked
-     * @param side the wall that was clicked (top, right, bottom, left)
-     */
-    public void setBorderColor(Region gridCell, String side) {
+    ///Sets the border color of a cell, which was selected by selectWall, to red.
+    ///@param gridCell the cell that was clicked
+    ///@param side the wall that was clicked (top, right, bottom, left)
+    public void setBorderColor(Region gridCell, Side side) {
         String style = gridCell.getStyle(); //Style format (only '-fx-border-color' is important here): -fx-background-color: white; -fx-border-color: top:color1 right:color2 left:color3 bottom:color4; -fx-border-width: 2 2 2 2;
         String[] colors = getColors(style);
         switch (side) {
-            case "top":    colors[0] = "red"; break;
-            case "right":  colors[1] = "red"; break;
-            case "bottom": colors[2] = "red"; break;
-            case "left":   colors[3] = "red"; break;
+            case TOP:    colors[0] = "red"; break;
+            case RIGHT:  colors[1] = "red"; break;
+            case BOTTOM: colors[2] = "red"; break;
+            case LEFT:   colors[3] = "red"; break;
         }
         style = style.replaceAll("-fx-border-color: [^;]+;", "");
         style += "-fx-border-color: " + String.join(" ", colors) + ";";
         gridCell.setStyle(style);
     }
 
-    /**
-     * Resets all the border colors of a cell to their initial colors (black or transparent).
-     * @param gridCell the cell that was clicked (used to retrieve the initial style)
-     */
+    ///Resets all the border colors of a cell to their initial colors (black or transparent).
+    ///@param gridCell the cell that was clicked (used to retrieve the initial style)
     public void resetBorderColor(Region gridCell){
         //Retrieves the style before the change that we saved in MazeRenderer and applies it again to the cell
         String initialStyle = (String) gridCell.getProperties().get("initialStyle");
         gridCell.setStyle(initialStyle);
     }
 
-    /**
-     * Returns the cell at the given position in the grid.
-     * @param grid the grid containing the maze cells (used to retrieve the cell at the clicked position)
-     * @param col the column of the cell
-     * @param row the row of the cell
-     * @return the cell at the given position in the grid, or null if the cell doesn't exist in the grid or is not a Region.
-     */
-    public Region getCellFromGrid(Parent grid, int col, int row) {
-        if (!(grid instanceof GridPane)) return null;
-        int nodeCol;int nodeRow;
-        for (Node node : ((GridPane) grid).getChildren()) {
+     ///Returns the cell at the given position in the grid.
+     ///@param grid the grid containing the maze cells (used to retrieve the cell at the clicked position)
+     ///@param col the column of the cell
+     ///@param row the row of the cell
+     ///@return the cell at the given position in the grid, or null if the cell doesn't exist in the grid or is not a Region.
+    public Region getCellFromGrid(GridPane grid, int col, int row) {
+        int nodeCol; int nodeRow;
+        for (Node node : grid.getChildren()) {
             nodeCol = GridPane.getColumnIndex(node);
             nodeRow = GridPane.getRowIndex(node);
             if (nodeCol == col && nodeRow == row) {
