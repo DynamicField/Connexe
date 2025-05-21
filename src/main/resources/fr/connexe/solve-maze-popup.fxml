@@ -31,6 +31,7 @@
                   </RadioButton>
                   <RadioButton fx:id="dfsRadio" mnemonicParsing="false" text="Depth-first search" toggleGroup="$solvingToggle" />
                   <RadioButton fx:id="clockwiseRadio" mnemonicParsing="false" text="Méthode horaire" toggleGroup="$solvingToggle" />
+                  <RadioButton fx:id="leftHandRadio" mnemonicParsing="false" text="Méthode de la main gauche" toggleGroup="$solvingToggle" />
                </children>
             </VBox>
          </children>

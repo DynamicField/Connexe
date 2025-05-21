@@ -19,6 +19,9 @@ public class SolveMazeController {
     @FXML
     private RadioButton dfsRadio;
 
+    @FXML
+    private RadioButton clockwiseRadio;
+
     ///  Called when a user clicks on the Solve button
     @FXML
     private void handleOk() {
@@ -49,9 +52,14 @@ public class SolveMazeController {
             endTime = System.nanoTime();
             mazeController.setDFS(true); // necessary for differenciated behavior of DFS animation
         }
-        else { // Solve for Clockwise
+        else if (clockwiseRadio.isSelected()){ // Solve for Clockwise
             startTime = System.nanoTime();
             stepByStepPath = MazeSolver.prepClockwise2(mazeController.getMazeRenderer().getGraphMaze());
+            endTime = System.nanoTime();
+        }
+        else { // Solve for Left-Hand
+            startTime = System.nanoTime();
+            stepByStepPath = MazeSolver.prepLeftHand2(mazeController.getMazeRenderer().getGraphMaze());
             endTime = System.nanoTime();
         }
 
