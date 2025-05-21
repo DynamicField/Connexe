@@ -1,5 +1,8 @@
 package fr.connexe.algo;
 
+import fr.connexe.algo.generation.MazeGenResult;
+import fr.connexe.algo.generation.MazeGenerator;
+
 import java.util.*;
 
 /// Solves mazes with various algorithms.
