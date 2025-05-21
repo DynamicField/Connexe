@@ -21,7 +21,7 @@ public class MazeSolver {
         g.connect(4, 5);
         g.connect(4, 8);
         g.connect(5, 9);
-        g.connect(5, 6);
+        g.connect(5,6);
         g.connect(6, 7);
         g.connect(8, 9);
         g.connect(8, 12);
@@ -404,7 +404,11 @@ public class MazeSolver {
     /// @return the path to the end
     @SuppressWarnings("unchecked")
     private static Stack<Stack<Integer>> solveLeftHand(GraphMaze maze, int num, char dir, Stack<Integer> visited, List<Integer> blocked, Stack<Stack<Integer>> paths) {
-        visited.push(num);//push the node actually visited in the stack of nodes visited and create a copy of this stack in the stack of steps
+
+        if(!visited.contains(num) && !blocked.contains(num)) {
+            visited.push(num);//push the node actually visited in the stack of nodes visited and create a copy of this stack in the stack of steps
+        }
+
         paths.push((Stack<Integer>) visited.clone());
         if (num == maze.getEnd()){//if it's the end, return the stack of steps with the end at the top of the stack
             return paths;
@@ -446,11 +450,10 @@ public class MazeSolver {
         // if no allowed path, go back and block this node (remove this and the last node visited to prevent errors)
         int t = visited.pop();
         blocked.add(t);
-        visited.pop();
         if (!visited.isEmpty()) {
             return solveLeftHand(maze, visited.peek(), dir, visited, blocked, paths);
         }
-        paths.push((Stack<Integer>) visited.clone());
+        visited.pop();
         //if the actual node is the start and there is no usable node, return an empty stack as the path to the end
         return paths;
     }
