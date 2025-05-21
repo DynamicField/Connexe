@@ -28,9 +28,9 @@ public class MazeSolver {
         g.connect(9, 10);
         g.connect(10, 11);
         g.connect(10, 14);
-        g.connect(11, 15);
+
         g.connect(12, 13);
-        g.connect(14, 15);
+
 
         g.setStart(0);
         g.setEnd(15);
@@ -452,7 +452,7 @@ public class MazeSolver {
         if (!visited.isEmpty()) {
             return solveLeftHand(maze, visited.peek(), dir, visited, blocked, paths);
         }
-        visited.pop();
+        paths.push((Stack<Integer>) visited.clone());
         //if the actual node is the start and there is no usable node, return an empty stack as the path to the end
         return paths;
     }
