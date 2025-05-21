@@ -23,8 +23,7 @@ public class MazeRenderer {
 
 
     /// Initialize a maze renderer about to take a maze which parameters will be set by a user
-    public MazeRenderer(){
-    }
+    public MazeRenderer(){}
 
     ///  For testing purposes
     public void setDefaultExample(){
@@ -184,8 +183,7 @@ public class MazeRenderer {
                 gridCell.getProperties().put("initialStyle", style.toString());
 
                 mazeSelector.selectWall(gridCell, arrayMaze, row, col, grid);
-                mazeSelector.removeBorder(gridCell);
-                mazeSelector.addBorder(gridCell);
+                mazeSelector.interactBorder(grid,gridCell);
 
                 // Allow dynamic resizing of the cell
                 GridPane.setHgrow(gridCell, Priority.ALWAYS);
