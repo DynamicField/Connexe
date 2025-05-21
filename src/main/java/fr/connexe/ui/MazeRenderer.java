@@ -25,6 +25,12 @@ public class MazeRenderer {
     /// Initialize a maze renderer about to take a maze which parameters will be set by a user
     public MazeRenderer(){}
 
+    /// Get maze selector.
+    /// @return mazeSelector the maze selector
+    public MazeSelector getMazeSelector() {
+        return mazeSelector;
+    }
+
     ///  For testing purposes
     public void setDefaultExample(){
         var g = new GraphMaze(4, 4);
@@ -183,7 +189,7 @@ public class MazeRenderer {
                 gridCell.getProperties().put("initialStyle", style.toString());
 
                 mazeSelector.selectWall(gridCell, arrayMaze, row, col, grid);
-                mazeSelector.interactBorder(grid,gridCell);
+                mazeSelector.interactBorder(gridCell, arrayMaze, row, col, grid);
 
                 // Allow dynamic resizing of the cell
                 GridPane.setHgrow(gridCell, Priority.ALWAYS);
