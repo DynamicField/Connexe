@@ -178,13 +178,14 @@ public class MazeRenderer {
                         .append(bottomWidth).append(" ")
                         .append(leftWidth).append(";");
 
-                //Remembers the initial style for reset
                 gridCell.setStyle(style.toString());
+
+                //Remembers the initial style for reset
                 gridCell.getProperties().put("initialStyle", style.toString());
 
                 mazeSelector.selectWall(gridCell, arrayMaze, row, col, grid);
                 mazeSelector.removeBorder(gridCell);
-
+                mazeSelector.addBorder(gridCell);
 
                 // Allow dynamic resizing of the cell
                 GridPane.setHgrow(gridCell, Priority.ALWAYS);
