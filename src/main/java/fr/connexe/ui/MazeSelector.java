@@ -128,7 +128,7 @@ public class MazeSelector {
     }
 
      ///Returns the cell at the given position in the grid.
-     ///@param grid the grid containing the maze cells (used to retrieve the cell at the clicked position)
+     ///@param grid Labyrinth Grid
      ///@param col the column of the cell
      ///@param row the row of the cell
      ///@return the cell at the given position in the grid, or null if the cell doesn't exist in the grid or is not a Region.
