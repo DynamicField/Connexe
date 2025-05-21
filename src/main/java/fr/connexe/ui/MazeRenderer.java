@@ -19,16 +19,16 @@ public class MazeRenderer {
     private GraphMaze graphMaze;
     private GridPane grid; // currently displayed maze grid
     private Supplier<Double> delaySupplier; // supplier to query speed value during animations
-    private final MazeEditor mazeEditor = new MazeEditor();
+    private final MazeSelector mazeSelector = new MazeSelector();
 
 
     /// Initialize a maze renderer about to take a maze which parameters will be set by a user
     public MazeRenderer(){}
 
-    /// Get maze editor.
-    /// @return mazeEditor object
-    public MazeEditor getMazeSelector() {
-        return mazeEditor;
+    /// Get maze selector.
+    /// @return mazeSelector the maze selector
+    public MazeSelector getMazeSelector() {
+        return mazeSelector;
     }
 
     ///  For testing purposes
@@ -188,8 +188,8 @@ public class MazeRenderer {
                 //Remembers the initial style for reset
                 gridCell.getProperties().put("initialStyle", style.toString());
 
-                mazeEditor.selectWall(gridCell, arrayMaze, row, col, grid);
-                mazeEditor.interactBorder(gridCell, arrayMaze, row, col, grid);
+                mazeSelector.selectWall(gridCell, arrayMaze, row, col, grid);
+                mazeSelector.interactBorder(gridCell, arrayMaze, row, col, grid);
 
                 // Allow dynamic resizing of the cell
                 GridPane.setHgrow(gridCell, Priority.ALWAYS);
