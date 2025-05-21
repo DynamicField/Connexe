@@ -133,7 +133,7 @@ public class PlayArcadeDialogController implements Initializable {
         assert !players.isEmpty(); // The button isn't enabled if there are no players
 
         // Display an alert if the game mode isn't supported yet
-        if (selectedGameMode == GameMode.VERSATILITY || selectedGameMode == GameMode.FURTIVITY) {
+        if (selectedGameMode == GameMode.VERSATILITY) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.setTitle("Mode non supporté");
             alert.setHeaderText("Mode de jeu non supporté");
@@ -170,6 +170,16 @@ public class PlayArcadeDialogController implements Initializable {
     /// Handles a click on the "add player" button, which adds a new player to the list.
     @FXML
     private void handleAddPlayer() {
+        if (players.size() >= 8) {
+            // Too many players! Show an alert.
+            Alert alert = new Alert(Alert.AlertType.WARNING);
+            alert.setTitle("Trop de joueurs");
+            alert.setHeaderText("Nombre max. de joueurs atteint");
+            alert.setContentText("Impossible d'avoir plus de 8 joueurs dans une partie.");
+            alert.showAndWait();
+            return;
+        }
+
         // Add a new player with a random color and the next available input method (keyboard first; controllers next)
         players.add(new PlayerProfile(randomColor(), nextAvailableInput()));
     }
@@ -234,6 +244,8 @@ public class PlayArcadeDialogController implements Initializable {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
+
+            setContentDisplay(ContentDisplay.GRAPHIC_ONLY);
         }
 
         @Override
@@ -242,11 +254,9 @@ public class PlayArcadeDialogController implements Initializable {
 
             if (empty || item == null) {
                 // Empty item: put nothing
-                setText(null);
                 setGraphic(null);
             } else {
                 // We have a player profile: set up the controller.
-                setText(null);
                 setGraphic(view);
                 controller.setup(PlayArcadeDialogController.this, item);
             }

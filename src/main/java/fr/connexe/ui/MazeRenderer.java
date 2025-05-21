@@ -97,8 +97,7 @@ public class MazeRenderer {
         GraphMaze mazeStep = log.buildMazeUntil(step);
         ArrayMaze mazeStepArray = mazeStep.toArrayMaze();
 
-        grid.getChildren().clear();
-        buildWalls(mazeStepArray);
+        renderMaze(mazeStepArray);
 
         // Query the current delay (animation speed) from the supplier
         double currentDelayMs = delaySupplier != null ? delaySupplier.get() : 500;
@@ -137,6 +136,30 @@ public class MazeRenderer {
         }
 
         return grid;
+    }
+
+    /// Clears the current grid and renders the given maze in it.
+    ///
+    /// Doesn't replace the grid with another one. Requires a grid to be built first using [#buildGrid()].
+    ///
+    /// The maze must have the same number of rows and columns as the current grid.
+    ///
+    /// Can be useful to temporarily display a maze, such as intermediate steps, while keeping the stored
+    /// maze intact.
+    ///
+    /// @param maze the maze to display, in array format
+    public void renderMaze(ArrayMaze maze) {
+        // todo: improve this design because it's frankly weird to have "renderMaze" which renders
+        //       the maze under certain mysterious conditions. Ideally, I'd like a unified "renderMaze"
+        //       method that configures the same grid as necessary without needing recreation or something.
+
+        assert grid != null : "Grid must be built first before calling displayMaze()";
+        assert grid.getColumnCount() == maze.getHeight() : "Grid must have the same number of columns as the maze";
+        assert grid.getRowCount() == maze.getWidth() : "Grid must have the same number of rows as the maze";
+
+        // Reset the grid's cells and build new ones
+        grid.getChildren().clear();
+        buildWalls(maze);
     }
 
     /// For a given [ArrayMaze], initialize regions in the corresponding [GridPane] cells

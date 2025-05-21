@@ -11,7 +11,7 @@ import javafx.scene.layout.HBox;
 /// Base class for every controller managing an arcade HUD.
 public sealed abstract class HUDController
         implements Initializable
-        permits EfficiencyHUDController, SwiftnessHUDController {
+        permits EfficiencyHUDController, FurtivityHUDController, SwiftnessHUDController {
 
     /// The label of the left HUD, which is used to display the current game mode.
     @FXML

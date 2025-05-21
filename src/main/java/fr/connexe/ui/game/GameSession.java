@@ -1,9 +1,11 @@
 package fr.connexe.ui.game;
 
 import fr.connexe.ConnexeApp;
+import fr.connexe.algo.ArrayMaze;
 import fr.connexe.algo.GraphMaze;
 import fr.connexe.algo.Point;
 import fr.connexe.ui.game.hud.EfficiencyHUDController;
+import fr.connexe.ui.game.hud.FurtivityHUDController;
 import fr.connexe.ui.game.hud.HUDController;
 import fr.connexe.ui.game.hud.SwiftnessHUDController;
 import fr.connexe.ui.game.input.ControllerHub;
@@ -27,6 +29,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.function.Consumer;
 
 /// An ongoing game in arcade mode; handles player input, game state, and rendering.
 ///
@@ -87,6 +90,7 @@ public class GameSession {
     private final KeyboardHub keyboardHub; // To receive keyboard key presses
     private final @Nullable ControllerHub controllerHub; // To receive controller input
     private final Runnable closeGame; // The function called to undeploy the game properly (by the MazeController)
+    private final Consumer<ArrayMaze> displayMaze;
     private final AnimationTimer tickTimer; // Timer called every frame to run the tick() function
 
     private final Pane gameOverlay; // The main game overlay with all players on top of the maze
@@ -120,12 +124,13 @@ public class GameSession {
                        GraphMaze maze,
                        KeyboardHub keyboardHub,
                        @Nullable ControllerHub controllerHub,
-                       Runnable closeGame) {
+                       Runnable closeGame,
+                       Consumer<ArrayMaze> displayMaze) {
         // Initialize all our dependencies (input & maze)
-        this.maze = maze;
         this.keyboardHub = Objects.requireNonNull(keyboardHub); // Make sure it isn't null.
         this.controllerHub = controllerHub;
         this.closeGame = closeGame;
+        this.displayMaze = displayMaze;
 
         // Create an empty game overlay, we'll fill it with players later on.
         this.gameOverlay = new Pane();
@@ -143,12 +148,26 @@ public class GameSession {
             throw new RuntimeException(e);
         }
 
-        // Configure the game mode and players
+        // Configure the game mode
         this.gameMode = config.mode();
+
+        // Configure the maze, with special considerations for furtivity mode.
+        if (gameMode == GameMode.FURTIVITY) {
+            // In furtivity mode, we need to put a random endpoint for the maze.
+            GraphMaze furtiveMaze = maze.clone();
+            furtiveMaze.setEnd(pickRandomEndpoint(furtiveMaze));
+
+            this.maze = furtiveMaze;
+        } else {
+            // Set the maze with no particular change in this game mode.
+            this.maze = maze;
+        }
+
+        // Add all players to the game overlay and to the player list.
         Point startPos = maze.getStartPoint();
         for (PlayerProfile profile : config.players()) {
             // Add a player into the list, and register its avatar in the gameOverlay.
-            addPlayer(new Player(profile, startPos, players.size()));
+            addPlayer(new Player(profile, startPos,gameMode, players.size()));
         }
 
         // Create the tick timer.
@@ -171,8 +190,43 @@ public class GameSession {
                 _ -> switch (mode) {
                     case EFFICIENCY -> new EfficiencyHUDController();
                     case SWIFTNESS -> new SwiftnessHUDController();
+                    case FURTIVITY -> new FurtivityHUDController();
                     default -> throw new RuntimeException("Not implemented");
                 });
+    }
+
+    private static int pickRandomEndpoint(GraphMaze maze) {
+        int start = maze.getStart();
+        assert start != -1 : "Maze doesn't have a start point!";
+
+        // A class to do a DFS one the maze to fetch all reachable vertices from the start point.
+        // TODO: Calculate the DFS distance and use it to weigh pick probabilities.
+        class MiniDFS {
+            final boolean[] visited = new boolean[maze.getNumCells()];
+
+            void visit(int v) {
+                visited[v] = true;
+
+                for (int u : maze.getAdjacentVertices(v)) {
+                    if (!visited[u]) {
+                        visit(u);
+                    }
+                }
+            }
+        }
+
+        var dfs = new MiniDFS();
+        dfs.visit(start);
+
+        var vertices = new ArrayList<Integer>();
+        for (int i = 0; i < maze.getNumCells(); i++) {
+            if (dfs.visited[i] && i != start) {
+                vertices.add(i);
+            }
+        }
+
+        var rng = new Random();
+        return vertices.get(rng.nextInt(vertices.size()));
     }
 
     /// Starts the game session in the given panes.
@@ -194,6 +248,11 @@ public class GameSession {
         // Configure the HUD
         this.hudParent = hudParent;
         hudParent.getChildren().add(hud);
+
+        if (gameMode == GameMode.FURTIVITY) {
+            // Furtivity mode is a bit special: we need to update the displayed maze with hidden endpoints.
+            displayMaze.accept(maze.toArrayMaze(true));
+        }
 
         // Begin the ticking timer now. Run one tick now to setup player positions.
         tick(1 / 60f);
@@ -236,6 +295,10 @@ public class GameSession {
     // Adds a player in the list and registers it in the overlay.
     private void addPlayer(Player player) {
         players.add(player);
+        if (player.getPulse() != null) {
+            // If the player has a pulse, we need to add it to the overlay.
+            gameOverlay.getChildren().add(player.getPulse());
+        }
         gameOverlay.getChildren().add(player.getIcon());
     }
 
@@ -287,6 +350,7 @@ public class GameSession {
             switch (hudController) {
                 case EfficiencyHUDController eff -> eff.update(playersSorted());
                 case SwiftnessHUDController swi -> swi.update(playersSorted(), startTimestamp);
+                case FurtivityHUDController fur -> {/* no update yet! TODO */}
             }
 
             // Check if the game is now over (we have a winner! chicken dinner!).
@@ -380,6 +444,9 @@ public class GameSession {
                     declareGameOver("Joueur " + (playersSorted().getFirst().getIndex() + 1) + " est premier !");
                 }
             }
+            case FURTIVITY -> // A furtivity game is over when one player has reached the end.
+                    players.stream().filter(Player::hasReachedEnd).findFirst()
+                            .ifPresent(player -> declareGameOver("Joueur " + (player.getIndex() + 1) + " a trouvé la sortie !"));
         }
     }
 

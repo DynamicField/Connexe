@@ -37,14 +37,28 @@ public final class GameMath {
     /// [CardLab's web client](https://github.com/ChuechTeam/CardLab/blob/main/src/web/Client/card-lab/src/duel/util.ts)
     ///
     /// @param t the input value, clamped to `[0, 1]`
-    /// @param k the exponent factor
+    /// @param k the easing mode (0 for linear, >0 for ease-in, <0 for ease-out)
     /// @return the eased value
     public static double easeExp(double t, double k) {
         if (k == 0) {
             return t;
         }
 
-        t = Math.min(1, Math.max(0, t));
-        return (1 - Math.exp(k * t)) / (1 - Math.exp(k));
+        t = Math.clamp(t, 0, 1);
+
+        // Here's the intuition for this.
+        // ----
+        // You surely know that exp(0) = 1.
+        // Consider the function exp(k*t). At t=0, we have exp(k*t) = 1.
+        // So, considering exp(k*t) - 1, at t=0, we now have 0.
+        //
+        // Therefore, all we need to do is have exp(k*t) - 1 = 1 when t=1.
+        // To do so, we just need to divide by exp(k*1) - 1, which is just exp(k) - 1.
+        //
+        // Dividing keeps the exp(k*t)-1=0 at t=0,
+        // and at t=1 we have (exp(k*1)-1)/(exp(k)-1) which is just 1.
+        //
+        // As exp(k*t) is a strictly increasing function, we can be sure that the result is in [0, 1].
+        return (Math.exp(k * t) - 1) / (Math.exp(k) - 1);
     }
 }

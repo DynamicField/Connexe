@@ -184,7 +184,8 @@ public class MazeController {
         createMazeFX();
 
         // Create and deploy a game session.
-        gameSession = new GameSession(config, mazeRenderer.getGraphMaze(), keyboardHub, controllerHub, this::stopGame);
+        gameSession = new GameSession(config, mazeRenderer.getGraphMaze(), keyboardHub, controllerHub,
+                this::stopGame, mazeRenderer::renderMaze);
         gameSession.deploy(root, vboxLayout);
         gameRunning.set(true);
     }

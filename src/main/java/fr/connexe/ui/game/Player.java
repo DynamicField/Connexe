@@ -3,14 +3,16 @@ package fr.connexe.ui.game;
 import fr.connexe.algo.GraphMaze;
 import fr.connexe.algo.Point;
 import fr.connexe.ui.game.input.PlayerInputSource;
+import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Random;
 import java.util.function.Function;
 
 /// A player in a [game session][GameSession], moving around to maze to reach the end.
 ///
-/// This class works by using a state machine to handle all different state the player might be in.
+/// This class works by using a state machine to handle all different states the player might be in.
 public class Player {
     // --- Simulation state ---
     private final PlayerInputSource inputSource; // The input source of the player
@@ -28,6 +30,9 @@ public class Player {
     // This is a "Point" since it indicates integer coordinates in the maze, not floating point.
     private Point currentCell;
 
+    // Duration of the current pulse effect, when in furtivity game mode.
+    private double pulseProgress = 1; // 1 by default so we recalculate on first frame
+
     // The current state of the player (Idle, Moving, Colliding, ReachedEnd)
     private State state;
 
@@ -38,12 +43,15 @@ public class Player {
 
     // --- JavaFX state ---
     private final Circle icon; // The circular icon of the player; quite minimalistic to be honest
+    private final @Nullable Circle pulse; // The pulse effect of the player for the furtivity mode; null if not furtive
 
     /// Creates a new player based off a player profile and its index in the players list.
     ///
     /// @param profile The profile of the player.
+    /// @param startPos The starting position of the player in the maze
+    /// @param gameMode The game mode of the game session this player participates in
     /// @param index The index of the player in the players list.
-    public Player(PlayerProfile profile, Point startPos, int index) {
+    public Player(PlayerProfile profile, Point startPos, GameMode gameMode, int index) {
         // Initialize every field of this class with default values, and some data given by the profile.
         this.profile = profile;
         this.index = index;
@@ -55,6 +63,16 @@ public class Player {
         this.icon = new Circle();
         this.state = new State.Idle();
         this.movesDone = 0;
+
+        // Initialize the pulse circle for furtivity mode only.
+        if (gameMode == GameMode.FURTIVITY) {
+            this.pulse = new Circle();
+            pulse.setFill(Color.TRANSPARENT);
+            pulse.setStroke(profile.getColor());
+            pulse.setStrokeWidth(2);
+        } else {
+            this.pulse = null;
+        }
 
         // Configure the icon's color with a slightly transparent color so we can see multiple players at once.
         this.icon.setFill(profile.getColor().deriveColor(0, 1, 1, 0.8));
@@ -152,6 +170,24 @@ public class Player {
                 // Nothing to do either
             }
         }
+
+        // Update the pulse animation if we're in furtivity mode.
+        if (pulse != null) {
+            if (hasReachedEnd()) {
+                // Stop pulsing when we reach the end.
+                pulseProgress = 0;
+            } else {
+                Point end = maze.getEndPoint();
+                int dist = Math.abs(end.x() - currentCell.x()) + Math.abs(end.y() - currentCell.y());
+
+                if (dist > 0) {
+                    // The further we are from the end, the longer the pulse lasts.
+                    // Down to 0.125 when adjacent to the end.
+                    double fullPulseDuration = Math.min(3, dist*0.125);
+                    pulseProgress = (pulseProgress + deltaTime / fullPulseDuration) % 1;
+                }
+            }
+        }
     }
 
     /// Updates the JavaFX avatar of this player. Must be called every frame after updating all entities.
@@ -166,15 +202,33 @@ public class Player {
 
         // Take our world coordinates and convert them to JavaFX coordinates.
         Vector2 fxCoordinates = toFXCoordinates.apply(getWorldPosition());
-        fxCoordinates = fxCoordinates.subtract(
-                new Vector2(
-                        icon.getRadius(),
-                        icon.getRadius()
-                )
+        Vector2 iconCoordinates = fxCoordinates.subtract(
+                new Vector2(icon.getRadius(), icon.getRadius())
         );
 
         // Apply the position changes to the JavaFX icon.
-        icon.relocate(fxCoordinates.x(), fxCoordinates.y());
+        icon.relocate(iconCoordinates.x(), iconCoordinates.y());
+
+        if (pulse != null) {
+            if (hasReachedEnd()) {
+                // Stop pulsing when we reach the end.
+                pulse.setOpacity(0);
+                return;
+            }
+
+            double smoothProgress = GameMath.easeExp(pulseProgress, -1.5);
+
+            double pulseRadius = icon.getRadius() * GameMath.lerp(0.9, 1.4, smoothProgress);
+            double pulseOpacity = GameMath.lerp(1, 0, (smoothProgress-0.6)/0.4);
+
+            Vector2 pulseCoordinates = fxCoordinates.subtract(
+                    new Vector2(pulseRadius + icon.getStrokeWidth(), pulseRadius + icon.getStrokeWidth())
+            );
+
+            pulse.setRadius(pulseRadius);
+            pulse.setOpacity(pulseOpacity);
+            pulse.relocate(pulseCoordinates.x(), pulseCoordinates.y());
+        }
     }
 
     /// Accepts a move input from the player's controller or keyboard.
@@ -231,6 +285,10 @@ public class Player {
 
     public Circle getIcon() {
         return icon;
+    }
+
+    public @Nullable Circle getPulse() {
+        return pulse;
     }
 
     public Point getCurrentCell() {

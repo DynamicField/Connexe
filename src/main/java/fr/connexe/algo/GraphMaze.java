@@ -92,6 +92,22 @@ public class GraphMaze implements Serializable {
         }
     }
 
+    // Constructor for cloning
+    @SuppressWarnings("unchecked") // For the (List<Integer>[]) cast
+    private GraphMaze(GraphMaze other) {
+        this.width = other.width;
+        this.height = other.height;
+        this.numCells = other.numCells;
+        this.start = other.start;
+        this.end = other.end;
+
+        // Make the adjacency list with N copied lists
+        this.edges = (List<Integer>[]) new List[numCells];
+        for (int i = 0; i < numCells; i++) {
+            edges[i] = new ArrayList<>(other.edges[i]);
+        }
+    }
+
     /// Converts 2D coordinates of a point in the maze to its corresponding vertex id.
     ///
     /// @param p The 2D coordinates of the point.
@@ -233,7 +249,18 @@ public class GraphMaze implements Serializable {
     /// Converts this maze into an [ArrayMaze], with all walls properly set to match the edges of this graph.
     ///
     /// @return a snapshot of this graph's state in [ArrayMaze] format
+    /// @see #toArrayMaze(boolean)
     public ArrayMaze toArrayMaze() {
+        return toArrayMaze(false);
+    }
+
+    /// Converts this maze into an [ArrayMaze], with all walls properly set to match the edges of this graph.
+    ///
+    /// Endpoints can be hidden (i.e. border walls won't be removed) by using the `hideEndpoints` parameter.
+    ///
+    /// @param hideEndpoints true when start and end points should not change the walls on the border of the maze
+    /// @return a snapshot of this graph's state in [ArrayMaze] format
+    public ArrayMaze toArrayMaze(boolean hideEndpoints) {
         // Make a 2D array of cells for the array maze.
         Cell[][] cells = new Cell[height][width];
 
@@ -244,7 +271,7 @@ public class GraphMaze implements Serializable {
 
                 // When the vertex is either a start or end vertex, we need to avoid
                 // creating walls on the border of the maze.
-                boolean isEndpoint = vertex == start || vertex == end;
+                boolean isEndpoint = (vertex == start || vertex == end) && !hideEndpoints;
                 boolean noLeftWall = isEndpoint && x == 0;
                 boolean noRightWall = isEndpoint && x == width - 1;
                 boolean noUpWall = isEndpoint && y == 0;
@@ -262,6 +289,15 @@ public class GraphMaze implements Serializable {
         }
 
         return new ArrayMaze(cells, width, height);
+    }
+
+    /// Clones this maze into a new instance of [GraphMaze] with identical edges, start/end points, etc.
+    ///
+    /// @return a clone of this maze
+    @SuppressWarnings("MethodDoesntCallSuperMethod") // It's intentional!
+    @Override
+    public GraphMaze clone() {
+        return new GraphMaze(this);
     }
 
     /// Saves this maze into to a stream.
@@ -329,12 +365,6 @@ public class GraphMaze implements Serializable {
         // Make sure we can't get start == end
         if (otherEnd == vertexId) {
             throw new InvalidVertexException("Start and end vertices cannot be the same.");
-        }
-
-        // Check that the vertex is on the border of the maze.
-        Point pos = toPoint(vertexId);
-        if (pos.x() != 0 && pos.x() != width - 1 && pos.y() != 0 && pos.y() != height - 1) {
-            throw new InvalidVertexException("The start/end point should be at the border of the maze; not inside! " + pos);
         }
     }
 

@@ -33,26 +33,25 @@
                   <Insets bottom="5.0" />
                </VBox.margin>
             </HBox>
-            <ListView id="playersView" fx:id="playerList" orientation="HORIZONTAL" prefHeight="190.0" VBox.vgrow="NEVER" />
+            <ListView id="playersView" fx:id="playerList" orientation="HORIZONTAL" prefHeight="215.0" VBox.vgrow="NEVER" />
             <Label text="Mode de jeu">
                <VBox.margin>
                   <Insets bottom="5.0" top="10.0" />
                </VBox.margin>
                <font>
                   <Font name="System Bold" size="13.0" />
-               </font></Label>
+               </font>
+            </Label>
             <VBox spacing="5.0">
                <children>
-                  <fx:define>
-                     <ToggleGroup fx:id="gameMode" />
-                  </fx:define>
                   <RadioButton fx:id="radioEfficiency" mnemonicParsing="false" selected="true" text="Efficacité : le joueur au chemin le plus efficace gagne !">
                      <toggleGroup>
                         <ToggleGroup fx:id="gameMode" />
-                     </toggleGroup></RadioButton>
-                  <RadioButton fx:id="radioSwiftness" layoutX="10.0" layoutY="10.0" mnemonicParsing="false" text="Rapidité : le joueur le plus rapide gagne !" toggleGroup="$gameMode" />
-                  <RadioButton fx:id="radioFurtivity" layoutX="10.0" layoutY="32.0" mnemonicParsing="false" text="Furtivité : le point d'arrivée est caché ; le premier à le trouver gagne !" toggleGroup="$gameMode" />
-                  <RadioButton fx:id="radioVersatility" layoutX="10.0" layoutY="54.0" mnemonicParsing="false" text="Versatilité : un joueur sème le chaos dans le labyrinthe ; coopérez pour atteindre l'arrivée !" toggleGroup="$gameMode" />
+                     </toggleGroup>
+                  </RadioButton>
+                  <RadioButton fx:id="radioSwiftness" mnemonicParsing="false" text="Rapidité : le joueur le plus rapide gagne !" toggleGroup="$gameMode" />
+                  <RadioButton fx:id="radioFurtivity" mnemonicParsing="false" text="Furtivité : le point d'arrivée est caché ; le premier à le trouver gagne !" toggleGroup="$gameMode" />
+                  <RadioButton fx:id="radioVersatility" mnemonicParsing="false" text="Versatilité : un joueur sème le chaos dans le labyrinthe ; coopérez pour atteindre l'arrivée !" toggleGroup="$gameMode" />
                </children>
                <opaqueInsets>
                   <Insets />
