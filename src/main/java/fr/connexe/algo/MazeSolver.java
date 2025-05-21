@@ -438,7 +438,7 @@ public class MazeSolver {
                 nextDir = new char[]{'R', 'D', 'L'};
                 break;
         }
-    //check if it's possible to go to the node at the left, then ahead, then at the right and finally behind the node depending upon the direction used
+    //check if it's possible to go to the node at the left, then ahead, then at the right of the node depending upon the direction used
         //and return the stack of recursions of the first node usable
         for (int i = 0; i < 3; i++) {
             int next = num + dirx[i];
