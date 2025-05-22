@@ -154,8 +154,8 @@ public class MazeRenderer {
         //       method that configures the same grid as necessary without needing recreation or something.
 
         assert grid != null : "Grid must be built first before calling displayMaze()";
-        assert grid.getColumnCount() == maze.getHeight() : "Grid must have the same number of columns as the maze";
-        assert grid.getRowCount() == maze.getWidth() : "Grid must have the same number of rows as the maze";
+        assert grid.getColumnCount() == maze.getWidth() : "Grid must have the same number of columns as the maze";
+        assert grid.getRowCount() == maze.getHeight() : "Grid must have the same number of rows as the maze";
 
         // Reset the grid's cells and build new ones
         grid.getChildren().clear();
