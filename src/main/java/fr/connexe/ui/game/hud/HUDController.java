@@ -48,6 +48,8 @@ public sealed abstract class HUDController
     protected FlowPane attachPlayersPane() {
         FlowPane pane = new FlowPane();
         pane.alignmentProperty().set(Pos.CENTER_LEFT);
+        pane.setHgap(32);
+        pane.setVgap(16);
         sidePane.getChildren().add(pane);
         return pane;
     }

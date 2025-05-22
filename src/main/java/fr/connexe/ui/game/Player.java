@@ -5,6 +5,7 @@ import fr.connexe.algo.Point;
 import fr.connexe.ui.game.input.ControllerHub;
 import fr.connexe.ui.game.input.PlayerInputSource;
 import javafx.scene.effect.GaussianBlur;
+import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import org.jetbrains.annotations.Nullable;
@@ -55,7 +56,7 @@ public class Player {
     private final Circle icon; // The circular icon of the player; quite minimalistic to be honest
     private final @Nullable Circle pulse; // The pulse effect of the player for the furtivity mode; null if not furtive
 
-    /// Creates a new player based off a player profile and its index in the players list.
+    /// Creates a new player based off a player profile and its index in the player list.
     ///
     /// @param profile  The profile of the player.
     /// @param startPos The starting position of the player in the maze
@@ -86,6 +87,18 @@ public class Player {
 
         // Configure the icon's color with a slightly transparent color so we can see multiple players at once.
         this.icon.setFill(profile.getColor().deriveColor(0, 1, 1, 0.8));
+    }
+
+    /// Places JavaFX objects of this player into the game overlay.
+    ///
+    /// @param gameOverlay The maze overlay to add the player to.
+    public void initializeFX(Pane gameOverlay) {
+        if (pulse != null) {
+            // If the player has a pulse, we need to add it to the overlay.
+            gameOverlay.getChildren().add(pulse);
+        }
+        // Add the icon to the overlay.
+        gameOverlay.getChildren().add(icon);
     }
 
     /// Runs frame update logic for this player.
@@ -202,6 +215,7 @@ public class Player {
                     double newProgress = pulseProgress + deltaTime / fullPulseDuration;
                     pulseProgress = newProgress % 1;
 
+                    // See if we can vibrate the controller after a complete pulse cycle.
                     if (newProgress > pulseProgress
                             && inputSource instanceof PlayerInputSource.Controller(int controllerIndex)
                             && controllerHub != null) {
@@ -270,7 +284,7 @@ public class Player {
             );
 
             // Add a hint of blur near the end of the animation
-            double blurRadius = GameMath.lerp(0, 10, (smoothProgress-0.6)/0.4);
+            double blurRadius = GameMath.lerp(0, 10, (smoothProgress - 0.6) / 0.4);
 
             // Configure the JavaFX circle.
             pulse.setEffect(new GaussianBlur(blurRadius));
@@ -328,22 +342,38 @@ public class Player {
         state = new State.Moving(localPos, cell);
     }
 
+    /// Returns the player profile used to create this player.
+    ///
+    /// @return The player profile used to create this player.
     public PlayerProfile getProfile() {
         return profile;
     }
 
+    /// Returns the index of this player in the player list.
+    ///
+    /// @return The index of this player in the player list.
     public int getIndex() {
         return index;
     }
 
+    /// Returns true when this player is in the "idle" state.
+    ///
+    /// @return True if this player is in the "idle" state.
     public boolean isIdle() {
         return state instanceof State.Idle;
     }
 
+    /// Returns true when this player has reached the end of the maze.
+    ///
+    /// @return True if this player has reached the end of the maze.
     public boolean hasReachedEnd() {
         return state instanceof State.ReachedEnd;
     }
 
+    /// Returns the Epoch timestamp at which the user reached the end of the maze. Returns -1 if they didn't
+    /// reach the end yet.
+    ///
+    /// @return The Epoch timestamp at which the user reached the end of the maze, or -1 if they didn't reach it yet.
     public long getReachedEndAt() {
         return reachedEndAt;
     }
@@ -355,18 +385,16 @@ public class Player {
         return localPos.add(offset);
     }
 
-    public Circle getIcon() {
-        return icon;
-    }
-
-    public @Nullable Circle getPulse() {
-        return pulse;
-    }
-
+    /// Returns the input source of this player: the input device (keyboard/controller) the player uses to move.
+    ///
+    /// @return The input source of this player.
     public PlayerInputSource getInputSource() {
         return inputSource;
     }
 
+    /// Returns the total number of successful moves done since the beginning of the game.
+    ///
+    /// @return The total number of moves
     public int getMovesDone() {
         return movesDone;
     }

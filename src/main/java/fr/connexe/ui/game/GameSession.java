@@ -90,7 +90,7 @@ public class GameSession {
     private final KeyboardHub keyboardHub; // To receive keyboard key presses
     private final @Nullable ControllerHub controllerHub; // To receive controller input
     private final Runnable closeGame; // The function called to undeploy the game properly (by the MazeController)
-    private final Consumer<ArrayMaze> displayMaze;
+    private final Consumer<ArrayMaze> displayMaze; // The function called to display a modified maze for furtivity mode
     private final AnimationTimer tickTimer; // Timer called every frame to run the tick() function
 
     private final Pane gameOverlay; // The main game overlay with all players on top of the maze
@@ -120,6 +120,7 @@ public class GameSession {
     /// @param keyboardHub   the keyboard input hub to receive keyboard key presses
     /// @param controllerHub the controller input hub to receive controller input (optional)
     /// @param closeGame     the function called when the user wants to close the game (should undeploy the session)
+    /// @param displayMaze   the function called to temporarily display a modified maze (for furtivity mode)
     public GameSession(GameStartConfig config,
                        GraphMaze maze,
                        KeyboardHub keyboardHub,
@@ -330,11 +331,7 @@ public class GameSession {
     // Adds a player in the list and registers it in the overlay.
     private void addPlayer(Player player) {
         players.add(player);
-        if (player.getPulse() != null) {
-            // If the player has a pulse, we need to add it to the overlay.
-            gameOverlay.getChildren().add(player.getPulse());
-        }
-        gameOverlay.getChildren().add(player.getIcon());
+        player.initializeFX(gameOverlay);
     }
 
     // Called every frame to update players and the HUD.
