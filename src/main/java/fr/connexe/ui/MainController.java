@@ -24,11 +24,6 @@ public class MainController {
     private MenuItem change;
 
     @FXML
-    public void initializeEdit() {
-        change.setDisable(true);
-    }
-
-    @FXML
     private Button genButton;
 
     @FXML
