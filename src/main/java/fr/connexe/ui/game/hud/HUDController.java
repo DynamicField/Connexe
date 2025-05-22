@@ -4,9 +4,11 @@ import fr.connexe.ui.game.Player;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 
 /// Base class for every controller managing an arcade HUD.
 public sealed abstract class HUDController
@@ -17,9 +19,9 @@ public sealed abstract class HUDController
     @FXML
     protected Label gameModeLabel;
 
-    /// The pane with all players and their "score".
+    /// The pane next to the game mode label.
     @FXML
-    protected FlowPane playersPane;
+    protected StackPane sidePane;
 
     /// Creates a new label for the player's place (1st, 2nd, etc.).
     protected Label makePlaceLabel(int placeIndex) {
@@ -40,6 +42,14 @@ public sealed abstract class HUDController
             place.getStyleClass().add("not-in-podium");
         }
         return place;
+    }
+
+    /// Attaches a [FlowPane] with center-left alignment inside the [#sidePane].
+    protected FlowPane attachPlayersPane() {
+        FlowPane pane = new FlowPane();
+        pane.alignmentProperty().set(Pos.CENTER_LEFT);
+        sidePane.getChildren().add(pane);
+        return pane;
     }
 
     /// Makes a horizontal box for a player. Usually contains information like place, name, etc.

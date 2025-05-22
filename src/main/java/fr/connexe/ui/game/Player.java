@@ -4,6 +4,7 @@ import fr.connexe.algo.GraphMaze;
 import fr.connexe.algo.Point;
 import fr.connexe.ui.game.input.ControllerHub;
 import fr.connexe.ui.game.input.PlayerInputSource;
+import javafx.scene.effect.GaussianBlur;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import org.jetbrains.annotations.Nullable;
@@ -30,6 +31,14 @@ public class Player {
     // successfully.
     // This is a "Point" since it indicates integer coordinates in the maze, not floating point.
     private Point currentCell;
+
+    // Timer tracking for how much time the player inputs a direction that will
+    // just make them hurt a wall.
+    private double headingIntoWallTime = 0.0;
+    // True when the player did some move input this frame.
+    private boolean receivedMoveInputThisFrame = false;
+    // True when the player did some move input LAST frame.
+    private boolean receivedMoveInputLastFrame = false;
 
     // Duration of the current pulse effect, when in furtivity game mode.
     private double pulseProgress = 1; // 1 by default so we recalculate on first frame
@@ -161,6 +170,7 @@ public class Player {
                     if (col.progress >= 1) {
                         // Movement complete, back to idle.
                         localPos = col.target;
+                        headingIntoWallTime = 0;
                         state = new State.Idle();
                     } else {
                         // Continue moving.
@@ -184,8 +194,8 @@ public class Player {
 
                 if (dist > 0) {
                     // The further we are from the end, the longer the pulse lasts.
-                    // Down to 0.125 when adjacent to the end.
-                    double fullPulseDuration = Math.min(3, dist * 0.125);
+                    // Down to 0.12 when adjacent to the end (for extra feels).
+                    double fullPulseDuration = dist == 1 ? 0.12 : Math.min(3, dist * 0.15);
 
                     // Update the pulse progress, modulo 1 to loop back to 0.
                     double newProgress = pulseProgress + deltaTime / fullPulseDuration;
@@ -195,10 +205,26 @@ public class Player {
                             && inputSource instanceof PlayerInputSource.Controller(int controllerIndex)
                             && controllerHub != null) {
                         // We completed a pulse cycle, let's do haptic feedback!
-                        controllerHub.vibrateController(controllerIndex, 0.2f, 0.2f, 50);
+
+                        // Increase the intensity if we're near the end goal.
+                        double intensity = GameMath.lerp(1.0, 0.2, (dist - 1) / 3.0);
+
+                        // Make the controller go BRRRR
+                        controllerHub.vibrateController(controllerIndex, intensity, intensity, 50);
                     }
                 }
             }
+        }
+
+        // Update the receivedMoveInputThisFrame/receivedMoveInputLastFrame state.
+        if (receivedMoveInputThisFrame) {
+            // Next frame will have receivedMoveInputLastFrame set to true.
+            receivedMoveInputLastFrame = true;
+            receivedMoveInputThisFrame = false;
+        } else {
+            // Continuous movement input stopped: reset the wall time.
+            receivedMoveInputLastFrame = false;
+            headingIntoWallTime = 0;
         }
     }
 
@@ -221,6 +247,7 @@ public class Player {
         // Apply the position changes to the JavaFX icon.
         icon.relocate(iconCoordinates.x(), iconCoordinates.y());
 
+        // Update the pulsing circle for furtivity mode.
         if (pulse != null) {
             if (hasReachedEnd()) {
                 // Stop pulsing when we reach the end.
@@ -228,15 +255,24 @@ public class Player {
                 return;
             }
 
+            // Smooth out the 0 to 1 progress time for a nice feel.
             double smoothProgress = GameMath.easeExp(pulseProgress, -1.5);
 
+            // Increase the radius the further we're in the pulse animation.
             double pulseRadius = icon.getRadius() * GameMath.lerp(0.9, 1.4, smoothProgress);
+            // Decrease the opacity down to zero in the [0.6, 1] range of the animation.
             double pulseOpacity = GameMath.lerp(1, 0, (smoothProgress - 0.6) / 0.4);
 
+            // Calculate the coordinates to center the circle correctly, including the stroke width!!!
             Vector2 pulseCoordinates = fxCoordinates.subtract(
                     new Vector2(pulseRadius + icon.getStrokeWidth(), pulseRadius + icon.getStrokeWidth())
             );
 
+            // Add a hint of blur near the end of the animation
+            double blurRadius = GameMath.lerp(0, 10, (smoothProgress-0.6)/0.4);
+
+            // Configure the JavaFX circle.
+            pulse.setEffect(new GaussianBlur(blurRadius));
             pulse.setRadius(pulseRadius);
             pulse.setOpacity(pulseOpacity);
             pulse.relocate(pulseCoordinates.x(), pulseCoordinates.y());
@@ -248,9 +284,17 @@ public class Player {
     /// Only accepts inputs when the player is idle.
     ///
     /// Fails when the offsets are invalid (not 1 or -1).
-    public void acceptMoveInput(int offsetX, int offsetY) {
+    ///
+    /// @param maze      the maze the player plays in
+    /// @param deltaTime the delta time of this frame
+    /// @param offsetX   the offset in the X axis (-1 or 1)
+    /// @param offsetY   the offset in the Y axis (-1 or 1)
+    public void acceptMoveInput(GraphMaze maze, double deltaTime, int offsetX, int offsetY) {
+        // That's a move input registered, even if it's not successful.
+        receivedMoveInputThisFrame = true;
+
         if (!isIdle()) {
-            // We aren't idle, we can't accept any input.
+            // We aren't idle, so we can't move!
             return;
         }
 
@@ -260,8 +304,27 @@ public class Player {
             return;
         }
 
+        // Find the target cell to move to.
+        Point cell = currentCell.add(offsetX, offsetY);
+
+        // Prevent the player from accidentally hitting a wall while they're continuously moving,
+        // giving them time to change their key/joystick/button/whatever.
+        // After a short while, if they keep wanting to hit that wall, they will eventually!
+        if (!maze.isConnected(maze.toVertexId(currentCell), maze.toVertexId(cell))
+                && receivedMoveInputLastFrame) {
+            headingIntoWallTime += deltaTime;
+
+            if (headingIntoWallTime < 0.15) {
+                // Grace period where the player won't hit the wall; don't move!
+                return;
+            }
+        } else {
+            // Reset the wall timer.
+            headingIntoWallTime = 0;
+        }
+
         // Begin the "moving" animation.
-        state = new State.Moving(localPos, currentCell.add(offsetX, offsetY));
+        state = new State.Moving(localPos, cell);
     }
 
     public PlayerProfile getProfile() {
@@ -284,10 +347,6 @@ public class Player {
         return reachedEndAt;
     }
 
-    public Vector2 getOffset() {
-        return offset;
-    }
-
     /// Get the world position of this player (localPos + offset), in the maze coordinate space.
     ///
     /// @return The world position of this player.
@@ -301,10 +360,6 @@ public class Player {
 
     public @Nullable Circle getPulse() {
         return pulse;
-    }
-
-    public Point getCurrentCell() {
-        return currentCell;
     }
 
     public PlayerInputSource getInputSource() {

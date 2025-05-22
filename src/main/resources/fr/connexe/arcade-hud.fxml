@@ -21,9 +21,10 @@
             <Insets />
          </HBox.margin>
       </Separator>
-      <FlowPane fx:id="playersPane" alignment="CENTER_LEFT" hgap="40.0" prefHeight="200.0" prefWidth="200.0" vgap="24.0" HBox.hgrow="ALWAYS">
+      <StackPane fx:id="sidePane" maxWidth="Infinity" maxHeight="Infinity" HBox.hgrow="ALWAYS">
          <HBox.margin>
             <Insets left="16.0" right="16.0" />
-         </HBox.margin></FlowPane>
+         </HBox.margin>
+      </StackPane>
    </children>
 </HBox>

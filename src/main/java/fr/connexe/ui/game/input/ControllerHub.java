@@ -99,9 +99,11 @@ public class ControllerHub {
                     continue;
                 }
 
-                // Connect the new controller
+                // Connect the new controller, and find its controller/joystick pointers.
                 SDL_GameController sdlController = SDL_GameController.GameControllerOpen(i);
-                addController(new LocalController(sdlController, instanceId));
+                long controllerPtr = extractSDLPtr(sdlController); // Fetch the "ptr" field.
+                long joystickPtr = SDL.SDL_GameControllerGetJoystick(controllerPtr);
+                addController(new LocalController(sdlController, instanceId, controllerPtr, joystickPtr));
             }
         }
 
@@ -156,7 +158,7 @@ public class ControllerHub {
         rightIntensity = Math.clamp(rightIntensity, 0, 1);
 
         // Rumble!!!
-        SDL.SDL_JoystickRumble(controller.instanceId, (int)(leftIntensity*0xFFFF), (int)(rightIntensity*0xFFFF), durationMS);
+        SDL.SDL_JoystickRumble(controller.joystickPtr, (int)(leftIntensity*0xFFFF), (int)(rightIntensity*0xFFFF), durationMS);
     }
 
     private void addController(LocalController controller) {
@@ -205,6 +207,17 @@ public class ControllerHub {
         return false;
     }
 
+    // Weird hack to extract the "ptr" field of the SDL_GameController.
+    private static long extractSDLPtr(SDL_GameController controller) {
+        try {
+            var field = SDL_GameController.class.getDeclaredField("ptr");
+            field.setAccessible(true);
+            return field.getLong(controller);
+        } catch (Exception e) {
+            return 0L;
+        }
+    }
+
     /// Returns the last polled state of the controllers. Empty when polling hasn't been done once.
     ///
     /// @return the last polled state of the controllers
@@ -244,7 +257,7 @@ public class ControllerHub {
     }
 
     // A controller with its Joystick instance ID because SDL_GameController doesn't store that?!
-    private record LocalController(SDL_GameController sdl, int instanceId) {
+    private record LocalController(SDL_GameController sdl, int instanceId, long controllerPtr, long joystickPtr) {
         @Override
         public String toString() {
             return "LocalController[" + sdl.name() + ", " + instanceId + "]";

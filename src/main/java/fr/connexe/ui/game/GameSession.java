@@ -195,38 +195,75 @@ public class GameSession {
                 });
     }
 
+    // Picks a random cell accessible from the start point of the maze, for the furtivity game mode.
+    //
+    // Prioritizes vertex further away from the start cell by using weighted probabilities.
     private static int pickRandomEndpoint(GraphMaze maze) {
         int start = maze.getStart();
         assert start != -1 : "Maze doesn't have a start point!";
 
+        // A potential end vertex with its weight (= probability of being chosen)
+        // Vertices close to the start point have a low weight.
+        record Vertex(int id, double weight) {}
+
         // A class to do a DFS one the maze to fetch all reachable vertices from the start point.
-        // TODO: Calculate the DFS distance and use it to weigh pick probabilities.
         class MiniDFS {
-            final boolean[] visited = new boolean[maze.getNumCells()];
+            final List<Vertex> vertices = new ArrayList<>(); // Found vertices, except the start one
+            final boolean[] visited = new boolean[maze.getNumCells()]; // Array of visited vertices
+            double weightSum = 0.0; // Sum of all weights
 
-            void visit(int v) {
+            // Visits a vertex (dist being the distance from the start vertex)
+            void visit(int v, int dist) {
+                // Mark it as visited and add it to the list if it's not the start vertex.
                 visited[v] = true;
+                if (v != start) {
+                    // Give lower weights to very near vertices
+                    // dist=1 -> 0.2
+                    // dist=2 -> 0.4
+                    // ...
+                    // dist>=5 -> 1.0
+                    double weight = GameMath.lerp(0.2, 1.0, (dist-1)/5.0);
 
+                    // Add it to the list and increase the total weight sum.
+                    vertices.add(new Vertex(v, weight));
+                    weightSum += weight;
+                }
+
+                // Classic DFS traversal, but we increment the distance counter.
                 for (int u : maze.getAdjacentVertices(v)) {
                     if (!visited[u]) {
-                        visit(u);
+                        visit(u, dist + 1);
                     }
                 }
             }
         }
 
+        // Begin the DFS traversal
         var dfs = new MiniDFS();
-        dfs.visit(start);
+        dfs.visit(start, 0);
 
-        var vertices = new ArrayList<Integer>();
-        for (int i = 0; i < maze.getNumCells(); i++) {
-            if (dfs.visited[i] && i != start) {
-                vertices.add(i);
+        // Pick a random number in [0, weightSum].
+        var rng = new Random();
+        double picked = rng.nextDouble(dfs.weightSum);
+
+        // Run a classic linear probability scan that accumulates weights
+        // to find the chosen vertex.
+        // Ultimately, prefixSum will be equal to weightSum, so this loop always
+        // returns a chosen vertex... Unless floating point stuff happens!
+        double prefixSum = 0.0;
+        for (Vertex v : dfs.vertices) {
+            prefixSum += v.weight;
+
+            // The vertex is picked if picked is in [previous sum; previous sum + vertex weight]
+            // Since we're iterating in an increasing manner, we can
+            // just check for "(previous sum + vertex weight) >= picked".
+            if (prefixSum >= picked) {
+                return v.id;
             }
         }
 
-        var rng = new Random();
-        return vertices.get(rng.nextInt(vertices.size()));
+        // Probably a floating point error; return the last vertex.
+        return dfs.vertices.getLast().id;
     }
 
     /// Starts the game session in the given panes.
@@ -331,7 +368,7 @@ public class GameSession {
 
             // Process input for each player
             for (Player p : players) {
-                processPlayerInput(p, controllers, pressedKeys);
+                processPlayerInput(p, controllers, pressedKeys, deltaTime);
             }
 
             // Update animation and current state for each player.
@@ -350,7 +387,7 @@ public class GameSession {
             switch (hudController) {
                 case EfficiencyHUDController eff -> eff.update(playersSorted());
                 case SwiftnessHUDController swi -> swi.update(playersSorted(), startTimestamp);
-                case FurtivityHUDController fur -> {/* no update yet! TODO */}
+                case FurtivityHUDController _ -> {/* nothing to do here! */}
             }
 
             // Check if the game is now over (we have a winner! chicken dinner!).
@@ -359,42 +396,42 @@ public class GameSession {
     }
 
     // Handle incoming keyboard/controller input for a player depending on their chosen input source.
-    private static void processPlayerInput(Player p, ControllerHub.State controllers, EnumSet<KeyCode> pressedKeys) {
+    private void processPlayerInput(Player p, ControllerHub.State controllers, EnumSet<KeyCode> pressedKeys, double deltaTime) {
         switch (p.getInputSource()) {
             case PlayerInputSource.Controller(int slot) -> controllers.getController(slot).ifPresent(s -> {
                 // We have a controller at the specified slot; now see if the buttons are pressed.
                 if (s.dpadRightPressed() || s.leftJoystickX() > JOYSTICK_THRESHOLD) {
-                    p.acceptMoveInput(1, 0);
+                    p.acceptMoveInput(maze, deltaTime, 1, 0);
                 } else if (s.dpadLeftPressed() || s.leftJoystickX() < -JOYSTICK_THRESHOLD) {
-                    p.acceptMoveInput(-1, 0);
+                    p.acceptMoveInput(maze, deltaTime, -1, 0);
                 } else if (s.dpadUpPressed() || s.leftJoystickY() < -JOYSTICK_THRESHOLD) {
-                    p.acceptMoveInput(0, -1);
+                    p.acceptMoveInput(maze, deltaTime, 0, -1);
                 } else if (s.dpadDownPressed() || s.leftJoystickY() > JOYSTICK_THRESHOLD) {
-                    p.acceptMoveInput(0, 1);
+                    p.acceptMoveInput(maze, deltaTime, 0, 1);
                 }
             });
             case PlayerInputSource.KeyboardZQSD _ -> {
                 // Handle ZQSD keys
                 if (pressedKeys.contains(KeyCode.Z)) {
-                    p.acceptMoveInput(0, -1);
+                    p.acceptMoveInput(maze, deltaTime, 0, -1);
                 } else if (pressedKeys.contains(KeyCode.S)) {
-                    p.acceptMoveInput(0, 1);
+                    p.acceptMoveInput(maze, deltaTime, 0, 1);
                 } else if (pressedKeys.contains(KeyCode.Q)) {
-                    p.acceptMoveInput(-1, 0);
+                    p.acceptMoveInput(maze, deltaTime, -1, 0);
                 } else if (pressedKeys.contains(KeyCode.D)) {
-                    p.acceptMoveInput(1, 0);
+                    p.acceptMoveInput(maze, deltaTime, 1, 0);
                 }
             }
             case PlayerInputSource.KeyboardArrows _ -> {
                 // Handle arrow keys.
                 if (pressedKeys.contains(KeyCode.UP)) {
-                    p.acceptMoveInput(0, -1);
+                    p.acceptMoveInput(maze, deltaTime, 0, -1);
                 } else if (pressedKeys.contains(KeyCode.DOWN)) {
-                    p.acceptMoveInput(0, 1);
+                    p.acceptMoveInput(maze, deltaTime, 0, 1);
                 } else if (pressedKeys.contains(KeyCode.LEFT)) {
-                    p.acceptMoveInput(-1, 0);
+                    p.acceptMoveInput(maze, deltaTime, -1, 0);
                 } else if (pressedKeys.contains(KeyCode.RIGHT)) {
-                    p.acceptMoveInput(1, 0);
+                    p.acceptMoveInput(maze, deltaTime, 1, 0);
                 }
             }
         }
@@ -484,6 +521,18 @@ public class GameSession {
 
         // This is indeed the time at which the game is finally over.
         gameOver = true;
+
+        // Stop all controllers from vibrating, because for some reason there's this SDL bug
+        // where it'll keep vibrating over and over despite having stopped sending "JoystickRumble"
+        // commands.
+        if (controllerHub != null) {
+            for (Player p : players) {
+                if (p.getInputSource() instanceof PlayerInputSource.Controller(int slot)) {
+                    // Give an intensity 0 vibration command with the lowest duration.
+                    controllerHub.vibrateController(slot, 0, 0, 1);
+                }
+            }
+        }
 
         // Make the game over overlay, which is just a VBox that covers all the screen.
         var overlay = new VBox();
