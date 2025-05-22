@@ -78,6 +78,8 @@ tasks.withType<JavaExec> {
         "--enable-native-access=javafx.graphics",
         // https://bugs.openjdk.org/browse/JDK-8345121
         "--sun-misc-unsafe-memory-access=allow",
+        // Enable JNI for SDL2
+        "--enable-native-access=sdl2gdx",
         "-ea" // Enable assertions
     )
 
