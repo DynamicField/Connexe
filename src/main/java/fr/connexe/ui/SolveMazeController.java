@@ -19,6 +19,9 @@ public class SolveMazeController {
     @FXML
     private RadioButton dfsRadio;
 
+    @FXML
+    private RadioButton clockwiseRadio;
+
     ///  Called when a user clicks on the Solve button
     @FXML
     private void handleOk() {
@@ -37,23 +40,22 @@ public class SolveMazeController {
 
         // Check which radio button was selected for solving method,
         // and executes the solving algorithm to pass the solution to MazeController
+        // Also measures the execution time of the chosen solving method
+        startTime = System.nanoTime();
         if(dijkstraRadio.isSelected()) { // Solve for Dijkstra
-            startTime = System.nanoTime();
-            stepByStepPath = MazeSolver.solveDjisktra2(mazeController.getMazeRenderer().getGraphMaze());
-            endTime = System.nanoTime();
-            //solutionPath = MazeSolver.solveDjisktra(mazeController.getMazeRenderer().getGraphMaze());
+            stepByStepPath = MazeSolver.solveDijkstra2(mazeController.getMazeRenderer().getGraphMaze());
         }
         else if (dfsRadio.isSelected()) { // Solve for DFS
-            startTime = System.nanoTime();
             stepByStepPath = MazeSolver.prepDFS2(mazeController.getMazeRenderer().getGraphMaze());
-            endTime = System.nanoTime();
-            mazeController.setDFS(true); // necessary for differenciated behavior of DFS animation
+            mazeController.setDFS(true); // necessary for differentiated behavior of DFS animation
         }
-        else { // Solve for Clockwise
-            startTime = System.nanoTime();
+        else if (clockwiseRadio.isSelected()){ // Solve for Clockwise
             stepByStepPath = MazeSolver.prepClockwise2(mazeController.getMazeRenderer().getGraphMaze());
-            endTime = System.nanoTime();
         }
+        else { // Solve for Left-Hand
+            stepByStepPath = MazeSolver.prepLeftHand2(mazeController.getMazeRenderer().getGraphMaze());
+        }
+        endTime = System.nanoTime();
 
         // Build the solution path
         mazeController.setStepByStepPath(stepByStepPath);

@@ -11,6 +11,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
@@ -40,6 +41,7 @@ public class MazeController {
     private VBox vboxLayout;
 
     private StackPane root; // Root element of the vboxLayout
+    private VBox statsContainer;
 
     ///  Display a maze in the VBox of the main scene. If an arcade game is running, stops it immediately.
     public void createMazeFX(){
@@ -89,7 +91,7 @@ public class MazeController {
 
         // Clear maze view beforehand
         mazeRenderer.clearGridColor();
-        vboxLayout.getChildren().removeIf(node -> node instanceof Label);
+        vboxLayout.getChildren().removeIf(node -> node instanceof VBox);
 
         // Solution path must always be at the end of the step by step list
         Stack<Integer> solutionPath = stepByStepPath.getLast();
@@ -103,11 +105,15 @@ public class MazeController {
 
         double executionTimeMs = executionTime / 1000000.0;
 
+        statsContainer = new VBox();
+        statsContainer.setAlignment(Pos.CENTER);
+
         // Display stats (solving algorithm execution time, number of cells in path, number of visited cells)
         Label timeLabel = new Label("Temps de résolution (algorithme seulement) : " + executionTimeMs + " Ms");
         Label pathLength = new Label("Cases du chemin final : " + solutionPath.size());
         Label visitedLength = new Label("Cases visitées : " + getUniqueVisitedNodeCount(stepByStepPath));
-        vboxLayout.getChildren().addAll(timeLabel, pathLength, visitedLength);
+        statsContainer.getChildren().addAll(timeLabel, pathLength, visitedLength);
+        vboxLayout.getChildren().add(statsContainer);
     }
 
     /// Play step by step animation of the solving algorithm
@@ -135,6 +141,11 @@ public class MazeController {
     private void resetMaze() {
         if (mazeRenderer.isLastAnimIsGeneration() || stepByStepPath == null) {
             createMazeFX(); // Rebuild generated grid as it was by default
+
+            if (statsContainer != null) {
+                // Force keep solving stats (they get cleared by createMazeFX)
+                vboxLayout.getChildren().add(statsContainer);
+            }
         } else {
             // Rebuild grid with end state of animation (visited cells + final path)
             mazeRenderer.finishStepByStepSolving(stepByStepPath, isDFS);
