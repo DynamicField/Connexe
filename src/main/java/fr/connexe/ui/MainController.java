@@ -23,8 +23,6 @@ public class MainController {
     @FXML
     private MenuItem change;
 
-    //For reset branch
-
     @FXML
     private Button genButton;
 
