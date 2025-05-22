@@ -2,7 +2,7 @@ package fr.connexe.ui.game.lobby;
 
 import fr.connexe.ui.game.PlayerProfile;
 import fr.connexe.ui.game.input.PlayerInputSource;
-import javafx.beans.value.ChangeListener;
+import javafx.beans.InvalidationListener;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ComboBox;
@@ -10,6 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.URL;
 import java.util.Objects;
@@ -22,6 +23,9 @@ public class PlayerItemController implements Initializable {
     private PlayArcadeDialogController parentController;
     private PlayerProfile player;
 
+    // The listener called when the player's controllerDetectedProperty changes.
+    private final @Nullable InvalidationListener controllerDetectionListener = _ -> updateControllerDetectedText();
+
     @FXML
     private Circle icon;
 
@@ -33,6 +37,7 @@ public class PlayerItemController implements Initializable {
 
     @FXML
     private Label gamepadLabel;
+
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -80,6 +85,8 @@ public class PlayerItemController implements Initializable {
         inputComboBox.valueProperty().addListener((_, _, value) -> {
             if (player != null && player.getInputSource() != value) {
                 player.setInputSource(value);
+
+                // Force an update of the "controller detected" text (keyboard -> gamepad)
                 updateControllerDetectedText();
             }
         });
@@ -97,8 +104,13 @@ public class PlayerItemController implements Initializable {
     /// Sets up this player item with its parent controller and player profile this controller manages.
     ///
     /// @param parentController The parent controller of this player item.
-    /// @param player The player profile this controller manages.
+    /// @param player           The player profile this controller manages.
     public void setup(PlayArcadeDialogController parentController, PlayerProfile player) {
+        if (this.player != null) {
+            // Detach previous listener
+            this.player.controllerDetectedProperty().removeListener(controllerDetectionListener);
+        }
+
         // Set the relevant fields.
         this.parentController = parentController; // I can hardly believe this one would be null
         this.player = Objects.requireNonNull(player); // Make sure it isn't null
@@ -114,7 +126,7 @@ public class PlayerItemController implements Initializable {
 
         // Update the "controller detected" text when the player input source changes. Also update it now!
         updateControllerDetectedText();
-        player.controllerDetectedProperty().addListener(_ -> updateControllerDetectedText());
+        player.controllerDetectedProperty().addListener(controllerDetectionListener);
     }
 
     private void updateControllerDetectedText() {
@@ -137,6 +149,7 @@ public class PlayerItemController implements Initializable {
     }
 
     /// Gets the player profile this controller manages
+    ///
     /// @return The player profile this controller manages.
     public PlayerProfile getPlayer() {
         return player;
@@ -151,7 +164,7 @@ public class PlayerItemController implements Initializable {
 
     // Converts the input source to a string for the combobox
     private String inputSourceName(PlayerInputSource src) {
-        return switch(src) {
+        return switch (src) {
             case PlayerInputSource.KeyboardArrows _ -> "Clavier : Flèches";
             case PlayerInputSource.KeyboardZQSD _ -> "Clavier : ZQSD";
             case PlayerInputSource.Controller(int slot) -> "Manette " + (slot + 1);

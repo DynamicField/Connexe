@@ -21,6 +21,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 /// The controller for the "play arcade" dialog.
@@ -30,10 +31,14 @@ public class PlayArcadeDialogController implements Initializable {
     // The configuration generated once the dialog is closed and confirmed by the user.
     private @Nullable GameStartConfig finalConfig;
 
-    // All players present in the game.
-    private final ObservableList<PlayerProfile> players = FXCollections.observableArrayList(
+    // The list of players to display when showing a new dialog.
+    // Updated to the last confirmed player list so we can easily replay the dialog.
+    private static PlayerProfile[] lastPlayers = new PlayerProfile[]{
             new PlayerProfile(randomColor(), new PlayerInputSource.KeyboardArrows())
-    );
+    };
+
+    // All players present in the game.
+    private final ObservableList<PlayerProfile> players = FXCollections.observableArrayList(lastPlayers);
 
     // The timer which polls the controller hub for new controller states every frame.
     // Can be null if we have no controller hub.
@@ -85,7 +90,7 @@ public class PlayArcadeDialogController implements Initializable {
     /// Configures this controller with its parent stage, and the (optional) controller hub to see if controllers
     /// are connected.
     ///
-    /// @param dialogStage The stage to attach to this controller.
+    /// @param dialogStage   The stage to attach to this controller.
     /// @param controllerHub The controller hub to use to poll for controller states.
     public void setup(Stage dialogStage, @Nullable ControllerHub controllerHub) {
         this.dialogStage = dialogStage;
@@ -133,6 +138,7 @@ public class PlayArcadeDialogController implements Initializable {
                 players.toArray(new PlayerProfile[0]), // List to array
                 selectedGameMode
         );
+        lastPlayers = finalConfig.players(); // Use this player list for the next time this dialog pops up.
         dialogStage.close();
 
         // Make sure the background polling timer is stopped!
