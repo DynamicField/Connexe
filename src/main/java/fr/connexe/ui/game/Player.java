@@ -194,7 +194,6 @@ public class Player {
                     if (newProgress > pulseProgress
                             && inputSource instanceof PlayerInputSource.Controller(int controllerIndex)
                             && controllerHub != null) {
-                        System.out.println("brrr");
                         // We completed a pulse cycle, let's do haptic feedback!
                         controllerHub.vibrateController(controllerIndex, 0.2f, 0.2f, 50);
                     }
