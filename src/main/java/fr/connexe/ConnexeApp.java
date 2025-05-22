@@ -48,9 +48,6 @@ public class ConnexeApp extends Application {
         rootLayout = fxmlLoader.load();
         MainController controller = fxmlLoader.getController();
 
-        //Disable the edit button
-        controller.initializeEdit();
-
         // Create the scene with the FXML file, set its title and size and bind the layout size to the scene size
         Scene scene = new Scene(rootLayout, 800, 500);
         rootLayout.prefWidthProperty().bind(scene.widthProperty());
