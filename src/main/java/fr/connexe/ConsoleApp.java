@@ -22,6 +22,8 @@ public class ConsoleApp {
     private static PrintStream out;
 
     public static void main(String[] args) {
+        System.out.println("ENCODING = " + System.getProperty("file.encoding"));
+
         try {
             out = new PrintStream(System.out, true, "UTF-8");
         } catch (UnsupportedEncodingException e) {
@@ -133,12 +135,41 @@ public class ConsoleApp {
         }
 
         if (currentMaze.getStart() == -1 || currentMaze.getEnd() == -1) {
-            currentMaze.setStart(0); // top-left
-            currentMaze.setEnd(currentMaze.getNumCells() - 1); // bottom-right
+            currentMaze.setStart(0);
+            currentMaze.setEnd(currentMaze.getNumCells() - 1);
         }
 
-        // Call MazeSolver with mode 0
-        Stack<Integer> chemin = MazeSolver.prepDFS(currentMaze, 0);
+        out.println("Choisissez un algorithme de résolution :");
+        out.println("1. DFS");
+        out.println("2. LeftHand");
+        out.println("3. Clockwise");
+        out.println("4. Dijkstra");
+        out.println("5. A* ");
+        out.print("Votre choix : ");
+        String algoChoice = scanner.nextLine();
+
+        Stack<Integer> chemin = new Stack<>();
+
+        switch (algoChoice) {
+            case "1":
+                chemin = MazeSolver.prepDFS(currentMaze, 0);
+                break;
+            case "2":
+                chemin = MazeSolver.prepLeftHand(currentMaze);
+                break;
+            case "3":
+                chemin = MazeSolver.prepClockwise(currentMaze);
+                break;
+            case "4":
+                chemin = MazeSolver.solveDijkstra(currentMaze);
+                break;
+            case "5":
+                out.println("L'algorithme A* sera ajouté prochainement par Mathis :)");
+                return;
+            default:
+                out.println("Choix invalide.");
+                return;
+        }
 
         if (chemin.isEmpty()) {
             out.println("Aucun chemin trouvé !");
@@ -148,6 +179,7 @@ public class ConsoleApp {
 
         out.println(currentMaze);
     }
+
 
     // Saves the current maze to a file
     private static void saveMaze() {
