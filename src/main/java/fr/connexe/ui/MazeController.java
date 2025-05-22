@@ -137,18 +137,18 @@ public class MazeController {
         resetMaze();
     }
 
-    // Resets the maze to its "idle" state, the state where no animation is running.
+    // Resets the maze to its "idle" state, the state where no animation is running, and no game's playing.
     private void resetMaze() {
         if (mazeRenderer.isLastAnimIsGeneration() || stepByStepPath == null) {
             createMazeFX(); // Rebuild generated grid as it was by default
-
-            if (statsContainer != null) {
-                // Force keep solving stats (they get cleared by createMazeFX)
-                vboxLayout.getChildren().add(statsContainer);
-            }
         } else {
             // Rebuild grid with end state of animation (visited cells + final path)
             mazeRenderer.finishStepByStepSolving(stepByStepPath, isDFS);
+        }
+
+        if (statsContainer != null && statsContainer.getParent() == null) {
+            // Bring back the solving stats if they were cleared by createMazeFX
+            vboxLayout.getChildren().add(statsContainer);
         }
     }
 
@@ -215,6 +215,10 @@ public class MazeController {
         }
     }
 
+    /// Sets keyboard and controller hubs to receive input from. Must be called when preparing the maze controller.
+    ///
+    /// @param keyboardHub keyboard hub to receive input from
+    /// @param controllerHub controller hub to receive input from
     public void setInputHubs(KeyboardHub keyboardHub, ControllerHub controllerHub) {
         this.keyboardHub = keyboardHub;
         this.controllerHub = controllerHub;
