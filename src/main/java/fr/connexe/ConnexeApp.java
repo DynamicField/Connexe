@@ -29,7 +29,7 @@ public class ConnexeApp extends Application {
     private File mazeFilePath;
 
     // Receives controller input for the entire app; null when SDL2 is broken.
-    private final @Nullable ControllerHub controllerHub;
+    private @Nullable ControllerHub controllerHub;
     // Receives keyboard input for the entire app. Always initialized.
     private KeyboardHub keyboardHub; // initialized later on
 
@@ -38,7 +38,7 @@ public class ConnexeApp extends Application {
         try {
             controllerHub = new ControllerHub();
         } catch (InputSystemException e) {
-            throw new RuntimeException("Failed to initialize the controller hub! Gamepad support won't be available", e);
+            System.err.println("Failed to initialize the controller hub! Gamepad support won't be available");
         }
     }
 
