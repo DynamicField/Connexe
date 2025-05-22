@@ -208,10 +208,10 @@ public class Player {
                         // We completed a pulse cycle, let's do haptic feedback!
 
                         // Increase the intensity if we're near the end goal.
-                        double intensity = GameMath.lerp(1.0, 0.2, (dist - 1) / 3.0);
+                        double intensity = GameMath.lerp(1.0, 0.4, (dist - 1) / 4.0);
 
                         // Make the controller go BRRRR
-                        controllerHub.vibrateController(controllerIndex, intensity, intensity, 50);
+                        controllerHub.vibrateController(controllerIndex, intensity, intensity, 65);
                     }
                 }
             }

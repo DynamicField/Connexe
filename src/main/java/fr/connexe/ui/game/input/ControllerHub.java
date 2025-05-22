@@ -1,5 +1,6 @@
 package fr.connexe.ui.game.input;
 
+import org.jetbrains.annotations.Nullable;
 import org.libsdl.SDL;
 import org.libsdl.SDL_Error;
 import org.libsdl.SDL_GameController;
@@ -22,7 +23,7 @@ public class ControllerHub {
     private static boolean sdlInitialized; // true if SDL has been initialized globally
     // The list of all connected controllers. It may contains "null" values if a controller has been disconnected.
     // In which case, the next connected controller will take over the next available slot.
-    private final List<LocalController> controllers = new ArrayList<>();
+    private final List<@Nullable LocalController> controllers = new ArrayList<>();
     private volatile State lastState = State.EMPTY; // The last recorded state of the controllers
 
     private static void initializeSDL() throws InputSystemException {
@@ -83,7 +84,7 @@ public class ControllerHub {
         // Remove disconnected controllers
         for (int i = controllers.size() - 1; i >= 0; i--) {
             LocalController controller = controllers.get(i);
-            if (!controller.sdl.getAttached()) {
+            if (controller != null && !controller.sdl.getAttached()) {
                 // This controller isn't attached anymore, remove it!
                 removeController(controller);
             }
@@ -199,7 +200,7 @@ public class ControllerHub {
     // Returns true when the given controller instance id is already connected.
     private boolean controllerAlreadyConnected(int instanceId) {
         for (LocalController controller : controllers) {
-            if (controller.instanceId == instanceId) {
+            if (controller != null && controller.instanceId == instanceId) {
                 return true;
             }
         }

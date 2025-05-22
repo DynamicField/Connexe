@@ -2,6 +2,7 @@ package fr.connexe.ui.game.lobby;
 
 import fr.connexe.ui.game.PlayerProfile;
 import fr.connexe.ui.game.input.PlayerInputSource;
+import javafx.beans.value.ChangeListener;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.control.ComboBox;
@@ -74,6 +75,14 @@ public class PlayerItemController implements Initializable {
                 new PlayerInputSource.Controller(3),
                 new PlayerInputSource.Controller(4)
         );
+
+        // Update the player input method when the combo box selected value changes
+        inputComboBox.valueProperty().addListener((_, _, value) -> {
+            if (player != null && player.getInputSource() != value) {
+                player.setInputSource(value);
+                updateControllerDetectedText();
+            }
+        });
     }
 
     /// Handles a click on the "delete" button, which simply calls the parent controller.
@@ -102,12 +111,6 @@ public class PlayerItemController implements Initializable {
             inputComboBox.getItems().add(player.getInputSource());
         }
         inputComboBox.setValue(player.getInputSource());
-
-        // Update the player input method when the combo box selected value changes
-        inputComboBox.valueProperty().addListener((_, _, value) -> {
-            player.setInputSource(value);
-            updateControllerDetectedText();
-        });
 
         // Update the "controller detected" text when the player input source changes. Also update it now!
         updateControllerDetectedText();

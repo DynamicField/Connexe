@@ -219,10 +219,8 @@ public class GameSession {
                 if (v != start) {
                     // Give lower weights to very near vertices
                     // dist=1 -> 0.2
-                    // dist=2 -> 0.4
-                    // ...
-                    // dist>=5 -> 1.0
-                    double weight = GameMath.lerp(0.2, 1.0, (dist-1)/5.0);
+                    // dist>=9 -> 1.0
+                    double weight = GameMath.lerp(0.2, 1.0, (dist-1)/8.0);
 
                     // Add it to the list and increase the total weight sum.
                     vertices.add(new Vertex(v, weight));
