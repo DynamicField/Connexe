@@ -1,6 +1,7 @@
 package fr.connexe.ui;
 
 import fr.connexe.ConnexeApp;
+import fr.connexe.ui.game.IncompatibleMazeException;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.fxml.FXML;
@@ -288,7 +289,14 @@ public class MainController {
             mazeController.stopGame();
         } else {
             // Launch a new dialog and start a game if the user clicked "Launch game" with correct settings.
-            connexeApp.showPlayArcadeDialog().ifPresent(mazeController::beginGame);
+            connexeApp.showPlayArcadeDialog().ifPresent(config -> {
+                try {
+                    mazeController.beginGame(config);
+                } catch (IncompatibleMazeException e) {
+                    // The maze is incompatible with the game mode! Tell the user about that with an alert.
+                    showError("Labyrinthe incompatible", e.getMessage());
+                }
+            });
         }
     }
 

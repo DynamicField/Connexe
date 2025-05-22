@@ -3,6 +3,7 @@ package fr.connexe.ui.game;
 import fr.connexe.ConnexeApp;
 import fr.connexe.algo.ArrayMaze;
 import fr.connexe.algo.GraphMaze;
+import fr.connexe.algo.MazeSolver;
 import fr.connexe.algo.Point;
 import fr.connexe.ui.game.hud.EfficiencyHUDController;
 import fr.connexe.ui.game.hud.FurtivityHUDController;
@@ -121,12 +122,14 @@ public class GameSession {
     /// @param controllerHub the controller input hub to receive controller input (optional)
     /// @param closeGame     the function called when the user wants to close the game (should undeploy the session)
     /// @param displayMaze   the function called to temporarily display a modified maze (for furtivity mode)
+    /// @throws IncompatibleMazeException when the maze's topology is incompatible with the given game mode
+    ///                                   (no path from A to B)
     public GameSession(GameStartConfig config,
                        GraphMaze maze,
                        KeyboardHub keyboardHub,
                        @Nullable ControllerHub controllerHub,
                        Runnable closeGame,
-                       Consumer<ArrayMaze> displayMaze) {
+                       Consumer<ArrayMaze> displayMaze) throws IncompatibleMazeException {
         // Initialize all our dependencies (input & maze)
         this.keyboardHub = Objects.requireNonNull(keyboardHub); // Make sure it isn't null.
         this.controllerHub = controllerHub;
@@ -162,13 +165,19 @@ public class GameSession {
         } else {
             // Set the maze with no particular change in this game mode.
             this.maze = maze;
+
+            // ...But make sure there's a path from start to end!
+            if (MazeSolver.prepDFS(maze, 0).isEmpty()) {
+                // No path from start to end; throw an exception.
+                throw new IncompatibleMazeException("Le labyrinthe n'a pas de chemin entre le début et la fin !");
+            }
         }
 
         // Add all players to the game overlay and to the player list.
         Point startPos = maze.getStartPoint();
         for (PlayerProfile profile : config.players()) {
             // Add a player into the list, and register its avatar in the gameOverlay.
-            addPlayer(new Player(profile, startPos,gameMode, players.size()));
+            addPlayer(new Player(profile, startPos, gameMode, players.size()));
         }
 
         // Create the tick timer.
@@ -199,7 +208,9 @@ public class GameSession {
     // Picks a random cell accessible from the start point of the maze, for the furtivity game mode.
     //
     // Prioritizes vertex further away from the start cell by using weighted probabilities.
-    private static int pickRandomEndpoint(GraphMaze maze) {
+    //
+    // Throws an IncompatibleMazeException when the cell is surrounded by walls.
+    private static int pickRandomEndpoint(GraphMaze maze) throws IncompatibleMazeException {
         int start = maze.getStart();
         assert start != -1 : "Maze doesn't have a start point!";
 
@@ -207,50 +218,61 @@ public class GameSession {
         // Vertices close to the start point have a low weight.
         record Vertex(int id, double weight) {}
 
-        // A class to do a DFS one the maze to fetch all reachable vertices from the start point.
-        class MiniDFS {
-            final List<Vertex> vertices = new ArrayList<>(); // Found vertices, except the start one
-            final boolean[] visited = new boolean[maze.getNumCells()]; // Array of visited vertices
-            double weightSum = 0.0; // Sum of all weights
+        // --- Do a BFS search for all vertices starting from the start cell ---
+        // The BFS will give us the shortest distance from the start cell to all other cells.
+        // Using this, we can calculate the weights of all vertices, and of course see which ones
+        // are accessible.
+        var vertices = new ArrayList<Vertex>(); // Found vertices, except the start one
+        var enqueued = new boolean[maze.getNumCells()]; // True when vertex i has been in inserted in the queue once
+        var dist = new int[maze.getNumCells()]; // Distance from the start vertex
+        double weightSum = 0.0; // Sum of all weights
 
-            // Visits a vertex (dist being the distance from the start vertex)
-            void visit(int v, int dist) {
-                // Mark it as visited and add it to the list if it's not the start vertex.
-                visited[v] = true;
-                if (v != start) {
-                    // Give lower weights to very near vertices
-                    // dist=1 -> 0.2
-                    // dist>=9 -> 1.0
-                    double weight = GameMath.lerp(0.2, 1.0, (dist-1)/8.0);
+        // Queue for BFS traversal. Starts with... the start vertex! What a surprise!
+        var queue = new ArrayDeque<Integer>();
+        queue.offerLast(start);
 
-                    // Add it to the list and increase the total weight sum.
-                    vertices.add(new Vertex(v, weight));
-                    weightSum += weight;
-                }
+        // Begin BFS traversal loop
+        while (!queue.isEmpty()) {
+            // Grab the first vertex in the queue, and add it to the list if it's not the start vertex.
+            int cur = queue.pollFirst();
+            if (cur != start) {
+                // Give lower weights to very near vertices
+                // dist=1 -> 0.2
+                // dist>=9 -> 1.0
+                double weight = GameMath.lerp(0.2, 1.0, (dist[cur] - 1) / 8.0);
 
-                // Classic DFS traversal, but we increment the distance counter.
-                for (int u : maze.getAdjacentVertices(v)) {
-                    if (!visited[u]) {
-                        visit(u, dist + 1);
-                    }
+                // Add it to the list and increase the total weight sum.
+                vertices.add(new Vertex(cur, weight));
+                weightSum += weight;
+            }
+
+            // Look at all adjacent vertices to complete the BFS search.
+            for (int adj : maze.getAdjacentVertices(cur)) {
+                if (!enqueued[adj]) {
+                    // We didn't know about this one! Put it in the queue and "increment" the distance.
+                    queue.offerLast(adj);
+                    dist[adj] = dist[cur] + 1;
+                    enqueued[adj] = true;
                 }
             }
         }
 
-        // Begin the DFS traversal
-        var dfs = new MiniDFS();
-        dfs.visit(start, 0);
+        if (vertices.isEmpty()) {
+            // No vertices found; the maze is probably surrounded by walls.
+            throw new IncompatibleMazeException("La case de départ est entièrement entourée de murs, " +
+                    "impossible d'être furtif dans ces conditions !");
+        }
 
         // Pick a random number in [0, weightSum].
         var rng = new Random();
-        double picked = rng.nextDouble(dfs.weightSum);
+        double picked = rng.nextDouble(weightSum);
 
         // Run a classic linear probability scan that accumulates weights
         // to find the chosen vertex.
         // Ultimately, prefixSum will be equal to weightSum, so this loop always
         // returns a chosen vertex... Unless floating point stuff happens!
         double prefixSum = 0.0;
-        for (Vertex v : dfs.vertices) {
+        for (Vertex v : vertices) {
             prefixSum += v.weight;
 
             // The vertex is picked if picked is in [previous sum; previous sum + vertex weight]
@@ -262,7 +284,7 @@ public class GameSession {
         }
 
         // Probably a floating point error; return the last vertex.
-        return dfs.vertices.getLast().id;
+        return vertices.getLast().id;
     }
 
     /// Starts the game session in the given panes.

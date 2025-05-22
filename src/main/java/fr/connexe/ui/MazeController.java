@@ -4,6 +4,7 @@ import fr.connexe.algo.GraphMaze;
 import fr.connexe.algo.MazeSerializationException;
 import fr.connexe.algo.Point;
 import fr.connexe.ui.game.GameStartConfig;
+import fr.connexe.ui.game.IncompatibleMazeException;
 import fr.connexe.ui.game.input.ControllerHub;
 import fr.connexe.ui.game.GameSession;
 import fr.connexe.ui.game.input.KeyboardHub;
@@ -180,7 +181,9 @@ public class MazeController {
     ///
     /// @param config players and chosen game modes for the game
     /// @throws IllegalStateException when there's no maze loaded
-    public void beginGame(GameStartConfig config) {
+    /// @throws IncompatibleMazeException when the maze's topology is incompatible with the given game mode
+    ///                                   (no path from A to B)
+    public void beginGame(GameStartConfig config) throws IncompatibleMazeException {
         // Do various checks.
         if (mazeRenderer.getGraphMaze() == null) {
             throw new IllegalStateException("MazeRenderer must have a maze to start a game");
