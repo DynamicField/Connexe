@@ -6,6 +6,7 @@ import fr.connexe.algo.generation.MazeGenResult;
 import fr.connexe.algo.generation.MazeGenerator;
 
 import java.io.*;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.Stack;
 
@@ -22,8 +23,6 @@ public class ConsoleApp {
     private static PrintStream out;
 
     public static void main(String[] args) {
-        System.out.println("ENCODING = " + System.getProperty("file.encoding"));
-
         try {
             out = new PrintStream(System.out, true, "UTF-8");
         } catch (UnsupportedEncodingException e) {
@@ -62,7 +61,7 @@ public class ConsoleApp {
     // Generates a new maze based on user input size
     private static void generateMaze() {
         //Give the Width and Height of the maze
-        out.print("Taille du labyrinthe: ");
+        out.print("Largeur du labyrinthe: ");
         int size;
         try {
             size = Integer.parseInt(scanner.nextLine());
@@ -71,7 +70,7 @@ public class ConsoleApp {
             return;
 
         }
-        out.print("La hauteur  de labyrinthe: ");
+        out.print("Hauteur de labyrinthe: ");
         int height;
         try {
             height = Integer.parseInt(scanner.nextLine());
@@ -84,7 +83,7 @@ public class ConsoleApp {
             return;
         }
         // Give the seed if needed
-        out.print("Donne moi la seed: ");
+        out.print("Seed du labyrinthe (vide = généré auto): ");
 
         String s1 = scanner.nextLine();
         Long seed;
@@ -100,19 +99,36 @@ public class ConsoleApp {
         }
 
         // Give the algorithm to generate the maze( DFS et Prim )
-        out.print("Veuillez me dire votre algo de generation ( DFS ou Prim): ");
+        out.print("Veuillez me dire votre algo de generation (DFS ou Prim): ");
         String s = scanner.nextLine();
 
+        MazeGenResult genResult;
         if (s.equalsIgnoreCase("DFS")) {
-            MazeGenResult mazeGenResult = MazeGenerator.makeDFS(size, height, seed);
-            currentMaze = mazeGenResult.maze();
+            genResult = MazeGenerator.makeDFS(size, height, seed);
         } else if (s.equalsIgnoreCase("Prim")) {
-            MazeGenResult mazeGenResult = MazeGenerator.makePrim(size, height, seed);
-            currentMaze = mazeGenResult.maze();
+            genResult = MazeGenerator.makePrim(size, height, seed);
         } else {
             out.println("Algo invalide.");
             return;
         }
+
+        out.print("Voulez-vous un labyrinthe parfait ? [O/N] ");
+        String answer = scanner.nextLine();
+
+        if (answer.startsWith("n") || answer.startsWith("N")) {
+            out.print("Quelle quantité de chaos voulez-vous ? (nombre de 0.0 à 1.0) ");
+            double chaos = 0.2;
+            try {
+                chaos = scanner.nextDouble();
+                chaos = Math.clamp(chaos, 0.0, 1.0);
+            } catch (InputMismatchException e)  {
+                out.println("Utilisation de la valeur par défaut : " + chaos);
+            }
+
+            MazeGenerator.introduceChaos(genResult, (float) chaos, seed);
+        }
+
+        currentMaze = genResult.maze();
 
         out.println("Labyrinthe généré.");
     }
@@ -148,7 +164,7 @@ public class ConsoleApp {
         out.print("Votre choix : ");
         String algoChoice = scanner.nextLine();
 
-        Stack<Integer> chemin = new Stack<>();
+        Stack<Integer> chemin;
 
         switch (algoChoice) {
             case "1":
