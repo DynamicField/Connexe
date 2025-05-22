@@ -10,6 +10,7 @@ import javafx.beans.binding.Bindings;
 import javafx.beans.binding.NumberBinding;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 
 import javafx.scene.paint.Color;
@@ -256,6 +257,9 @@ public class MazeRenderer {
                 // Allow dynamic resizing of the cell
                 GridPane.setHgrow(gridCell, Priority.ALWAYS);
                 GridPane.setVgrow(gridCell, Priority.ALWAYS);
+                // Force min size to be zero so the cell is entirely resized according to the available grid space,
+                // and doesn't force the grid to be as large the icon the gridCell contains.
+                gridCell.setMinSize(0, 0);
                 gridCell.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
                 grid.add(gridCell, col, row);
