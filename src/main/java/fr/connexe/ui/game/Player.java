@@ -189,6 +189,7 @@ public class Player {
                 // Stop pulsing when we reach the end.
                 pulseProgress = 0;
             } else {
+                // Calculate the Manhattan distance to the end cell. We'll use this to adjust the pulse speed.
                 Point end = maze.getEndPoint();
                 int dist = Math.abs(end.x() - currentCell.x()) + Math.abs(end.y() - currentCell.y());
 

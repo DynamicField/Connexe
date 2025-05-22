@@ -50,8 +50,6 @@ public class PlayArcadeDialogController implements Initializable {
     private RadioButton radioSwiftness;
     @FXML
     private RadioButton radioFurtivity;
-    @FXML
-    private RadioButton radioVersatility;
 
     @FXML
     private Button startButton;
@@ -76,8 +74,6 @@ public class PlayArcadeDialogController implements Initializable {
                     selectedGameMode = GameMode.SWIFTNESS;
                 } else if (selectedRadioButton == radioFurtivity) {
                     selectedGameMode = GameMode.FURTIVITY;
-                } else if (selectedRadioButton == radioVersatility) {
-                    selectedGameMode = GameMode.VERSATILITY;
                 }
             }
         });
@@ -132,17 +128,7 @@ public class PlayArcadeDialogController implements Initializable {
     private void handleGameStart() {
         assert !players.isEmpty(); // The button isn't enabled if there are no players
 
-        // Display an alert if the game mode isn't supported yet
-        if (selectedGameMode == GameMode.VERSATILITY) {
-            Alert alert = new Alert(Alert.AlertType.WARNING);
-            alert.setTitle("Mode non supporté");
-            alert.setHeaderText("Mode de jeu non supporté");
-            alert.setContentText("Il n'a pas encore été implémenté mais pas d'inquiétude ça arrive bientôt...");
-            alert.showAndWait();
-            return;
-        }
-
-        // Setup the final game configuration and close the dialog
+        // Set up the final game configuration and close the dialog
         finalConfig = new GameStartConfig(
                 players.toArray(new PlayerProfile[0]), // List to array
                 selectedGameMode

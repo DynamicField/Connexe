@@ -51,7 +51,6 @@
                   </RadioButton>
                   <RadioButton fx:id="radioSwiftness" mnemonicParsing="false" text="Rapidité : le joueur le plus rapide gagne !" toggleGroup="$gameMode" />
                   <RadioButton fx:id="radioFurtivity" mnemonicParsing="false" text="Furtivité : le point d'arrivée est caché ; le premier à le trouver gagne !" toggleGroup="$gameMode" />
-                  <RadioButton fx:id="radioVersatility" mnemonicParsing="false" text="Versatilité : un joueur sème le chaos dans le labyrinthe ; coopérez pour atteindre l'arrivée !" toggleGroup="$gameMode" />
                </children>
                <opaqueInsets>
                   <Insets />
