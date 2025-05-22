@@ -223,7 +223,7 @@ public class MazeRenderer {
                 ));
 
                 // Display start/end indicators if this is a start/end cell.
-                if (graphMaze.getStartPoint().equals(vertexCoordinates)) {
+                if (mazeCell.endpoint() == Cell.Endpoint.START) {
                     // Display a start indicator (green arrow)
                     final double STROKE_WIDTH = 4;
                     final double ARROW_WIDTH = 9;
@@ -252,7 +252,7 @@ public class MazeRenderer {
 
                     // Translate the arrow to the center of the cell.
                     gridCell.getChildren().add(path);
-                } else if (graphMaze.getEndPoint().equals(vertexCoordinates)) {
+                } else if ((mazeCell.endpoint() == Cell.Endpoint.END)) {
                     // Display an end indicator (blue rounded rectangle)
 
                     // Make a blue rounded rectangle.

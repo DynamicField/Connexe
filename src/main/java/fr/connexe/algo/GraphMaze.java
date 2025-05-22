@@ -269,9 +269,15 @@ public class GraphMaze implements Serializable {
                 // Find the vertex id of this (x, y) point.
                 int vertex = toVertexId(new Point(x, y));
 
+                // Determine the endpoint status of that cell; hide them if hideEndpoints is true.
+                Cell.Endpoint endpoint;
+                if (vertex == start && !hideEndpoints) { endpoint = Cell.Endpoint.START; }
+                else if (vertex == end && !hideEndpoints) { endpoint = Cell.Endpoint.END; }
+                else { endpoint = Cell.Endpoint.NONE; }
+
                 // When the vertex is either a start or end vertex, we need to avoid
                 // creating walls on the border of the maze.
-                boolean isEndpoint = (vertex == start || vertex == end) && !hideEndpoints;
+                boolean isEndpoint = endpoint != Cell.Endpoint.NONE;
                 boolean noLeftWall = isEndpoint && x == 0;
                 boolean noRightWall = isEndpoint && x == width - 1;
                 boolean noUpWall = isEndpoint && y == 0;
@@ -284,7 +290,7 @@ public class GraphMaze implements Serializable {
                 boolean wallDown = !noDownWall && !isConnected(vertex, toVertexId(new Point(x, y + 1)));
 
                 // Put it in the array.
-                cells[y][x] = new Cell(new Point(x, y), wallLeft, wallRight, wallUp, wallDown);
+                cells[y][x] = new Cell(new Point(x, y), wallLeft, wallRight, wallUp, wallDown, endpoint);
             }
         }
 
