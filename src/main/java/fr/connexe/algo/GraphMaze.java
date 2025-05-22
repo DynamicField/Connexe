@@ -330,12 +330,6 @@ public class GraphMaze implements Serializable {
         if (otherEnd == vertexId) {
             throw new InvalidVertexException("Start and end vertices cannot be the same.");
         }
-
-        // Check that the vertex is on the border of the maze.
-        Point pos = toPoint(vertexId);
-        if (pos.x() != 0 && pos.x() != width - 1 && pos.y() != 0 && pos.y() != height - 1) {
-            throw new InvalidVertexException("The start/end point should be at the border of the maze; not inside! " + pos);
-        }
     }
 
     /// Returns a cool ASCII representation of the maze.

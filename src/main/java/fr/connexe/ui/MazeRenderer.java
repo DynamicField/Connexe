@@ -6,9 +6,14 @@ import fr.connexe.algo.GraphMaze;
 import fr.connexe.algo.Point;
 import fr.connexe.algo.generation.MazeGenLog;
 import javafx.animation.PauseTransition;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.NumberBinding;
+import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.layout.*;
 
+import javafx.scene.paint.Color;
+import javafx.scene.shape.*;
 import javafx.util.Duration;
 
 import java.util.ArrayList;
@@ -154,7 +159,7 @@ public class MazeRenderer {
         // Build a region holding walls (borders) on each cell
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
-                Region gridCell = new Region();
+                StackPane gridCell = new StackPane();
 
                 // Retrieve information of the cell from the ArrayMaze
                 Point vertexCoordinates = new Point(col, row);
@@ -183,6 +188,70 @@ public class MazeRenderer {
 
                 // Apply default background
                 gridCell.getStyleClass().add("cell-color-default");
+
+                // Add some padding so the icon inside the cell doesn't suddenly move
+                // when an inner border is added or removed.
+                // We don't care about outer borders since they are always removed on the first
+                // displayed step of the generation animation.
+                gridCell.setPadding(new Insets(
+                        2-topWidth,
+                        2-rightWidth,
+                        2-bottomWidth,
+                        2-leftWidth
+                ));
+
+                // Display start/end indicators if this is a start/end cell.
+                if (graphMaze.getStartPoint().equals(vertexCoordinates)) {
+                    // Display a start indicator (green arrow)
+                    final double STROKE_WIDTH = 4;
+                    final double ARROW_WIDTH = 9;
+                    final double ARROW_HEIGHT = 20;
+
+                    // Make the shape for the green arrow.
+                    var path = new Path(
+                            new MoveTo(0, 0),
+                            new LineTo(ARROW_WIDTH, ARROW_HEIGHT/2),
+                            new LineTo(0, ARROW_HEIGHT)
+                    );
+                    // Configure its stroke color and width
+                    path.setStrokeWidth(STROKE_WIDTH);
+                    path.setStrokeLineJoin(StrokeLineJoin.ROUND); // We like rounded corners here
+                    path.setStroke(Color.GREEN);
+
+                    // Calculate the uniform scale necessary to fit inside the cell, taking 65% of the space.
+                    var scaleBinding = Bindings.min(
+                            gridCell.widthProperty().divide(ARROW_WIDTH + STROKE_WIDTH),
+                            gridCell.heightProperty().divide(ARROW_HEIGHT + STROKE_WIDTH)
+                    ).multiply(0.65);
+
+                    // Bind it to both X and Y scales.
+                    path.scaleXProperty().bind(scaleBinding);
+                    path.scaleYProperty().bind(scaleBinding);
+
+                    // Translate the arrow to the center of the cell.
+                    gridCell.getChildren().add(path);
+                } else if (graphMaze.getEndPoint().equals(vertexCoordinates)) {
+                    // Display an end indicator (blue rounded rectangle)
+
+                    // Make a blue rounded rectangle.
+                    var rect = new Rectangle();
+                    rect.setFill(Color.DODGERBLUE);
+                    rect.setArcHeight(8);
+                    rect.setArcWidth(8);
+
+                    // Calculate the uniform scale necessary to fit inside the cell, taking 75% of the space.
+                    var scaleBinding = Bindings.min(
+                            gridCell.widthProperty(),
+                            gridCell.heightProperty()
+                    ).multiply(0.65);
+
+                    // Bind it to both X and Y scales.
+                    rect.widthProperty().bind(scaleBinding);
+                    rect.heightProperty().bind(scaleBinding);
+
+                    // Add it to the cell.
+                    gridCell.getChildren().add(rect);
+                }
 
                 // Allow dynamic resizing of the cell
                 GridPane.setHgrow(gridCell, Priority.ALWAYS);
