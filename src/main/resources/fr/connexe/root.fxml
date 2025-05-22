@@ -50,9 +50,9 @@
                               </MenuItem>
                           </items>
                       </Menu>
-                      <Menu fx:id="change" onAction="#handleChange" mnemonicParsing="false" text="Actions">
+                      <Menu onAction="#handleChange" mnemonicParsing="false" text="Actions">
                           <items>
-                              <MenuItem mnemonicParsing="false" text="Modifier le labyrinthe..." />
+                              <MenuItem fx:id="change"  disable="true" mnemonicParsing="false" text="Modifier le labyrinthe..." />
                           </items>
                       </Menu>
                       <Menu mnemonicParsing="false" text="Aide">
