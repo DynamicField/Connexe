@@ -395,9 +395,20 @@ public class MainController {
 
         // When we start or stop a game, disable/enable some maze-related buttons accordingly.
         mazeController.gameRunningProperty().addListener((_, _, running) -> {
-            changeMenuItem.setDisable(running); // The "edit maze" button should be disabled when a game is running.
-            solveMenuItem.setDisable(running); // Same for solve
-            if (running) {
+            // The menu actions to solve/edit maze should be disabled when a game is running.
+            changeMenuItem.setDisable(running);
+            solveMenuItem.setDisable(running);
+
+            // Change generation animation button status if maze was generated (if not, then it remains disabled regardless)
+            if (mazeController.getMazeRenderer().getLog() != null) {
+                genButton.setDisable(running);
+            }
+            // Change solving animation button status if maze was previously solved (if not, then it remains disabled regardless)
+            if (mazeController.getStepByStepPath() != null) {
+                solveButton.setDisable(running);
+            }
+
+            if (!running) {
                 // Disable maze editing mode when we're launching a game.
                 setMazeEditor(false);
             }
