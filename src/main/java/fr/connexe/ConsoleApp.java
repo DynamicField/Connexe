@@ -171,7 +171,7 @@ public class ConsoleApp {
 
         switch (algoChoice) {
             case "1":
-                chemin = MazeSolver.prepDFS(currentMaze, 0);
+                chemin = MazeSolver.prepDFS(currentMaze);
                 break;
             case "2":
                 chemin = MazeSolver.prepLeftHand(currentMaze);

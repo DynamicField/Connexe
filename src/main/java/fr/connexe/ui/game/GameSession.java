@@ -167,7 +167,7 @@ public class GameSession {
             this.maze = maze;
 
             // ...But make sure there's a path from start to end!
-            if (MazeSolver.prepDFS(maze, 0).isEmpty()) {
+            if (MazeSolver.prepDFS(maze).isEmpty()) {
                 // No path from start to end; throw an exception.
                 throw new IncompatibleMazeException("Le labyrinthe n'a pas de chemin entre le début et la fin !");
             }

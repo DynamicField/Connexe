@@ -34,7 +34,7 @@ public class MazeSolver {
         g.setEnd(15);
         System.out.println(g.toArrayMaze());
         Stack<Integer> pile;
-        pile = MazeSolver.prepDFS(g,1);
+        pile = MazeSolver.prepDFS(g);
         System.out.println("DFS:" + pile);
         pile = MazeSolver.prepAStar(g);
         System.out.println("A*" + pile);
@@ -104,17 +104,13 @@ public class MazeSolver {
 
 
     /// create whatever the function DFS needs to call it and returns the shortest path from the paths solveDFS returned
+    ///
     /// @param maze the maze to solve
-    /// @param mode mode for an Easter egg (and because Yani wanted to keep mode in the parameters for this function)
     /// @return stack of nodes to visit to solve the maze in the shortest way (if no path can solve it then return an empty stack)
-    public static Stack<Integer> prepDFS(GraphMaze maze, int mode) {
-        //Easter egg
-        if (mode == 1) {
-            System.out.println("Romu");
-        } else {
-            System.out.println("Eva");
+    public static Stack<Integer> prepDFS(GraphMaze maze) {
+        // Easter egg: Romu and Eva are the names of the 2 main characters of the game "The Legend of Zelda: Ocarina of Time"
+        // (Source: GitHub Copilot)
 
-        }
         //creation of everything that is needed for the function solveDFS
         boolean[] visited = new boolean[maze.getEdges().length];
         Stack<Integer> currentPath = new Stack<>();
