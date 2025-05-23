@@ -192,7 +192,7 @@ public class MazeEditor {
             if (!isEditMode) return;
             if (event.getCode() == KeyCode.BACK_SPACE || event.getCode() == KeyCode.DELETE) {
                 applyBorder(gridCell, row, col, grid, "transparent");
-            } else if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.SPACE) {
+            } else if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.SPACE || event.getCode() == KeyCode.INSERT) {
                 applyBorder(gridCell, row, col, grid, "black");
             }
         });
