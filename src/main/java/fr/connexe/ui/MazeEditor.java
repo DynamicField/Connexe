@@ -208,6 +208,14 @@ public class MazeEditor {
         gridCell.getProperties().put("initialStyle", style);
     }
 
+    public void clearAllRedBorders(GridPane grid) {
+        for (Node node : grid.getChildren()) {
+            if (node instanceof Region region) {
+                resetBorderColor(region);
+            }
+        }
+    }
+
     /// Applies the action "type" to the neighbor of the cell (split of applyBorder() for more clarity).
     /// @param side the wall that was removed/added
     /// @param arrayMaze the maze
