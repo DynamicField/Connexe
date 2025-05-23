@@ -169,6 +169,7 @@ public class MazeRenderer {
                         .append(leftWidth).append(";");
 
                 gridCell.setStyle(style.toString());
+                gridCell.getStyleClass().add("cell-color-default");
 
                 //Remembers the initial style for reset
                 gridCell.getProperties().put("initialStyle", style.toString());

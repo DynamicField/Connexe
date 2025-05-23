@@ -189,6 +189,11 @@ public class MainController {
     /// Enables the maze editor mode
     /// @param editMode true to enable the maze editor, false to disable it
     public void setMazeEditor(boolean editMode) {
+        MazeRenderer renderer = this.mazeController.getMazeRenderer();
+        if (renderer == null) {
+            return;
+        }
+
         MazeEditor mazeEditor = this.mazeController.getMazeRenderer().getMazeSelector();
         mazeEditor.setEditMode(editMode);
         if(!editMode){
