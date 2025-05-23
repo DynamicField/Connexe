@@ -7,7 +7,7 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 
-/// Class to manage the selection of walls in the maze.
+/// Class to manage the selection, deletion and addition of walls in the maze.
 public class MazeEditor {
     //When selecting another wall, the old one must be unselected
     private Region lastSelectedCell = null;
@@ -44,7 +44,7 @@ public class MazeEditor {
         LEFT
     }
 
-    /// Select a wall when it's clicked. There is a margin of 10 around the cell to make it easier to click.
+    /// Select a wall when it's clicked. There is a margin of 10 around the wall to make it easier to click.
     ///
     /// @param gridCell the cell that was clicked
     /// @param row      the row of the cell
