@@ -197,10 +197,8 @@ public class MazeEditor {
     public void configureCellCommands(Region gridCell, int row, int col, GridPane grid) {
         gridCell.setOnKeyPressed(event -> {
             if (!isEditMode) return;
-            if (event.getCode() == KeyCode.BACK_SPACE || event.getCode() == KeyCode.DELETE) {
-                applyBorder(gridCell, row, col, grid, "transparent");
-            } else if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.SPACE) {
-                applyBorder(gridCell, row, col, grid, "black");
+            if (event.getCode() == KeyCode.ENTER){
+                applyBorder(gridCell,row,col,grid);
             }
         });
     }
@@ -211,19 +209,24 @@ public class MazeEditor {
     /// @param row      the row of the cell
     /// @param col      the column of the cell
     /// @param grid     the grid containing the maze cells (used to retrieve the cell at the clicked position)
-    /// @param type     the color to apply (black or transparent)
-    public void applyBorder(Region gridCell, int row, int col, GridPane grid, String type) {
+    public void applyBorder(Region gridCell, int row, int col, GridPane grid) {
         // Find the border colors of the cell
+        String type;
         String style = gridCell.getStyle();
+        String initialStyle = (String) gridCell.getProperties().get("initialStyle");
         String[] colors = getColors(style);
+        String[] initialColors = getColors(initialStyle);
         if (colors == null) return;
 
         // For each side, if it's red, we apply the action "type" and we apply the same action to the neighbor
         Side[] sides = Side.values();
         for (int i = 0; i < colors.length; i++) {
             if ("red".equals(colors[i])) {
+                if(initialColors[i].equals("black"))
+                    type = "transparent";
+                else
+                    type = "black";
                 colors[i] = type;
-                //sides[i] <=> colors[i]. In fact, the colors of the walls and their position in the cell have the same index.
                 applyNeighborBorder(sides[i], row, col, grid, type);
             }
         }
