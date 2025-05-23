@@ -479,6 +479,7 @@ public class MazeRenderer {
 
     public void setGraphMaze(GraphMaze graphMaze) {
         this.graphMaze = graphMaze;
+        mazeEditor.setGraphMaze(graphMaze);
     }
 
     public MazeGenLog getLog() {
