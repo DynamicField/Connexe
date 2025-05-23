@@ -216,6 +216,9 @@ public class MainController {
         genButton.setDisable(true);
         solveButton.setDisable(true); // Disable solving animation button
 
+        // Remove the previous step by step path
+        mazeController.setStepByStepPath(null);
+
         // Remove colors done by the solving algorithm
         mazeController.getMazeRenderer().clearGridColor();
     }
