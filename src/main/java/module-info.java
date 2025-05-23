@@ -5,6 +5,7 @@ open module fr.connexe {
     requires javafx.fxml;
     requires javafx.graphics;
     requires java.prefs;
+    requires java.desktop;
 
     exports fr.connexe;
     exports fr.connexe.algo;
