@@ -205,7 +205,7 @@ public class MazeEditor {
         });
     }
 
-    /// Applies the action "type" to the cell
+    /// Applies the action "type" to the cell (black=add a wall, transparent=remove a wall).
     ///
     /// @param gridCell the cell that was clicked
     /// @param row      the row of the cell
