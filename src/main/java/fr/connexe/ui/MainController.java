@@ -47,6 +47,11 @@ public class MainController {
 
     private IntegerProperty animationSpeed;
 
+    /// Creates a new [MainController].
+    ///
+    /// Automatically called by JavaFX when the controller is created and attached to an FXML node.
+    public MainController() {}
+
     @FXML
     private void initialize() {
         // Default animation delay between frames is 500ms (x1 speed)
@@ -408,10 +413,8 @@ public class MainController {
                 solveButton.setDisable(running);
             }
 
-            if (!running) {
-                // Disable maze editing mode when we're launching a game.
-                setMazeEditor(false);
-            }
+            // Disable maze editing mode when we're launching or stopping a game.
+            setMazeEditor(false);
         });
     }
 }

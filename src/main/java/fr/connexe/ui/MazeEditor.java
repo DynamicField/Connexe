@@ -12,7 +12,7 @@ public class MazeEditor {
     //When selecting another wall, the old one must be unselected
     private Region lastSelectedCell = null;
     private Region lastNeighborCell = null;
-    protected Boolean isEditMode = false;
+    private Boolean isEditMode = false;
     private GraphMaze graphMaze;
 
     /// Constructor for the maze editor.
@@ -34,7 +34,14 @@ public class MazeEditor {
 
     /// Four possible directions for the walls of the labyrinth.
     public enum Side {
-        TOP, RIGHT, BOTTOM, LEFT
+        /// The wall is located at the top of the cell.
+        TOP,
+        /// The wall is located at the right of the cell.
+        RIGHT,
+        /// The wall is located at the bottom of the cell.
+        BOTTOM,
+        /// The wall is located at the left of the cell.
+        LEFT
     }
 
     /// Select a wall when it's clicked. There is a margin of 10 around the cell to make it easier to click.

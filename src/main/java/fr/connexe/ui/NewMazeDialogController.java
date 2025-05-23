@@ -48,6 +48,9 @@ public class NewMazeDialogController {
 
     private boolean okClicked = false;
 
+    /// Called by JavaFX to create the controller instance.
+    public NewMazeDialogController() {}
+
     @FXML
     private void initialize() {
         // Minimum input sizes for columns and rows
@@ -167,14 +170,20 @@ public class NewMazeDialogController {
         dialogStage.close();
     }
 
+    /// Returns true if the user clicked OK to close the dialog.
+    /// @return true if the user clicked OK, false otherwise
     public boolean isOkClicked() {
         return okClicked;
     }
 
+    /// Sets the stage where this dialog is displayed.
+    /// @param dialogStage the stage to set
     public void setDialogStage(Stage dialogStage) {
         this.dialogStage = dialogStage;
     }
 
+    /// Sets the maze renderer to use for displaying the generated maze.
+    /// @param mazeRenderer the maze renderer to set
     public void setMazeRenderer(MazeRenderer mazeRenderer) {
         this.mazeRenderer = mazeRenderer;
     }

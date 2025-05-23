@@ -8,6 +8,7 @@ import javafx.stage.Stage;
 import java.util.List;
 import java.util.Stack;
 
+/// The controller for the "Solve Maze" dialog.
 public class SolveMazeController {
     private Stage dialogStage;
     private MazeController mazeController;
@@ -23,7 +24,10 @@ public class SolveMazeController {
     private RadioButton clockwiseRadio;
 
     @FXML
-    public RadioButton leftHandRadio;
+    private RadioButton leftHandRadio;
+
+    /// Called by the FXML loader to initialize the controller.
+    public SolveMazeController() {}
 
     ///  Called when a user clicks on the Solve button
     @FXML
@@ -77,14 +81,20 @@ public class SolveMazeController {
         dialogStage.close();
     }
 
+    /// Sets the stage where this dialog is displayed.
+    /// @param dialogStage the stage to set
     public void setDialogStage(Stage dialogStage) {
         this.dialogStage = dialogStage;
     }
 
+    /// Sets the maze controller for this dialog.
+    /// @param mazeController the maze controller to set
     public void setMazeController(MazeController mazeController) {
         this.mazeController = mazeController;
     }
 
+    /// Returns true if the user clicked OK to close the dialog.
+    /// @return true if the user clicked OK, false otherwise
     public boolean isOkClicked() {
         return okClicked;
     }

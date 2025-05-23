@@ -17,12 +17,21 @@ import java.util.ResourceBundle;
 public final class SwiftnessHUDController extends HUDController {
     private FlowPane playersPane;
 
+    /// Creates a new instance of the [SwiftnessHUDController].
+    ///
+    /// The [#initialize()] function will be called by JavaFX.
+    public SwiftnessHUDController() {}
+
     @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    protected void initialize() {
         gameModeLabel.setText("RAPIDITÉ");
         playersPane = attachPlayersPane();
     }
 
+    /// Updates the HUD with the leaderboard of players and the time at which the game started.
+    ///
+    /// @param playersSorted The list of players sorted by their time, ascending.
+    /// @param startTimestamp The timestamp at which the game started, in nanoseconds.
     public void update(List<Player> playersSorted, long startTimestamp) {
         playersPane.getChildren().clear();
 

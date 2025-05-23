@@ -16,12 +16,20 @@ import java.util.ResourceBundle;
 public final class EfficiencyHUDController extends HUDController {
     private FlowPane playersPane;
 
+    /// Creates a new instance of the [EfficiencyHUDController].
+    ///
+    /// The [#initialize()] function will be called by JavaFX.
+    public EfficiencyHUDController() {}
+
     @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    protected void initialize() {
         gameModeLabel.setText("EFFICACITÉ");
         playersPane = attachPlayersPane();
     }
 
+    /// Updates the HUD with the leaderboard of players.
+    ///
+    /// @param playersSorted The list of players sorted by their number of moves done, ascending.
     public void update(List<Player> playersSorted) {
         playersPane.getChildren().clear();
 
