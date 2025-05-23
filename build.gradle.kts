@@ -84,6 +84,9 @@ tasks.register<JavaExec>("runConsole") {
 
     classpath = sourceSets.main.get().runtimeClasspath
 
+    // Make sure it uses our java toolchain (Java 24)
+    javaLauncher.set(javaToolchains.launcherFor(java.toolchain))
+
     standardInput = System.`in`
     standardOutput = System.out
 }
