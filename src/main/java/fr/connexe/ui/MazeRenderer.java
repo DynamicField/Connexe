@@ -240,6 +240,9 @@ public class MazeRenderer {
                     gridCell.getChildren().add(rect);
                 }
 
+                mazeEditor.configureCellClick(gridCell, row, col, grid);
+                mazeEditor.configureCellCommands(gridCell, row, col, grid);
+
                 // Allow dynamic resizing of the cell
                 GridPane.setHgrow(gridCell, Priority.ALWAYS);
                 GridPane.setVgrow(gridCell, Priority.ALWAYS);
@@ -479,6 +482,7 @@ public class MazeRenderer {
 
     public void setGraphMaze(GraphMaze graphMaze) {
         this.graphMaze = graphMaze;
+        mazeEditor.setGraphMaze(graphMaze);
     }
 
     public MazeGenLog getLog() {
