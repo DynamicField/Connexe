@@ -7,10 +7,8 @@ import fr.connexe.algo.Point;
 import fr.connexe.algo.generation.MazeGenLog;
 import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.NumberBinding;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 
 import javafx.scene.paint.Color;
@@ -31,38 +29,16 @@ public class MazeRenderer {
     private Supplier<Double> delaySupplier; // supplier to query speed value during animations
     private PauseTransition currentPause;
     private boolean lastAnimIsGeneration;
+    private final MazeEditor mazeEditor = new MazeEditor();
 
 
     /// Initialize a maze renderer about to take a maze which parameters will be set by a user
-    public MazeRenderer(){
-    }
+    public MazeRenderer(){}
 
-    ///  For testing purposes
-    public void setDefaultExample(){
-        var g = new GraphMaze(4, 4);
-        g.connect(0, 1);
-        g.connect(0, 4);
-        g.connect(2, 3);
-        g.connect(3, 7);
-        g.connect(1, 2);
-        g.connect(4, 5);
-        g.connect(4, 8);
-        g.connect(6, 7);
-        g.connect(6, 10);
-        g.connect(8, 9);
-        g.connect(8, 12);
-        g.connect(9, 13);
-        g.connect(9, 10);
-        g.connect(10, 11);
-        g.connect(10, 14);
-        g.connect(11, 15);
-        g.connect(14, 15);
-        g.setStart(0);
-        g.setEnd(15);
-        this.graphMaze = g;
-        this.log = null; // in case we're reusing a previous renderer for another maze for whatever reason
-
-        System.out.println(g);
+    /// Get maze editor.
+    /// @return mazeEditor object
+    public MazeEditor getMazeSelector() {
+        return mazeEditor;
     }
 
     ///  Build a [GridPane] to represent the maze and its walls
@@ -171,7 +147,7 @@ public class MazeRenderer {
     /// For a given [ArrayMaze], initialize regions in the corresponding [GridPane] cells
     /// and build their walls (as borders).
     /// This method is used not only to build the current renderer's maze ([#buildGrid()]), but also
-    /// used for the generation animation ([#animateGridBuild(Runnable)])
+    /// used for the generation animation ([#animateGridBuild(Duration)])
     /// to build the grid for intermediate [ArrayMaze] steps
     /// @param arrayMaze the maze that needs to be rendered, either `MazeRenderer`'s finished `ArrayMaze`, either
     /// an intermediate step of its generation
@@ -183,34 +159,45 @@ public class MazeRenderer {
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
                 StackPane gridCell = new StackPane();
+                StringBuilder style = new StringBuilder();
 
                 // Retrieve information of the cell from the ArrayMaze
                 Point vertexCoordinates = new Point(col, row);
                 Cell mazeCell = arrayMaze.getCell(vertexCoordinates);
 
-                // Calculate border widths if wall exists in that cell
-                int topWidth = mazeCell.wallUp() ? 2 : 0;
-                int rightWidth = mazeCell.wallRight() ? 2 : 0;
-                int bottomWidth = mazeCell.wallDown() ? 2 : 0;
-                int leftWidth = mazeCell.wallLeft() ? 2 : 0;
+                //Black=Wall, Transparent=Empty
+                int topWidth = 2, rightWidth = 2, bottomWidth = 2, leftWidth = 2;
+                String topColor = mazeCell.wallUp() ? "black" : "transparent";
+                String rightColor = mazeCell.wallRight() ? "black" : "transparent";
+                String bottomColor = mazeCell.wallDown() ? "black" : "transparent";
+                String leftColor = mazeCell.wallLeft() ? "black" : "transparent";
 
-                // Boost outer borders to 4px to visually balance internal shared borders
-                if (row == 0 && topWidth > 0) topWidth = 4;
-                if (row == rows - 1 && bottomWidth > 0) bottomWidth = 4;
-                if (col == 0 && leftWidth > 0) leftWidth = 4;
-                if (col == cols - 1 && rightWidth > 0) rightWidth = 4;
+                //If the wall is within the border, the width of the border is increased to make it more aesthetic.
+                if (row == 0) topWidth = 4;
+                if (row == rows - 1) bottomWidth = 4;
+                if (col == 0) leftWidth = 4;
+                if (col == cols - 1) rightWidth = 4;
 
-                // Apply inline style (has priority over class styles) on cell for borders (= walls)
-                String style = "-fx-border-color: black; -fx-border-width: "
-                        + topWidth + " "
-                        + rightWidth + " "
-                        + bottomWidth + " "
-                        + leftWidth + ";";
+                style.append("-fx-border-color: ")
+                        .append(topColor).append(" ")
+                        .append(rightColor).append(" ")
+                        .append(bottomColor).append(" ")
+                        .append(leftColor).append(";");
 
-                gridCell.setStyle(style);
+                style.append(" -fx-border-width: ")
+                        .append(topWidth).append(" ")
+                        .append(rightWidth).append(" ")
+                        .append(bottomWidth).append(" ")
+                        .append(leftWidth).append(";");
 
-                // Apply default background
+                gridCell.setStyle(style.toString());
                 gridCell.getStyleClass().add("cell-color-default");
+
+                //Remembers the initial style for reset
+                gridCell.getProperties().put("initialStyle", style.toString());
+
+                mazeEditor.configureCellClick(gridCell, row, col, grid);
+                mazeEditor.configureCellCommands(gridCell, row, col, grid);
 
                 // Add some padding so the icon inside the cell doesn't suddenly move
                 // when an inner border is added or removed.
@@ -288,6 +275,7 @@ public class MazeRenderer {
             }
         }
     }
+
 
     /// Animate the solution step by step
     /// @param totalSteps history of steps taken by the solving algorithm
@@ -514,6 +502,7 @@ public class MazeRenderer {
 
     public void setGraphMaze(GraphMaze graphMaze) {
         this.graphMaze = graphMaze;
+        mazeEditor.setGraphMaze(graphMaze);
     }
 
     public MazeGenLog getLog() {
