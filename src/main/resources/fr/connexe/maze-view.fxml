@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.VBox?>
 
 
-<VBox fx:id="vboxLayout" alignment="CENTER" fillWidth="false" maxHeight="-Infinity" maxWidth="-Infinity" style="-fx-background-color: lightgrey;" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fr.connexe.ui.MazeController">
+<VBox fx:id="vboxLayout" alignment="CENTER" maxHeight="-Infinity" maxWidth="-Infinity" style="-fx-background-color: lightgrey;" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fr.connexe.ui.MazeController" stylesheets="@styles/style.css">
    <padding>
       <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
    </padding>

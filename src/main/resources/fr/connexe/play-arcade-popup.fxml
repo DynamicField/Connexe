@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<BorderPane minHeight="320.0" minWidth="600.0" xmlns="http://javafx.com/javafx/17.0.12" xmlns:fx="http://javafx.com/fxml/1" fx:controller="fr.connexe.ui.game.lobby.PlayArcadeDialogController">
+   <center>
+      <VBox BorderPane.alignment="CENTER">
+         <children>
+            <Label alignment="CENTER" maxWidth="1.7976931348623157E308" text="Jouer en mode arcade" textAlignment="CENTER">
+               <font>
+                  <Font name="System Bold" size="18.0" />
+               </font>
+               <VBox.margin>
+                  <Insets bottom="20.0" />
+               </VBox.margin>
+            </Label>
+            <HBox>
+               <children>
+                  <Label maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" text="Joueurs" HBox.hgrow="ALWAYS">
+                     <font>
+                        <Font name="System Bold" size="13.0" />
+                     </font>
+                     <HBox.margin>
+                        <Insets />
+                     </HBox.margin>
+                  </Label>
+                  <Button alignment="CENTER_RIGHT" mnemonicParsing="false" onAction="#handleAddPlayer" text="Ajouter un joueur" HBox.hgrow="NEVER" />
+               </children>
+               <VBox.margin>
+                  <Insets bottom="5.0" />
+               </VBox.margin>
+            </HBox>
+            <ListView id="playersView" fx:id="playerList" orientation="HORIZONTAL" prefHeight="215.0" VBox.vgrow="NEVER" />
+            <Label text="Mode de jeu">
+               <VBox.margin>
+                  <Insets bottom="5.0" top="10.0" />
+               </VBox.margin>
+               <font>
+                  <Font name="System Bold" size="13.0" />
+               </font>
+            </Label>
+            <VBox spacing="5.0">
+               <children>
+                  <RadioButton fx:id="radioEfficiency" mnemonicParsing="false" selected="true" text="Efficacité : le joueur au chemin le plus efficace gagne !">
+                     <toggleGroup>
+                        <ToggleGroup fx:id="gameMode" />
+                     </toggleGroup>
+                  </RadioButton>
+                  <RadioButton fx:id="radioSwiftness" mnemonicParsing="false" text="Rapidité : le joueur le plus rapide gagne !" toggleGroup="$gameMode" />
+                  <RadioButton fx:id="radioFurtivity" mnemonicParsing="false" text="Furtivité : le point d'arrivée est caché ; le premier à le trouver gagne !" toggleGroup="$gameMode" />
+               </children>
+               <opaqueInsets>
+                  <Insets />
+               </opaqueInsets>
+               <VBox.margin>
+                  <Insets left="10.0" />
+               </VBox.margin>
+            </VBox>
+         </children>
+         <BorderPane.margin>
+            <Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
+         </BorderPane.margin></VBox>
+   </center>
+   <bottom>
+      <HBox spacing="16.0" BorderPane.alignment="CENTER">
+         <children>
+            <Button maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleGameCancel" text="Annuler" />
+            <Button fx:id="startButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#handleGameStart" text="Lancer la partie" HBox.hgrow="ALWAYS">
+               <font>
+                  <Font size="24.0" />
+               </font>
+            </Button>
+         </children>
+         <BorderPane.margin>
+            <Insets bottom="16.0" left="16.0" right="16.0" top="16.0" />
+         </BorderPane.margin></HBox>
+   </bottom>
+</BorderPane>

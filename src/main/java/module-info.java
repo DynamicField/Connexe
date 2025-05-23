@@ -5,9 +5,14 @@ open module fr.connexe {
     requires javafx.fxml;
     requires javafx.graphics;
     requires java.prefs;
+    requires sdl2gdx;
+    requires static org.jetbrains.annotations;
 
     exports fr.connexe;
     exports fr.connexe.algo;
     exports fr.connexe.ui;
+    exports fr.connexe.ui.game;
     exports fr.connexe.algo.generation;
+    exports fr.connexe.ui.game.lobby;
+    exports fr.connexe.ui.game.input;
 }

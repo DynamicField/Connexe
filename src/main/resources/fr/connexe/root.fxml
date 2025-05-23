@@ -8,6 +8,7 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.Slider?>
 <?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.Tooltip?>
 <?import javafx.scene.image.Image?>
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.input.KeyCodeCombination?>
@@ -50,19 +51,10 @@
                               </MenuItem>
                           </items>
                       </Menu>
-                      <Menu fx:id="change" onAction="#handleChange" mnemonicParsing="false" text="Actions">
+                      <Menu mnemonicParsing="false" text="Actions">
                           <items>
-                              <MenuItem mnemonicParsing="false" text="Modifier le labyrinthe..." />
-                          </items>
-                      </Menu>
-                      <Menu mnemonicParsing="false" text="Aide">
-                          <items>
-                              <MenuItem mnemonicParsing="false" text="Informations">
-                                  <accelerator>
-                                      <KeyCodeCombination alt="UP" code="H" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
-                                  </accelerator>
-                        </MenuItem>
-                        <MenuItem mnemonicParsing="false" onAction="#handleExampleMaze" text="Labyrinthe d'exemple" />
+                        <MenuItem fx:id="solveMenuItem" mnemonicParsing="false" onAction="#handleSolve" text="Résoudre le labyrinthe..." />
+                              <MenuItem fx:id="changeMenuItem" disable="true" mnemonicParsing="false" onAction="#handleChange" text="Modifier le labyrinthe..." />
                           </items>
                       </Menu>
                   </menus>
@@ -71,12 +63,39 @@
               <items>
                 <Button fx:id="genButton" disable="true" mnemonicParsing="false" onAction="#handleGenerationAnimation">
                      <graphic>
-                        <ImageView fitHeight="25.0" fitWidth="25.0" pickOnBounds="true" preserveRatio="true">
+                        <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
                            <image>
                               <Image url="@images/generateIcon.png" />
                            </image>
                         </ImageView>
                      </graphic>
+                     <tooltip>
+                        <Tooltip text="Animer la génération du labyrinthe" />
+                     </tooltip>
+                  </Button>
+                  <Button fx:id="solveButton" disable="true" mnemonicParsing="false" onAction="#handleSolveAnimation">
+                     <graphic>
+                        <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@images/solveIcon.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Animer les étapes de résolution du labyrinthe" />
+                     </tooltip>
+                  </Button>
+                  <Button fx:id="stopButton" disable="true" mnemonicParsing="false" onAction="#handleStopAnimation">
+                     <graphic>
+                        <ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
+                           <image>
+                              <Image url="@images/stopIcon.png" />
+                           </image>
+                        </ImageView>
+                     </graphic>
+                     <tooltip>
+                        <Tooltip text="Arrêter l'animation et montrer la fin" />
+                     </tooltip>
                   </Button>
                   <HBox alignment="CENTER" spacing="10.0">
                      <children>
@@ -88,6 +107,7 @@
                         <Insets left="20.0" right="20.0" />
                      </padding>
                   </HBox>
+                  <Button fx:id="arcadeButton" disable="true" mnemonicParsing="false" onAction="#handleArcade" text="Arcade" />
               </items>
                <VBox.margin>
                   <Insets />

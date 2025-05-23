@@ -1,0 +1,10 @@
+.cell-color-default{
+    -fx-background-color: white;
+}
+.cell-color-path {
+    -fx-background-color: #ba481b;
+}
+
+.cell-color-visited {
+    -fx-background-color: #b5a5a1;
+}

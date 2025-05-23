@@ -1,9 +1,11 @@
 package fr.connexe;
 
-import fr.connexe.ui.MazeRenderer;
-import fr.connexe.ui.MainController;
-import fr.connexe.ui.MazeController;
-import fr.connexe.ui.NewMazeDialogController;
+import fr.connexe.ui.*;
+import fr.connexe.ui.game.GameStartConfig;
+import fr.connexe.ui.game.input.ControllerHub;
+import fr.connexe.ui.game.input.InputSystemException;
+import fr.connexe.ui.game.input.KeyboardHub;
+import fr.connexe.ui.game.lobby.PlayArcadeDialogController;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
@@ -12,9 +14,11 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Optional;
 
 /// Our entire application, which persists until it is closed.
 ///
@@ -24,8 +28,19 @@ public class ConnexeApp extends Application {
     private BorderPane rootLayout;
     private File mazeFilePath;
 
-    /// Creates a new instance of the [ConnexeApp].
-    public ConnexeApp() {}
+    // Receives controller input for the entire app; null when SDL2 is broken.
+    private @Nullable ControllerHub controllerHub;
+    // Receives keyboard input for the entire app. Always initialized.
+    private KeyboardHub keyboardHub; // initialized later on
+
+    /// Creates a new instance of the [ConnexeApp] and initializes the controller hub as soon as possible.
+    public ConnexeApp() {
+        try {
+            controllerHub = new ControllerHub();
+        } catch (InputSystemException e) {
+            System.err.println("Failed to initialize the controller hub! Gamepad support won't be available");
+        }
+    }
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -51,9 +66,6 @@ public class ConnexeApp extends Application {
         rootLayout = fxmlLoader.load();
         MainController controller = fxmlLoader.getController();
 
-        //Disable the edit button
-        controller.initializeEdit();
-
         // Create the scene with the FXML file, set its title and size and bind the layout size to the scene size
         Scene scene = new Scene(rootLayout, 800, 500);
         rootLayout.prefWidthProperty().bind(scene.widthProperty());
@@ -63,6 +75,9 @@ public class ConnexeApp extends Application {
         stage.setScene(scene);
         controller.setConnexeApp(this);
         stage.show();
+
+        // Create the keyboard hub now, and store it for future use in MazeController
+        keyboardHub = new KeyboardHub(scene);
 
         return controller;
     }
@@ -82,13 +97,14 @@ public class ConnexeApp extends Application {
         mazeOverview.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
 
         MazeController mazeController = fxmlLoader.getController();
+        mazeController.setInputHubs(keyboardHub, controllerHub);
 
         return mazeController;
     }
 
     /// Launches the application.
     /// @param args the command line arguments
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InputSystemException {
         launch();
     }
 
@@ -128,6 +144,67 @@ public class ConnexeApp extends Application {
         dialogStage.showAndWait();
 
         return controller.isOkClicked();
+    }
+
+    /// Setup and show the dialog box when clicking on the menu item to solve a maze, to select solving method
+    public boolean showSolveMazeDialog(MazeController mazeController) throws IOException{
+        // Load the fxml file and create a new stage for the popup dialog.
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(ConnexeApp.class.getResource("solve-maze-popup.fxml"));
+        BorderPane page = loader.load();
+
+        // Create the dialog Stage.
+        Stage dialogStage = new Stage();
+        dialogStage.setTitle("Résoudre le labyrinthe");
+        dialogStage.initModality(Modality.WINDOW_MODAL);
+        dialogStage.initOwner(stage);
+
+        dialogStage.setMinHeight(250);
+        dialogStage.setMinWidth(400);
+
+        Scene scene = new Scene(page);
+        dialogStage.setScene(scene);
+
+        // Attach the dialog stage to the controller
+        SolveMazeController controller = loader.getController();
+        controller.setDialogStage(dialogStage);
+        controller.setMazeController(mazeController);
+
+        // Show the dialog and wait until the user closes it
+        dialogStage.showAndWait();
+
+        return controller.isOkClicked();
+    }
+
+    /// Shows the dialog box to start a new arcade game.
+    ///
+    /// @return the chosen game configuration if one has been chosen; otherwise, an empty optional will be given.
+    public Optional<GameStartConfig> showPlayArcadeDialog() throws IOException {
+        // Load the fxml file and create a new stage for the popup dialog.
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(ConnexeApp.class.getResource("play-arcade-popup.fxml"));
+        BorderPane page = loader.load();
+
+        // Create the dialog Stage.
+        Stage dialogStage = new Stage();
+        dialogStage.setTitle("Jouer en mode arcade");
+        dialogStage.initModality(Modality.WINDOW_MODAL);
+        dialogStage.initOwner(stage);
+
+        dialogStage.setMinHeight(300);
+        dialogStage.setMinWidth(500);
+
+        Scene scene = new Scene(page);
+        dialogStage.setScene(scene);
+
+        // Attach the dialog stage to the controller
+        PlayArcadeDialogController controller = loader.getController();
+        controller.setup(dialogStage, controllerHub);
+
+        // Show the dialog and wait until the user closes it
+        dialogStage.showAndWait();
+
+        return Optional.ofNullable(controller.getFinalConfig());
     }
 
     public File getMazeFilePath() {

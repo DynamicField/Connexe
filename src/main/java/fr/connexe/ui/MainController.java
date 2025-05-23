@@ -1,6 +1,7 @@
 package fr.connexe.ui;
 
 import fr.connexe.ConnexeApp;
+import fr.connexe.ui.game.IncompatibleMazeException;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.fxml.FXML;
@@ -21,14 +22,6 @@ public class MainController {
     private MazeController mazeController;
 
     @FXML
-    private MenuItem change;
-
-    @FXML
-    public void initializeEdit() {
-        change.setDisable(true);
-    }
-
-    @FXML
     private Button genButton;
 
     @FXML
@@ -36,6 +29,21 @@ public class MainController {
 
     @FXML
     private Label speedLabel;
+
+    @FXML
+    private MenuItem changeMenuItem;
+
+    @FXML
+    private MenuItem solveMenuItem;
+
+    @FXML
+    private Button solveButton;
+
+    @FXML
+    private Button stopButton;
+
+    @FXML
+    private Button arcadeButton;
 
     private IntegerProperty animationSpeed;
 
@@ -48,7 +56,7 @@ public class MainController {
         // Listen to slider value changes to update the animation delay
         speedSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
             speedLabel.setText("x" + newVal.intValue());
-            switch(newVal.intValue()){
+            switch (newVal.intValue()) {
                 case 2:
                     animationSpeed.set(300);
                     break;
@@ -87,8 +95,11 @@ public class MainController {
         boolean okClicked = connexeApp.showNewMazeDialog(mazeRenderer);
         if (okClicked) { // Maze is generated, now query the controller to display it on the view
             mazeController.setMazeRenderer(mazeRenderer);
-            genButton.setDisable(false);
-            change.setDisable(false);
+            genButton.setDisable(false); // Enable button action for generation, disable solving (no chosen method)
+            solveButton.setDisable(true);
+            changeMenuItem.setDisable(false); // Enable menu actions
+            solveMenuItem.setDisable(false);
+            arcadeButton.setDisable(false); // Make Arcade available for this loaded maze.
 
             // Create the maze grid on the view (also displays the maze in the console)
             mazeController.createMazeFX();
@@ -112,17 +123,21 @@ public class MainController {
         if (selected != null) {
             // update the last opened directory (persists across sessions)
             Settings.setLastVisitedDirectory(selected.getParentFile());
-            try{
+            try {
                 // Initialize a renderer and give the loaded maze to the renderer to display on the view
                 MazeRenderer mazeRenderer = new MazeRenderer();
                 mazeController.setMazeRenderer(mazeRenderer);
                 mazeController.loadMaze(selected);
                 genButton.setDisable(true); // Disable generation animation for opened files (no gen log)
+                solveButton.setDisable(true);
+                changeMenuItem.setDisable(false); // Enable menu actions
+                solveMenuItem.setDisable(false);
+                arcadeButton.setDisable(false); // Make Arcade available for this loaded maze.
 
                 // Update current opened file path in the app
                 connexeApp.setMazeFilePath(selected);
                 connexeApp.updateStageTitle(selected.getName());
-            } catch(Exception e){
+            } catch (Exception e) {
                 showError("Erreur lors du chargement du labyrinthe", e.getMessage());
             }
         }
@@ -134,9 +149,9 @@ public class MainController {
     private void handleSave() {
         File mazeFile = connexeApp.getMazeFilePath();
         if (mazeFile != null) { // If file has already been saved once, just save over it
-            try{
+            try {
                 mazeController.saveMaze(mazeFile);
-            } catch(Exception e){
+            } catch (Exception e) {
                 showError("Erreur lors de la sauvegarde du labyrinthe", e.getMessage());
             }
         } else { // else, act as "Save as..." option
@@ -147,7 +162,8 @@ public class MainController {
     /// Opens a FileChooser to let the user save a maze into a .con file
     @FXML
     private void handleSaveAs() {
-        if(mazeController.getMazeRenderer() != null){
+        setMazeEditor(false);
+        if (mazeController.getMazeRenderer() != null) {
             // Init the FileChooser and retrieve the file
             FileChooser fileChooser = initFileChooser();
             fileChooser.setTitle("Enregistrer le labyrinthe");
@@ -161,7 +177,7 @@ public class MainController {
                     mazeFile = new File(mazeFile.getPath() + ".con");
                 }
                 Settings.setLastVisitedDirectory(mazeFile.getParentFile());
-                try{
+                try {
                     // Save the maze to the selected file
                     mazeController.saveMaze(mazeFile);
 
@@ -177,8 +193,35 @@ public class MainController {
         }
     }
 
-    //Not used yet
-    public void handleChange(){}
+    /// Enables the maze editor mode. Content moved in setMazeEditor() for better reusability
+    public void handleChange() {
+        setMazeEditor(true);
+        // Remove the generation log since the maze will change and disable the generation animation button
+        mazeController.getMazeRenderer().setLog(null);
+        genButton.setDisable(true);
+        solveButton.setDisable(true); // Disable solving animation button
+
+        // Remove colors done by the solving algorithm
+        mazeController.getMazeRenderer().clearGridColor();
+    }
+
+    /// Enables the maze editor mode
+    ///
+    /// @param editMode true to enable the maze editor, false to disable it
+    public void setMazeEditor(boolean editMode) {
+        MazeRenderer renderer = this.mazeController.getMazeRenderer();
+        if (renderer == null) {
+            return;
+        }
+
+        // Disable/enable the maze editor mode and reset all the borders to blacks
+        MazeEditor mazeEditor = this.mazeController.getMazeRenderer().getMazeSelector();
+        mazeEditor.setEditMode(editMode);
+        if (!editMode) {
+            javafx.scene.layout.GridPane grid = this.mazeController.getMazeRenderer().getGrid();
+            mazeEditor.clearAllRedBorders(grid);
+        }
+    }
 
     ///  Closes the app
     @FXML
@@ -186,41 +229,124 @@ public class MainController {
         System.exit(0);
     }
 
-    ///  Menu Item option to show a hardcoded example maze
+    /// Menu action to solve a maze. When clicked, shows the dialog box with the solving algorithm options for the user to select.
     @FXML
-    private void handleExampleMaze(){
-        // Initialize a renderer taking a maze generated from user parameters through the creation dialog box
-        MazeRenderer mazeRenderer = new MazeRenderer();
-        mazeRenderer.setDefaultExample();
-        mazeController.setMazeRenderer(mazeRenderer);
-        mazeController.createMazeFX();
-        genButton.setDisable(true); // Disable generation animation for example (no gen log)
-
-        // Update the app title
-        connexeApp.updateStageTitle("Exemple");
-        connexeApp.setMazeFilePath(null);
+    private void handleSolve() throws IOException {
+        setMazeEditor(false);
+        if (mazeController.getMazeRenderer() != null) {
+            boolean okClicked = connexeApp.showSolveMazeDialog(mazeController);
+            if (okClicked) {
+                solveButton.setDisable(false); // Enable button to play solving animation
+            }
+        } else {
+            showError("Aucun labyrinthe", "Veuillez créer/ouvrir un labyrinthe avant de le résoudre.");
+        }
     }
 
     /// Building button to show the generation step by step animation, for newly created mazes
     @FXML
-    private void handleGenerationAnimation(){
-        if(mazeController.getMazeRenderer() != null){
+    private void handleGenerationAnimation() {
+        setMazeEditor(false);
+        if (mazeController.getMazeRenderer() != null) {
             // Disable buttons when playing animation to prevent unwanted behaviors
-            genButton.setDisable(true);
+            genButton.setDisable(true); // Disable other animation buttons to prevent playing above the currently running one
+            solveButton.setDisable(true);
+            stopButton.setDisable(false); // enable stop button to stop animation
+            arcadeButton.setDisable(true); // Disable arcade button during animation
+            changeMenuItem.setDisable(true); // Disable menu actions
+            solveMenuItem.setDisable(true);
 
             // Pass a dynamic delay supplier, so the renderer can query it during animation to change speed
             mazeController.playStepByStepGeneration(() -> (double) animationSpeed.get(), () -> {
                 genButton.setDisable(false); // re-enable button when animation is finished
+                if (mazeController.getStepByStepPath() != null) {
+                    solveButton.setDisable(false); // re-enable solve button too if user already used a solving algorithm once
+                }
+                stopButton.setDisable(true); // animation is finished, disable stop button
+                arcadeButton.setDisable(false); // Animation done, re-enable arcade button
+                changeMenuItem.setDisable(false); // Re-enable menu actions
+                solveMenuItem.setDisable(false);
             });
         } else {
             showError("Aucun labyrinthe créé", "Veuillez créer un labyrinthe avant de visualiser la génération pas à pas.");
         }
     }
 
+    /// Building button to show the generation step by step animation, for newly created mazes
+    @FXML
+    private void handleSolveAnimation() {
+        setMazeEditor(false);
+        if (mazeController.getMazeRenderer() != null && mazeController.getStepByStepPath() != null) {
+            // Disable buttons when playing animation to prevent unwanted behaviors
+            genButton.setDisable(true);
+            solveButton.setDisable(true);
+            stopButton.setDisable(false); // enable stop button to stop animation
+            arcadeButton.setDisable(true); // Disable arcade button during animation
+            changeMenuItem.setDisable(true); // Disable menu actions
+            solveMenuItem.setDisable(true);
+
+            // Pass a dynamic delay supplier, so the renderer can query it during animation to change speed
+            mazeController.playStepByStepSolution(() -> (double) animationSpeed.get(), () -> {
+                if (mazeController.getMazeRenderer().getLog() != null) {
+                    genButton.setDisable(false);  // if maze was generated, re-enable generation animation button
+                }
+                solveButton.setDisable(false);// re-enable button when animation is finished
+                stopButton.setDisable(true); // animation is finished, disable stop button
+                arcadeButton.setDisable(false); // Animation done, re-enable arcade button
+                changeMenuItem.setDisable(false); // Re-enable menu actions
+                solveMenuItem.setDisable(false);
+            });
+        } else {
+            showError("Aucune précédente solution", "Veuillez d'abord résoudre le labyrinthe avec une méthode choisie avant de jouer l'animation.");
+        }
+    }
+
+    /// Handle behavior of stop animation button. When clicked, stops the current running animation and fast-forward
+    /// to the end result of the animation.
+    @FXML
+    private void handleStopAnimation() {
+        setMazeEditor(false);
+        mazeController.endCurrentAnimation();
+        if (mazeController.getMazeRenderer().getLog() != null) {
+            genButton.setDisable(false); // re-enable generation animation button if maze was generated
+        }
+        if (mazeController.getStepByStepPath() != null) {
+            solveButton.setDisable(false); // re-enable solving animation button if maze was solved with one chosen algorithm
+        }
+        stopButton.setDisable(true); // disable stop button after the animation is stopped.
+        arcadeButton.setDisable(false); // Animation done, re-enable arcade button
+        changeMenuItem.setDisable(false); // Re-enable menu actions
+        solveMenuItem.setDisable(false);
+    }
+
+    /// Handle the click of the "arcade" button
+    @FXML
+    private void handleArcade() throws IOException {
+        assert mazeController.getMazeRenderer() != null && mazeController.getMazeRenderer().getGraphMaze() != null;
+
+        if (mazeController.isGameRunning()) {
+            // A game's already running; stop it.
+            mazeController.stopGame();
+        } else {
+            // Launch a new dialog and start a game if the user clicked "Launch game" with correct settings.
+            // Buttons such as "edit maze" and "solve maze" are disabled automatically by the "gameRunningProperty",
+            // see the "setMazeController" method for more details.
+            connexeApp.showPlayArcadeDialog().ifPresent(config -> {
+                try {
+                    mazeController.beginGame(config);
+                } catch (IncompatibleMazeException e) {
+                    // The maze is incompatible with the game mode! Tell the user about that with an alert.
+                    showError("Labyrinthe incompatible", e.getMessage());
+                }
+            });
+        }
+    }
+
     /// Initialize config for a FileChooser
     /// Only accepts a file of ".con" extension
     /// Opens by default the last directory a user saved into/opened
-    private FileChooser initFileChooser(){
+    private FileChooser initFileChooser() {
+        setMazeEditor(false);
         // Create a new file chooser dialog popup and set the opened directory to the last visited one
         FileChooser fileChooser = new FileChooser();
         File lastDir = Settings.getLastVisitedDirectory();
@@ -234,9 +360,11 @@ public class MainController {
     }
 
     /// Show an error dialog box
-    /// @param error the title displayed in the dialog box
+    ///
+    /// @param error   the title displayed in the dialog box
     /// @param details the content of the error message
-    private void showError(String error, String details){
+    private void showError(String error, String details) {
+        setMazeEditor(false);
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Erreur");
         alert.setHeaderText(error);
@@ -246,15 +374,42 @@ public class MainController {
     }
 
     /// Is called by the main application to give a reference back to itself.
+    ///
     /// @param connexeApp main application
     public void setConnexeApp(ConnexeApp connexeApp) {
         this.connexeApp = connexeApp;
     }
 
     /// References the MazeController to call its building methods from the menu bar options (new, edit...)
+    ///
+    /// Also configures anything related to that maze controller, must only be called once
+    ///
     /// @param mazeController the MazeController to use maze related methods from (building, etc...)
-    public void setMazeController(MazeController mazeController){
+    public void setMazeController(MazeController mazeController) {
         this.mazeController = mazeController;
-    }
 
+        // Now that we have a maze controller, change the "arcade" button text depending on the game state
+        arcadeButton.textProperty().bind(
+                mazeController.gameRunningProperty().map(x -> x ? "Terminer la partie" : "Arcade")
+        );
+
+        // When we start or stop a game, disable/enable some maze-related buttons accordingly.
+        mazeController.gameRunningProperty().addListener((_, _, running) -> {
+            // The menu actions to solve/edit maze should be disabled when a game is running.
+            changeMenuItem.setDisable(running);
+            solveMenuItem.setDisable(running);
+
+            // Change generation animation button status if maze was generated (if not, then it remains disabled regardless)
+            if (mazeController.getMazeRenderer().getLog() != null) {
+                genButton.setDisable(running);
+            }
+            // Change solving animation button status if maze was previously solved (if not, then it remains disabled regardless)
+            if (mazeController.getStepByStepPath() != null) {
+                solveButton.setDisable(running);
+            }
+
+            // Disable maze editing mode when we're launching or stopping a game.
+            setMazeEditor(false);
+        });
+    }
 }
