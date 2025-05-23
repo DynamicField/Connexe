@@ -100,7 +100,7 @@ loadScripts(document, 'script');</script>
 <div class="horizontal-scroll">
 <div class="type-signature"><span class="modifiers">public class </span><span class="element-name type-name-label">MazeEditor</span>
 <span class="extends-implements">extends <a href="https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/lang/Object.html" title="class or interface in java.lang" class="external-link">Object</a></span></div>
-<div class="block">Class to manage the selection of walls in the maze.</div>
+<div class="block">Class to manage the selection, deletion and addition of walls in the maze.</div>
 </div>
 </section>
 <section class="summary">
@@ -155,7 +155,7 @@ loadScripts(document, 'script');</script>
  <a href="https://openjfx.io/javadoc/24/javafx.graphics/javafx/scene/layout/GridPane.html" title="class or interface in javafx.scene.layout" class="external-link">GridPane</a>&nbsp;grid,
  <a href="https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;type)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Applies the action &quot;type&quot; to the cell</div>
+<div class="block">Applies the action &quot;type&quot; to the cell (black=add a wall, transparent=remove a wall).</div>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#applyGraphMaze(int,int,int,int,java.lang.String)" class="member-name-link">applyGraphMaze</a><wbr>(int&nbsp;col,
@@ -297,7 +297,7 @@ loadScripts(document, 'script');</script>
  int&nbsp;row,
  int&nbsp;col,
  <a href="https://openjfx.io/javadoc/24/javafx.graphics/javafx/scene/layout/GridPane.html" title="class or interface in javafx.scene.layout" class="external-link">GridPane</a>&nbsp;grid)</span></div>
-<div class="block">Select a wall when it's clicked. There is a margin of 10 around the cell to make it easier to click.</div>
+<div class="block">Select a wall when it's clicked. There is a margin of 10 around the wall to make it easier to click.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>gridCell</code> - the cell that was clicked</dd>
@@ -398,14 +398,14 @@ loadScripts(document, 'script');</script>
  int&nbsp;col,
  <a href="https://openjfx.io/javadoc/24/javafx.graphics/javafx/scene/layout/GridPane.html" title="class or interface in javafx.scene.layout" class="external-link">GridPane</a>&nbsp;grid,
  <a href="https://docs.oracle.com/en/java/javase/24/docs/api/java.base/java/lang/String.html" title="class or interface in java.lang" class="external-link">String</a>&nbsp;type)</span></div>
-<div class="block">Applies the action &quot;type&quot; to the cell</div>
+<div class="block">Applies the action &quot;type&quot; to the cell (black=add a wall, transparent=remove a wall).</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>gridCell</code> - the cell that was clicked</dd>
 <dd><code>row</code> - the row of the cell</dd>
 <dd><code>col</code> - the column of the cell</dd>
 <dd><code>grid</code> - the grid containing the maze cells (used to retrieve the cell at the clicked position)</dd>
-<dd><code>type</code> - the action to apply (connect or disconnect)</dd>
+<dd><code>type</code> - the color to apply (black or transparent)</dd>
 </dl>
 </div>
 </section>
@@ -439,7 +439,7 @@ loadScripts(document, 'script');</script>
 <dd><code>row</code> - the row of the cell</dd>
 <dd><code>col</code> - the column of the cell</dd>
 <dd><code>grid</code> - the grid containing the maze cells (used to retrieve the cell at the clicked position)</dd>
-<dd><code>type</code> - the action to apply (connect or disconnect)</dd>
+<dd><code>type</code> - the color to apply (black or transparent)</dd>
 </dl>
 </div>
 </section>
@@ -460,7 +460,7 @@ loadScripts(document, 'script');</script>
 <dd><code>row</code> - the row of the cell</dd>
 <dd><code>neighborCol</code> - the column of the neighbor cell</dd>
 <dd><code>neighborRow</code> - the row of the neighbor cell</dd>
-<dd><code>type</code> - the action to apply (connect or disconnect)</dd>
+<dd><code>type</code> - the color to apply (black or transparent)</dd>
 </dl>
 </div>
 </section>
