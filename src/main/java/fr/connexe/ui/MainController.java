@@ -49,7 +49,7 @@ public class MainController {
         // Listen to slider value changes to update the animation delay
         speedSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
             speedLabel.setText("x" + newVal.intValue());
-            switch(newVal.intValue()){
+            switch (newVal.intValue()) {
                 case 2:
                     animationSpeed.set(300);
                     break;
@@ -114,7 +114,7 @@ public class MainController {
         if (selected != null) {
             // update the last opened directory (persists across sessions)
             Settings.setLastVisitedDirectory(selected.getParentFile());
-            try{
+            try {
                 // Initialize a renderer and give the loaded maze to the renderer to display on the view
                 MazeRenderer mazeRenderer = new MazeRenderer();
                 mazeController.setMazeRenderer(mazeRenderer);
@@ -125,7 +125,7 @@ public class MainController {
                 // Update current opened file path in the app
                 connexeApp.setMazeFilePath(selected);
                 connexeApp.updateStageTitle(selected.getName());
-            } catch(Exception e){
+            } catch (Exception e) {
                 showError("Erreur lors du chargement du labyrinthe", e.getMessage());
             }
         }
@@ -137,9 +137,9 @@ public class MainController {
     private void handleSave() {
         File mazeFile = connexeApp.getMazeFilePath();
         if (mazeFile != null) { // If file has already been saved once, just save over it
-            try{
+            try {
                 mazeController.saveMaze(mazeFile);
-            } catch(Exception e){
+            } catch (Exception e) {
                 showError("Erreur lors de la sauvegarde du labyrinthe", e.getMessage());
             }
         } else { // else, act as "Save as..." option
@@ -151,7 +151,7 @@ public class MainController {
     @FXML
     private void handleSaveAs() {
         setMazeEditor(false);
-        if(mazeController.getMazeRenderer() != null){
+        if (mazeController.getMazeRenderer() != null) {
             // Init the FileChooser and retrieve the file
             FileChooser fileChooser = initFileChooser();
             fileChooser.setTitle("Enregistrer le labyrinthe");
@@ -165,7 +165,7 @@ public class MainController {
                     mazeFile = new File(mazeFile.getPath() + ".con");
                 }
                 Settings.setLastVisitedDirectory(mazeFile.getParentFile());
-                try{
+                try {
                     // Save the maze to the selected file
                     mazeController.saveMaze(mazeFile);
 
@@ -182,11 +182,12 @@ public class MainController {
     }
 
     /// Enables the maze editor mode. Content moved in setMazeEditor() for better reusability
-    public void handleChange(){
+    public void handleChange() {
         setMazeEditor(true);
     }
 
     /// Enables the maze editor mode
+    ///
     /// @param editMode true to enable the maze editor, false to disable it
     public void setMazeEditor(boolean editMode) {
         MazeRenderer renderer = this.mazeController.getMazeRenderer();
@@ -194,9 +195,10 @@ public class MainController {
             return;
         }
 
+        // Disable/enable the maze editor mode and reset all the borders to blacks
         MazeEditor mazeEditor = this.mazeController.getMazeRenderer().getMazeSelector();
         mazeEditor.setEditMode(editMode);
-        if(!editMode){
+        if (!editMode) {
             javafx.scene.layout.GridPane grid = this.mazeController.getMazeRenderer().getGrid();
             mazeEditor.clearAllRedBorders(grid);
         }
@@ -212,9 +214,9 @@ public class MainController {
     @FXML
     private void handleSolve() throws IOException {
         setMazeEditor(false);
-        if(mazeController.getMazeRenderer() != null){
+        if (mazeController.getMazeRenderer() != null) {
             boolean okClicked = connexeApp.showSolveMazeDialog(mazeController);
-            if(okClicked){
+            if (okClicked) {
                 solveButton.setDisable(false);
             }
         } else {
@@ -224,9 +226,9 @@ public class MainController {
 
     /// Building button to show the generation step by step animation, for newly created mazes
     @FXML
-    private void handleGenerationAnimation(){
+    private void handleGenerationAnimation() {
         setMazeEditor(false);
-        if(mazeController.getMazeRenderer() != null){
+        if (mazeController.getMazeRenderer() != null) {
             // Disable buttons when playing animation to prevent unwanted behaviors
             genButton.setDisable(true);
             solveButton.setDisable(true);
@@ -235,7 +237,7 @@ public class MainController {
             // Pass a dynamic delay supplier, so the renderer can query it during animation to change speed
             mazeController.playStepByStepGeneration(() -> (double) animationSpeed.get(), () -> {
                 genButton.setDisable(false); // re-enable button when animation is finished
-                if(mazeController.getStepByStepPath() != null){
+                if (mazeController.getStepByStepPath() != null) {
                     solveButton.setDisable(false); // re-enable solve button too if user already used a solving algorithm once
                 }
                 stopButton.setDisable(true); // animation is finished, disable stop button
@@ -247,9 +249,9 @@ public class MainController {
 
     /// Building button to show the generation step by step animation, for newly created mazes
     @FXML
-    private void handleSolveAnimation(){
+    private void handleSolveAnimation() {
         setMazeEditor(false);
-        if(mazeController.getMazeRenderer() != null && mazeController.getStepByStepPath() != null){
+        if (mazeController.getMazeRenderer() != null && mazeController.getStepByStepPath() != null) {
             // Disable buttons when playing animation to prevent unwanted behaviors
             genButton.setDisable(true);
             solveButton.setDisable(true);
@@ -257,7 +259,7 @@ public class MainController {
 
             // Pass a dynamic delay supplier, so the renderer can query it during animation to change speed
             mazeController.playStepByStepSolution(() -> (double) animationSpeed.get(), () -> {
-                if(mazeController.getMazeRenderer().getLog() != null){
+                if (mazeController.getMazeRenderer().getLog() != null) {
                     genButton.setDisable(false);  // if maze was generated, re-enable generation animation button
                 }
                 solveButton.setDisable(false);// re-enable button when animation is finished
@@ -271,13 +273,13 @@ public class MainController {
     /// Handle behavior of stop animation button. When clicked, stops the current running animation and fast-forward
     /// to the end result of the animation.
     @FXML
-    private void handleStopAnimation(){
+    private void handleStopAnimation() {
         setMazeEditor(false);
         mazeController.endCurrentAnimation();
-        if(mazeController.getMazeRenderer().getLog() != null){
+        if (mazeController.getMazeRenderer().getLog() != null) {
             genButton.setDisable(false); // re-enable generation animation button if maze was generated
         }
-        if(mazeController.getStepByStepPath() != null){
+        if (mazeController.getStepByStepPath() != null) {
             solveButton.setDisable(false); // re-enable solving animation button if maze was solved with one chosen algorithm
         }
         stopButton.setDisable(true); // disable stop button after the animation is stopped.
@@ -287,7 +289,7 @@ public class MainController {
     /// Initialize config for a FileChooser
     /// Only accepts a file of ".con" extension
     /// Opens by default the last directory a user saved into/opened
-    private FileChooser initFileChooser(){
+    private FileChooser initFileChooser() {
         setMazeEditor(false);
         // Create a new file chooser dialog popup and set the opened directory to the last visited one
         FileChooser fileChooser = new FileChooser();
@@ -302,9 +304,10 @@ public class MainController {
     }
 
     /// Show an error dialog box
-    /// @param error the title displayed in the dialog box
+    ///
+    /// @param error   the title displayed in the dialog box
     /// @param details the content of the error message
-    private void showError(String error, String details){
+    private void showError(String error, String details) {
         setMazeEditor(false);
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Erreur");
@@ -315,14 +318,16 @@ public class MainController {
     }
 
     /// Is called by the main application to give a reference back to itself.
+    ///
     /// @param connexeApp main application
     public void setConnexeApp(ConnexeApp connexeApp) {
         this.connexeApp = connexeApp;
     }
 
     /// References the MazeController to call its building methods from the menu bar options (new, edit...)
+    ///
     /// @param mazeController the MazeController to use maze related methods from (building, etc...)
-    public void setMazeController(MazeController mazeController){
+    public void setMazeController(MazeController mazeController) {
         this.mazeController = mazeController;
     }
 }
