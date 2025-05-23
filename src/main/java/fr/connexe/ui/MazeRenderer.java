@@ -15,9 +15,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.*;
 import javafx.util.Duration;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Stack;
+import java.util.*;
 import java.util.function.Supplier;
 
 ///  Renderer for a GraphMaze as a JavaFX GridPane
@@ -448,17 +446,19 @@ public class MazeRenderer {
     }
 
     /// Flatten a [List<Stack<Integer>>] into a simple 1-dimensional [List]
-    /// Used to flatten DFS all visited paths into a singular one in order of visited (duplicates allowed)
+    /// Used to flatten DFS all visited paths into a singular one in order of visited nodes (no duplicates)
     /// @return a flattened 1-dimensional [List] of all visited vertex in order of visit
+    /// Each node appear only once, no backtracking simulated
     private List<Integer> flattenPaths(List<Stack<Integer>> totalSteps) {
-        List<Integer> steps = new ArrayList<>();
+        // Convert first as a LinkedHashSet to remove duplicates while preserving order of insertion of nodes
+        Set<Integer> steps = new LinkedHashSet<>();
         for (Stack<Integer> path : totalSteps) {
             // Append all visited nodes in order
             steps.addAll(path);
         }
-        return steps;
+        List<Integer> uniqueVisitedNodes = new ArrayList<>(steps);
+        return uniqueVisitedNodes;
     }
-
 
     /// Access the children of the maze's [GridPane] at a specific column and row index given by [Point] coordinates.
     /// @param coordinates (col, row) coordinates of the cell to retrieve
