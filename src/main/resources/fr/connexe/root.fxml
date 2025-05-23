@@ -34,12 +34,12 @@
                                       <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                                   </accelerator>
                               </MenuItem>
-                              <MenuItem mnemonicParsing="false" onAction="#handleSave" text="Enregistrer">
+                              <MenuItem fx:id="saveItem" disable="true" mnemonicParsing="false" onAction="#handleSave" text="Enregistrer">
                                   <accelerator>
                                       <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                                   </accelerator>
                               </MenuItem>
-                              <MenuItem mnemonicParsing="false" onAction="#handleSaveAs" text="Enregistrer sous...">
+                              <MenuItem fx:id="saveAsItem" disable="true" mnemonicParsing="false" onAction="#handleSaveAs" text="Enregistrer sous...">
                                   <accelerator>
                                       <KeyCodeCombination alt="DOWN" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
                                   </accelerator>
@@ -53,7 +53,7 @@
                       </Menu>
                       <Menu mnemonicParsing="false" text="Actions">
                           <items>
-                        <MenuItem fx:id="solveMenuItem" mnemonicParsing="false" onAction="#handleSolve" text="Résoudre le labyrinthe..." />
+                        <MenuItem fx:id="solveMenuItem" disable="true" mnemonicParsing="false" onAction="#handleSolve" text="Résoudre le labyrinthe..." />
                               <MenuItem fx:id="changeMenuItem" disable="true" mnemonicParsing="false" onAction="#handleChange" text="Modifier le labyrinthe..." />
                           </items>
                       </Menu>
