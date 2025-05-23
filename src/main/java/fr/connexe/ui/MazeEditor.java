@@ -63,7 +63,7 @@ public class MazeEditor {
             double y = event.getY();
             double width = gridCell.getWidth();
             double height = gridCell.getHeight();
-            double margin = 10;
+            double margin = 5;
 
             Side selectedSide = null;
             //Walls consist of the current cell wall (top, right, bottom, left) and the wall adjacent to the current cell wall (so for top -> bottom, right -> left, bottom -> top, left -> right)
@@ -197,7 +197,7 @@ public class MazeEditor {
     public void configureCellCommands(Region gridCell, int row, int col, GridPane grid) {
         gridCell.setOnKeyPressed(event -> {
             if (!isEditMode) return;
-            if (event.getCode() == KeyCode.ENTER){
+            if ((event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.SPACE) || (event.getCode() == KeyCode.BACK_SPACE || event.getCode() == KeyCode.DELETE) || (event.getCode() == KeyCode.INSERT)) {
                 applyBorder(gridCell,row,col,grid);
             }
         });
