@@ -109,8 +109,8 @@ public class MazeGenerator {
             // Either way, we only need to check edges we've "discovered", i.e. the edges adjacent to the new vertex.
             for (PrimEdge adjEdge : primGraph.adjList[newVertex]) {
                 // See if either end of the vertex has been visited.
-                boolean aVisited = newVertex == adjEdge.a || visitedVertices[adjEdge.a];
-                boolean bVisited = newVertex == adjEdge.b || visitedVertices[adjEdge.b];
+                boolean aVisited = visitedVertices[adjEdge.a];
+                boolean bVisited = visitedVertices[adjEdge.b];
 
                 if (aVisited && bVisited) {
                     // This edge is entirely in the MST, we need to remove it!
