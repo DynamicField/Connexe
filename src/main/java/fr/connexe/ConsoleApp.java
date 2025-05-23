@@ -170,46 +170,47 @@ public class ConsoleApp {
         String algoChoice = scanner.nextLine();
 
         // Ask if user wants step-by-step mode for supported algorithms
-        boolean pasAPas = false;
-        if (algoChoice.equals("1") || algoChoice.equals("3") || algoChoice.equals("4") || algoChoice.equals("5")) {
-            out.print("Souhaitez-vous une résolution pas à pas ? [O/N] : ");
-            pasAPas = scanner.nextLine().trim().equalsIgnoreCase("O");
-        }
+        boolean stepByStep = false;
+        out.print("Souhaitez-vous une résolution pas à pas ? [O/N] : ");
+        stepByStep = scanner.nextLine().trim().equalsIgnoreCase("O");
 
-        Stack<Integer> chemin = null;
-        Stack<Stack<Integer>> etapes = null;
-        List<Stack<Integer>> etapesList = null;
+        Stack<Integer> path = null;
+        List<Stack<Integer>> steps = null;
 
         switch (algoChoice) {
             case "1":
-                if (pasAPas) {
-                    etapesList = MazeSolver.prepDFS2(currentMaze);
+                if (stepByStep) {
+                    steps = MazeSolver.prepDFS2(currentMaze);
                 } else {
-                    chemin = MazeSolver.prepDFS(currentMaze, 0);
+                    path = MazeSolver.prepDFS(currentMaze);
                 }
                 break;
             case "2":
-                chemin = MazeSolver.prepLeftHand(currentMaze); // no step-by-step available
+                if (stepByStep) {
+                    steps = MazeSolver.prepLeftHand2(currentMaze);
+                } else {
+                    path = MazeSolver.prepLeftHand(currentMaze); // no step-by-step available
+                }
                 break;
             case "3":
-                if (pasAPas) {
-                    etapes = MazeSolver.prepClockwise2(currentMaze);
+                if (stepByStep) {
+                    steps = MazeSolver.prepClockwise2(currentMaze);
                 } else {
-                    chemin = MazeSolver.prepClockwise(currentMaze);
+                    path = MazeSolver.prepClockwise(currentMaze);
                 }
                 break;
             case "4":
-                if (pasAPas) {
-                    etapes = MazeSolver.solveDijkstra2(currentMaze);
+                if (stepByStep) {
+                    steps = MazeSolver.solveDijkstra2(currentMaze);
                 } else {
-                    chemin = MazeSolver.solveDijkstra(currentMaze);
+                    path = MazeSolver.solveDijkstra(currentMaze);
                 }
                 break;
             case "5":
-                if (pasAPas) {
-                    etapes = MazeSolver.solveAStar(currentMaze);
+                if (stepByStep) {
+                    steps = MazeSolver.solveAStar(currentMaze);
                 } else {
-                    chemin = MazeSolver.prepAStar(currentMaze);
+                    path = MazeSolver.prepAStar(currentMaze);
                 }
                 break;
             default:
@@ -218,31 +219,21 @@ public class ConsoleApp {
         }
 
         // Step-by-step display
-        if (pasAPas) {
-            if (etapes != null) {
-                for (Stack<Integer> etape : etapes) {
-                    out.println("Étape : " + etape);
-                    try {
-                        Thread.sleep(200); // 0.2 second delay between steps
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
-                }
-            } else if (etapesList != null) {
-                for (Stack<Integer> etape : etapesList) {
-                    out.println("Étape : " + etape);
-                    try {
-                        Thread.sleep(200); // 0.2 second delay between steps
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                    }
+        if (stepByStep) {
+            for (Stack<Integer> step : steps) {
+                out.println("Étape : " + step);
+                try {
+                    Thread.sleep(50); // 0.05 second delay between steps
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
             }
         } else {
-            if (chemin == null || chemin.isEmpty()) {
+            // Not step-by-step
+            if (path == null || path.isEmpty()) {
                 out.println("Aucun chemin trouvé !");
             } else {
-                out.println("Chemin trouvé : " + chemin);
+                out.println("Chemin trouvé : " + path);
             }
         }
 
