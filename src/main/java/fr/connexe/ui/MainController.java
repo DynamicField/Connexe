@@ -380,7 +380,7 @@ public class MainController {
         // When we start or stop a game, disable/enable some maze-related buttons accordingly.
         mazeController.gameRunningProperty().addListener((_, _, running) -> {
             change.setDisable(running); // The "edit maze" button should be disabled when a game is running.
-            if (!running) {
+            if (running) {
                 // Disable maze editing mode when we're launching a game.
                 setMazeEditor(false);
             }
