@@ -22,6 +22,9 @@ public class SolveMazeController {
     @FXML
     private RadioButton clockwiseRadio;
 
+    @FXML
+    public RadioButton leftHandRadio;
+
     ///  Called when a user clicks on the Solve button
     @FXML
     private void handleOk() {
@@ -52,8 +55,10 @@ public class SolveMazeController {
         else if (clockwiseRadio.isSelected()){ // Solve for Clockwise
             stepByStepPath = MazeSolver.prepClockwise2(mazeController.getMazeRenderer().getGraphMaze());
         }
-        else { // Solve for Left-Hand
+        else if (leftHandRadio.isSelected()) { // Solve for Left-Hand
             stepByStepPath = MazeSolver.prepLeftHand2(mazeController.getMazeRenderer().getGraphMaze());
+        } else { // Solve for A*
+            stepByStepPath = MazeSolver.solveAStar(mazeController.getMazeRenderer().getGraphMaze());
         }
         endTime = System.nanoTime();
 
