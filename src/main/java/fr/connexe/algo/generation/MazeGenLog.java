@@ -126,11 +126,7 @@ public class MazeGenLog implements Iterable<MazeGenEvent> {
         switch (event) {
             case MazeGenEvent.Connect(int vertexA, int vertexB) -> maze.connect(vertexA, vertexB);
             case MazeGenEvent.Disconnect(int vertexA, int vertexB) -> maze.disconnect(vertexA, vertexB);
-            case MazeGenEvent.SetEndpoints(int startVertex, int endVertex) -> {
-                // Note: may cause issues if we ever swap startVertex/endVertex. But who does that?
-                maze.setStart(startVertex);
-                maze.setEnd(endVertex);
-            }
+            case MazeGenEvent.SetEndpoints(int startVertex, int endVertex) -> maze.setEndpoints(startVertex, endVertex);
         }
     }
 

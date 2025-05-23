@@ -19,7 +19,7 @@ import java.util.ResourceBundle;
 /// The controller for a single player in the player list of the "play arcade dialog".
 ///
 /// @see PlayArcadeDialogController
-public class PlayerItemController implements Initializable {
+public class PlayerItemController {
     private PlayArcadeDialogController parentController;
     private PlayerProfile player;
 
@@ -38,9 +38,11 @@ public class PlayerItemController implements Initializable {
     @FXML
     private Label gamepadLabel;
 
+    /// The constructor of the player item controller. Called by JavaFX to create it.
+    public PlayerItemController() {}
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    @FXML
+    private void initialize() {
         // Update the cell factory so to give the right string when the combobox is opened
         inputComboBox.setCellFactory(_ -> new ListCell<>() {
             @Override

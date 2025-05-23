@@ -11,8 +11,9 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 
 /// Base class for every controller managing an arcade HUD.
+///
+/// Some need to be updated, and some don't.
 public sealed abstract class HUDController
-        implements Initializable
         permits EfficiencyHUDController, FurtivityHUDController, SwiftnessHUDController {
 
     /// The label of the left HUD, which is used to display the current game mode.
@@ -23,7 +24,17 @@ public sealed abstract class HUDController
     @FXML
     protected StackPane sidePane;
 
+    /// Creates a new HUD controller.
+    public HUDController() {}
+
+    /// Called by JavaFX when the controller is created and attached to an FXML node.
+    @FXML
+    protected abstract void initialize();
+
     /// Creates a new label for the player's place (1st, 2nd, etc.).
+    ///
+    /// @param placeIndex The index of the place (0 for 1st, 1 for 2nd, etc.)
+    /// @return The created label with some nice styling
     protected Label makePlaceLabel(int placeIndex) {
         // French language moment: 1st is 1ᵉʳ, 2nd is 2ᵉ, etc.
         Label place = new Label(placeIndex == 0 ? "1ᵉʳ" : (placeIndex + 1) + "ᵉ");
@@ -44,7 +55,10 @@ public sealed abstract class HUDController
         return place;
     }
 
-    /// Attaches a [FlowPane] with center-left alignment inside the [#sidePane].
+    /// Attaches a [FlowPane] with center-left alignment inside the [#sidePane], made to
+    /// display a leaderboard of players.
+    ///
+    /// @return the attached [FlowPane] with some spacing
     protected FlowPane attachPlayersPane() {
         FlowPane pane = new FlowPane();
         pane.alignmentProperty().set(Pos.CENTER_LEFT);
@@ -55,6 +69,9 @@ public sealed abstract class HUDController
     }
 
     /// Makes a horizontal box for a player. Usually contains information like place, name, etc.
+    ///
+    /// @param player the player to create the box for (used for [Player#hasReachedEnd()])
+    /// @return the created [HBox] with some styling
     protected HBox makeEmptyPlayerBox(Player player) {
         HBox box = new HBox();
         box.getStyleClass().add("hud-player");

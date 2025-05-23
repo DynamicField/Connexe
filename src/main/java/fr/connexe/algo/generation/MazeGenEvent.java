@@ -45,7 +45,6 @@ public sealed interface MazeGenEvent {
     ///
     /// @param startVertex The start vertex; -1 indicates no start vertex.
     /// @param endVertex The end vertex; -1 indicates no end vertex.
-    /// @see GraphMaze#setStart
-    /// @see GraphMaze#setEnd
+    /// @see GraphMaze#setEndpoints(int, int)
     record SetEndpoints(int startVertex, int endVertex) implements MazeGenEvent {}
 }

@@ -4,6 +4,9 @@ import java.util.*;
 
 /// Solves mazes with various algorithms.
 public class MazeSolver {
+    /// Main method to test the maze solver
+    ///
+    /// @param args command line arguments (useless)
     public static void main(String[] args) {
         // 0 - 1 - 2 - 3
         // -           -
@@ -30,8 +33,7 @@ public class MazeSolver {
         g.connect(12, 13);
 
 
-        g.setStart(0);
-        g.setEnd(15);
+        g.setEndpoints(0, 15);
         System.out.println(g.toArrayMaze());
         Stack<Integer> pile;
         pile = MazeSolver.prepDFS(g);
@@ -58,6 +60,9 @@ public class MazeSolver {
         System.out.println("Dijkstra2:" + pile2);
     }
 
+    private MazeSolver() {
+        // Prevent instantiation
+    }
 
     /// Goes through every path and compare them to get the best path to take to finish the maze
     /// @param maze the maze to solve
@@ -73,7 +78,7 @@ public class MazeSolver {
         if (num == maze.getEnd()) {
             allPaths.add((Stack<Integer>) currentPath.clone());
         } else {
-            for (int son : maze.getEdges()[num]) {
+            for (int son : maze.getAdjacentVertices(num)) {
                 if (!visited[son]) {
                      solveDFS(maze, son, visited, currentPath, allPaths);
                 }
@@ -112,7 +117,7 @@ public class MazeSolver {
         // (Source: GitHub Copilot)
 
         //creation of everything that is needed for the function solveDFS
-        boolean[] visited = new boolean[maze.getEdges().length];
+        boolean[] visited = new boolean[maze.getNumCells()];
         Stack<Integer> currentPath = new Stack<>();
         List<Stack<Integer>> allPaths = new ArrayList<>();
         //call of the function solveDFS
@@ -121,10 +126,13 @@ public class MazeSolver {
         return shortest(allPaths, maze);
     }
 
+    /// create whatever the function DFS needs to call it and returns the shortest path from the paths solveDFS returned
+    /// Step by step version.
+    ///
     /// @param maze the maze to solve
     /// @return stack of stacks of nodes to visit to solve the maze with a copy of the path on top of the stack
     public static List<Stack<Integer>> prepDFS2(GraphMaze maze) {
-        boolean[] visited = new boolean[maze.getEdges().length];
+        boolean[] visited = new boolean[maze.getNumCells()];
         Stack<Integer> currentPath = new Stack<>();
         List<Stack<Integer>> allPaths = new ArrayList<>();
 
@@ -146,7 +154,7 @@ public class MazeSolver {
         if (maze.getEnd() == num) {
             return visited;
         }
-        List<Integer> subList = maze.getEdges()[num];
+        List<Integer> subList = maze.getAdjacentVertices(num);
 
         //if the node has at least one son check if it's possible to go the neighbouring node and if it was already visited or blocked clockwise
         // and if it's possible calls this function with the new actual node as the node it is possible to go (it's going to visit every node until there's a path to the end from one)
@@ -205,7 +213,7 @@ public class MazeSolver {
     /// @return stack of nodes which is the best path (if no path is found, return an empty stack)
     public static Stack<Integer> solveDijkstra(GraphMaze maze) {
         //create whatever the function needs
-        int n = maze.getEdges().length;
+        int n = maze.getNumCells();
         int[] dist = new int[n];
         int[] fathers = new int[n];
         boolean[] visited = new boolean[n];
@@ -228,7 +236,7 @@ public class MazeSolver {
             if (current == maze.getEnd()) {
                 break;
             }
-            for (int edge : maze.getEdges()[current]) {
+            for (int edge : maze.getAdjacentVertices(current)) {
                 if (dist[current] + 1 < dist[edge]) {
                     dist[edge] = dist[current] + 1;
                     fathers[edge] = current;
@@ -266,7 +274,7 @@ public class MazeSolver {
             return pile;
         }
 
-        List<Integer> subList = maze.getEdges()[num];
+        List<Integer> subList = maze.getAdjacentVertices(num);
         if (subList != null && !subList.isEmpty()) {
             //if the node has at least one son check if it's possible to go the neighbouring node and if it was already visited or blocked clockwise
             // and if it's possible calls this function with the new actual node as the node it is possible to go (it's going to visit every node until there's a path to the end from one)
@@ -304,6 +312,7 @@ public class MazeSolver {
     }
 
 
+    /// create whatever the function Clockwise needs to call it and returns what it returns. Step by step version.
     /// @param maze the maze to solve
     /// @return stack of stacks of nodes to visit to solve the maze (not always the shortest way)
     @SuppressWarnings("unchecked")
@@ -333,7 +342,7 @@ public class MazeSolver {
     @SuppressWarnings("unchecked")
     public static Stack<Stack<Integer>> solveDijkstra2(GraphMaze maze) {
         //create whatever is needed for the function
-        int n = maze.getEdges().length;
+        int n = maze.getNumCells();
         int[] dist = new int[n];
         int[] fathers = new int[n];
         boolean[] visited = new boolean[n];
@@ -363,7 +372,7 @@ public class MazeSolver {
             if (current == maze.getEnd()) {
                 break;
             }
-            for (int edge : maze.getEdges()[current]) {
+            for (int edge : maze.getAdjacentVertices(current)) {
                 if (dist[current] + 1 < dist[edge]) {
                     dist[edge] = dist[current] + 1;
                     fathers[edge] = current;
@@ -412,7 +421,7 @@ public class MazeSolver {
         }
 
         int width = maze.getWidth();
-        List<Integer> sons = maze.getEdges()[num];
+        List<Integer> sons = maze.getAdjacentVertices(num);
 
         int[] dirx = new int[4]; // left, front, right and behind
         char[] nextDir = new char[4];
@@ -539,7 +548,7 @@ public class MazeSolver {
             }
 
             // sons' exploration
-            for (int neighbor : maze.getEdges()[current.id]) {
+            for (int neighbor : maze.getAdjacentVertices(current.id)) {
                 // gScore: temporary score
                 int tryGScore = gScore.getOrDefault(current.id, Integer.MAX_VALUE) + 1;
 

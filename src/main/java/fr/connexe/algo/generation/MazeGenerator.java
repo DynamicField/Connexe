@@ -28,8 +28,15 @@ public class MazeGenerator {
         // introduceChaos(r, 0.15f, 3L);
     }
 
+    // No need to instantiate this!
+    private MazeGenerator() {}
+
     /// Generates a **perfect maze** randomly, using Prim's algorithm, with default endpoints.
     ///
+    /// @param width  the width of the maze to generate
+    /// @param height the height of the maze to generate
+    /// @param seed   an optional seed for the RNG; a `null` value will generate a seed randomly.
+    /// @return the generated perfect maze and its log, inside a [MazeGenResult]
     /// @see #makePrim(int, int, Endpoints, Long)
     public static MazeGenResult makePrim(int width, int height, Long seed) {
         return makePrim(width, height, null, seed);
@@ -121,6 +128,10 @@ public class MazeGenerator {
 
     /// Generates a **perfect maze** randomly, using a randomized depth-first search algorithm, with default endpoints.
     ///
+    /// @param width  the width of the maze to generate
+    /// @param height the height of the maze to generate
+    /// @param seed   an optional seed for the RNG; a `null` value will generate a seed randomly.
+    /// @return the generated perfect maze and its log, inside a [MazeGenResult]
     /// @see #makeDFS(int, int, Endpoints, Long)
     public static MazeGenResult makeDFS(int width, int height, Long seed) {
         return makeDFS(width, height, null, seed);

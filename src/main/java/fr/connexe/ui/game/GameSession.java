@@ -159,7 +159,7 @@ public class GameSession {
         if (gameMode == GameMode.FURTIVITY) {
             // In furtivity mode, we need to put a random endpoint for the maze.
             GraphMaze furtiveMaze = maze.clone();
-            furtiveMaze.setEnd(pickRandomEndpoint(furtiveMaze));
+            furtiveMaze.setEndpoints(maze.getStart(), pickRandomEndpoint(furtiveMaze));
 
             this.maze = furtiveMaze;
         } else {

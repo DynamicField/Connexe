@@ -56,6 +56,9 @@ public class ConnexeApp extends Application {
         mainController.setMazeController(mazeController);
     }
 
+    /// Initializes the main controller and the root layout of the application.
+    /// @throws IOException if the FXML file failed to load
+    /// @return the main controller
     public MainController initMainController() throws IOException {
         // Load the FXML file and create a new scene with it.
         // That will automatically spin up a new MainController.
@@ -82,6 +85,9 @@ public class ConnexeApp extends Application {
         return controller;
     }
 
+    /// Initializes the maze controller with the panel containing the maze.
+    /// @throws IOException if the FXML file failed to load
+    /// @return the maze controller
     public MazeController initMazeController() throws IOException {
         // Load the FXML file for the maze overview.
         // That will automatically spin up a new MazeController.
@@ -104,7 +110,7 @@ public class ConnexeApp extends Application {
 
     /// Launches the application.
     /// @param args the command line arguments
-    public static void main(String[] args) throws InputSystemException {
+    public static void main(String[] args) {
         launch();
     }
 
@@ -114,9 +120,10 @@ public class ConnexeApp extends Application {
         return this.stage;
     }
 
-
     /// Setup and show the dialog box when clicking on the menu item to create a new Maze
     /// @param mazeRenderer passed by the MainController to be ready to receive a maze (to display later on the view)
+    /// @throws IOException if the FXML file failed to load
+    /// @return true if the user clicked OK, false otherwise
     public boolean showNewMazeDialog(MazeRenderer mazeRenderer) throws IOException{
         // Load the fxml file and create a new stage for the popup dialog.
         FXMLLoader loader = new FXMLLoader();
@@ -147,6 +154,9 @@ public class ConnexeApp extends Application {
     }
 
     /// Setup and show the dialog box when clicking on the menu item to solve a maze, to select solving method
+    /// @param mazeController the maze controller given to the dialog to configure maze solution display
+    /// @throws IOException if the FXML file failed to load
+    /// @return true if the user clicked OK, false otherwise
     public boolean showSolveMazeDialog(MazeController mazeController) throws IOException{
         // Load the fxml file and create a new stage for the popup dialog.
         FXMLLoader loader = new FXMLLoader();
@@ -178,6 +188,7 @@ public class ConnexeApp extends Application {
 
     /// Shows the dialog box to start a new arcade game.
     ///
+    /// @throws IOException if the FXML file failed to load
     /// @return the chosen game configuration if one has been chosen; otherwise, an empty optional will be given.
     public Optional<GameStartConfig> showPlayArcadeDialog() throws IOException {
         // Load the fxml file and create a new stage for the popup dialog.
@@ -207,10 +218,14 @@ public class ConnexeApp extends Application {
         return Optional.ofNullable(controller.getFinalConfig());
     }
 
+    /// Returns the file path of the last opened maze. Can be null if no maze was opened yet.
+    /// @return the file path of the last opened maze; can be null!
     public File getMazeFilePath() {
         return mazeFilePath;
     }
 
+    /// Sets the file path of the last opened maze.
+    /// @param file the file path of the last opened maze
     public void setMazeFilePath(File file) {
         this.mazeFilePath = file;
     }

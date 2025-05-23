@@ -8,11 +8,7 @@ open module fr.connexe {
     requires sdl2gdx;
     requires static org.jetbrains.annotations;
 
+    // Only export the fr.connexe and fr.connexe.algo packages which contain necessary main methods.
     exports fr.connexe;
     exports fr.connexe.algo;
-    exports fr.connexe.ui;
-    exports fr.connexe.ui.game;
-    exports fr.connexe.algo.generation;
-    exports fr.connexe.ui.game.lobby;
-    exports fr.connexe.ui.game.input;
 }

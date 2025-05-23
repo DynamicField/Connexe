@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.ResourceBundle;
 
 /// The controller for the "play arcade" dialog.
-public class PlayArcadeDialogController implements Initializable {
+public class PlayArcadeDialogController {
     private Stage dialogStage;
 
     // The configuration generated once the dialog is closed and confirmed by the user.
@@ -61,8 +61,11 @@ public class PlayArcadeDialogController implements Initializable {
 
     private GameMode selectedGameMode = GameMode.EFFICIENCY;
 
-    @Override
-    public void initialize(URL location, ResourceBundle resources) {
+    /// Initializes the controller. This is called by JavaFX when the FXML is loaded.
+    public PlayArcadeDialogController() {}
+
+    @FXML
+    private void initialize() {
         // Configure the player list to use our PlayerCell and put our list in there.
         playerList.setCellFactory(_ -> new PlayerCell());
         playerList.setItems(players);
