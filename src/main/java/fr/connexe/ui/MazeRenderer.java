@@ -290,19 +290,15 @@ public class MazeRenderer {
         List<Stack<Integer>> chronologicalSteps = totalSteps.reversed();
 
         if(isDFS){
-            // Start playing animation from the step of the DFS algorithm (first tested path) (index 0 is the final path)
             // Flatten all paths into a singular one (skip final path at index 0) to animate node by node
             List<Integer> flattened = flattenPaths(chronologicalSteps.subList(1, chronologicalSteps.size()));
-            playNodeByNodeDFS(0, flattened, () -> {
-                // When it's finished, play the build of the final solution path
-                playFinalSolutionStep(0, totalSteps.getLast(), onFinished);
-            });
+
+            // Start playing animation from the step of the DFS algorithm (first tested path) (index 0 is the final path)
+            // Transmit final path for the final path animation
+            playNodeByNodeDFS(0, flattened, totalSteps.getLast(), onFinished);
         } else {
             // Start playing animation from the first step of the solving algorithm (index 0 is the final path)
-            playSolutionStep(1, chronologicalSteps, () -> {
-                // When it's finished, play the build of the final solution path
-                playFinalSolutionStep(0, totalSteps.getLast(), onFinished);
-            });
+            playSolutionStep(1, chronologicalSteps,onFinished);
         }
     }
 
@@ -311,8 +307,8 @@ public class MazeRenderer {
     /// @param totalSteps solving algorithm history of steps
     /// @param onFinished method to execute after animation is finished
     private void playSolutionStep(int step, List<Stack<Integer>> totalSteps, Runnable onFinished){
-        if (step > totalSteps.size()-1) { // animation is finished
-            if (onFinished != null) onFinished.run();
+        if (step > totalSteps.size()-1) { // animation is finished, play the animation for the final path
+            playFinalSolutionStep(0, totalSteps.getFirst(), onFinished); // final path must be at first index of totalSteps
             return;
         }
         // Retrieve intermediate step (current stack history)
@@ -341,7 +337,7 @@ public class MazeRenderer {
     /// @param solution solution path
     /// @param onFinished method to execute after animation is finished
     private void playFinalSolutionStep(int step, Stack<Integer> solution, Runnable onFinished){
-        if (step > solution.size()-1) { // animation is finished
+        if (step > solution.size()-1) { // animation is finished, stop the whole running animation
             if (onFinished != null) onFinished.run();
             return;
         }
@@ -361,16 +357,16 @@ public class MazeRenderer {
         currentPause.setOnFinished(e -> playFinalSolutionStep(step + 1, solution, onFinished));
         currentPause.play();
 
-        if(onFinished != null) onFinished.run();
+        //if(onFinished != null) onFinished.run();
     }
 
     /// Animate a step (visited node) of the DFS algorithm, then go to the next one
     /// @param index index of the visited node
     /// @param visitedNodes list of all visited nodes flattened in order of visit
     /// @param onFinished method to execute after animation is finished
-    private void playNodeByNodeDFS(int index, List<Integer> visitedNodes, Runnable onFinished) {
+    private void playNodeByNodeDFS(int index, List<Integer> visitedNodes, Stack<Integer> solution, Runnable onFinished) {
         if (index > visitedNodes.size()-1) { // animation is finished
-            if (onFinished != null) onFinished.run();
+            playFinalSolutionStep(0, solution, onFinished);
             return;
         }
 
@@ -387,7 +383,7 @@ public class MazeRenderer {
 
         // Wait for a certain time delay without freezing the UI thread then go to the next step
         currentPause = new PauseTransition(Duration.millis(currentDelayMs));
-        currentPause.setOnFinished(e -> playNodeByNodeDFS(index + 1, visitedNodes, onFinished));
+        currentPause.setOnFinished(e -> playNodeByNodeDFS(index + 1, visitedNodes, solution, onFinished));
         currentPause.play();
     }
 
