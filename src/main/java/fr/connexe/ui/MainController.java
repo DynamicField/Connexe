@@ -31,6 +31,12 @@ public class MainController {
     private Label speedLabel;
 
     @FXML
+    private MenuItem saveItem;
+
+    @FXML
+    private MenuItem saveAsItem;
+
+    @FXML
     private MenuItem changeMenuItem;
 
     @FXML
@@ -102,6 +108,8 @@ public class MainController {
             mazeController.setMazeRenderer(mazeRenderer);
             genButton.setDisable(false); // Enable button action for generation, disable solving (no chosen method)
             solveButton.setDisable(true);
+            saveItem.setDisable(false);
+            saveAsItem.setDisable(false);
             changeMenuItem.setDisable(false); // Enable menu actions
             solveMenuItem.setDisable(false);
             arcadeButton.setDisable(false); // Make Arcade available for this loaded maze.
@@ -135,6 +143,8 @@ public class MainController {
                 mazeController.loadMaze(selected);
                 genButton.setDisable(true); // Disable generation animation for opened files (no gen log)
                 solveButton.setDisable(true);
+                saveItem.setDisable(false);
+                saveAsItem.setDisable(false);
                 changeMenuItem.setDisable(false); // Enable menu actions
                 solveMenuItem.setDisable(false);
                 arcadeButton.setDisable(false); // Make Arcade available for this loaded maze.
