@@ -233,6 +233,7 @@ public class MainController {
     /// Building button to show the generation step by step animation, for newly created mazes
     @FXML
     private void handleGenerationAnimation() {
+        change.setDisable(true);
         setMazeEditor(false);
         if (mazeController.getMazeRenderer() != null) {
             // Disable buttons when playing animation to prevent unwanted behaviors
@@ -249,6 +250,7 @@ public class MainController {
                 }
                 stopButton.setDisable(true); // animation is finished, disable stop button
                 arcadeButton.setDisable(false); // Animation done, re-enable arcade button
+                change.setDisable(false);
             });
         } else {
             showError("Aucun labyrinthe créé", "Veuillez créer un labyrinthe avant de visualiser la génération pas à pas.");
@@ -258,6 +260,7 @@ public class MainController {
     /// Building button to show the generation step by step animation, for newly created mazes
     @FXML
     private void handleSolveAnimation() {
+        change.setDisable(true);
         setMazeEditor(false);
         if (mazeController.getMazeRenderer() != null && mazeController.getStepByStepPath() != null) {
             // Disable buttons when playing animation to prevent unwanted behaviors
@@ -274,6 +277,7 @@ public class MainController {
                 solveButton.setDisable(false);// re-enable button when animation is finished
                 stopButton.setDisable(true); // animation is finished, disable stop button
                 arcadeButton.setDisable(false); // Animation done, re-enable arcade button
+                change.setDisable(false);
             });
         } else {
             showError("Aucune précédente solution", "Veuillez d'abord résoudre le labyrinthe avec une méthode choisie avant de jouer l'animation.");
@@ -284,6 +288,7 @@ public class MainController {
     /// to the end result of the animation.
     @FXML
     private void handleStopAnimation() {
+        change.setDisable(false);
         setMazeEditor(false);
         mazeController.endCurrentAnimation();
         if (mazeController.getMazeRenderer().getLog() != null) {
