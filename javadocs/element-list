@@ -1,0 +1,9 @@
+module:fr.connexe
+fr.connexe
+fr.connexe.algo
+fr.connexe.algo.generation
+fr.connexe.ui
+fr.connexe.ui.game
+fr.connexe.ui.game.hud
+fr.connexe.ui.game.input
+fr.connexe.ui.game.lobby
