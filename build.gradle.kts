@@ -98,6 +98,11 @@ tasks.withType<JavaExec> {
         "--sun-misc-unsafe-memory-access=allow",
         // Enable JNI for SDL2
         "--enable-native-access=sdl2gdx",
+        // Use UTF-8 for stdout (System.out) and stderr (System.err) because, weirdly,
+        // Gradle seems to use whatever encoding it wants for the console on Windows,
+        // which is literally OVERRIDING what Java 18 has done to make UTF-8 the default on Windows.
+        // See https://github.com/gradle/gradle/issues/29356
+        "-Dstdout.encoding=UTF-8", "-Dstderr.encoding=UTF-8",
         "-ea" // Enable assertions
     )
 
