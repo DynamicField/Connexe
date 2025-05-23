@@ -26,9 +26,8 @@ public class MazeSolver {
         g.connect(9, 10);
         g.connect(10, 11);
         g.connect(10, 14);
-        g.connect(11, 15);
+
         g.connect(12, 13);
-        g.connect(14, 15);
 
 
         g.setStart(0);
@@ -37,6 +36,8 @@ public class MazeSolver {
         Stack<Integer> pile;
         pile = MazeSolver.prepDFS(g,1);
         System.out.println("DFS:" + pile);
+        pile = MazeSolver.prepAStar(g);
+        System.out.println("A*" + pile);
         pile=MazeSolver.prepLeftHand(g);
         System.out.println("LeftHand:" + pile);
         pile = MazeSolver.prepClockwise(g);
@@ -46,6 +47,8 @@ public class MazeSolver {
         Stack<Stack<Integer>> pile2;
         List<Stack<Integer>> pile3;
         pile3 = MazeSolver.prepDFS2(g);
+        pile2 = MazeSolver.solveAStar(g);
+        System.out.println("A*2" + pile2);
         pile2 = MazeSolver.prepLeftHand2(g);
         System.out.println("LeftHand2:" + pile2);
         System.out.println("DFS2:" + pile3);
@@ -415,10 +418,10 @@ public class MazeSolver {
         int width = maze.getWidth();
         List<Integer> sons = maze.getEdges()[num];
 
-        int[] dirx = new int[4]; // left, front, right
+        int[] dirx = new int[4]; // left, front, right and behind
         char[] nextDir = new char[4];
 
-        switch (dir) {//set up the directions used in order and the directions for the next node (without the node visited just before)
+        switch (dir) {//set up the directions (such as up, right, left and down) used in order and the directions for the next node (without the node visited just before)
             case 'L':
                 dirx = new int[]{+width, -1, -width, 1};
                 nextDir = new char[]{'D', 'L', 'U', 'R'};
@@ -474,6 +477,10 @@ public class MazeSolver {
         }
         return pile;
     }
+
+    /// prepare everything needed for solveLeftHand and calls it
+    /// @param maze the maze to solve
+    /// @return a stack of stacks of nodes which represent the steps to the path to the end (if there is one) with the path at the top
     public static Stack<Stack<Integer>> prepLeftHand2(GraphMaze maze) {
         Stack<Integer> visited = new Stack<>();
         List<Integer> blocked = new LinkedList<>();
@@ -488,6 +495,152 @@ public class MazeSolver {
         }while (!tempPaths.isEmpty());
         paths.push(pile);
         return paths;
+    }
+
+    private static Stack<Stack<Integer>> inversionPaths (Stack<Stack<Integer>> tempPaths){
+        Stack<Stack<Integer>> paths = new Stack<>();
+        do {
+            paths.push(tempPaths.pop());
+        }while (!tempPaths.isEmpty());
+        return paths;
+    }
+
+    /** a BFS with some conditions to be optimal (done with deepseek)
+     * @param maze the maze to solve
+     * @return a stack of stacks of nodes which represent the steps and at the top is the path to the end
+     */
+    @SuppressWarnings("unchecked")
+    public static Stack<Stack<Integer>> solveAStar(GraphMaze maze) {
+        // Initialisation
+        Stack<Stack<Integer>> paths = new Stack<>();
+        Stack<Integer> visited = new Stack<>();
+        int start = maze.getStart();
+        int end = maze.getEnd();
+        int width = maze.getWidth();
+
+        // data
+        PriorityQueue<Node> openSet = new PriorityQueue<>();
+        Map<Integer, Integer> cameFrom = new HashMap<>();
+        Map<Integer, Integer> gScore = new HashMap<>();
+        Map<Integer, Integer> fScore = new HashMap<>();
+
+        // score creation
+        gScore.put(start, 0);
+        fScore.put(start, heuristic(start, end, width));
+        openSet.add(new Node(start, fScore.get(start)));
+
+        //start of the BFS
+        while (!openSet.isEmpty()) {
+            Node current = openSet.poll();
+            visited.push(current.id);
+            paths.push((Stack<Integer>)visited.clone());
+            // stop if the end is the actual node
+            if (current.id == end) {
+                paths=inversionPaths(paths);
+                visited=reconstructPath(cameFrom, current.id);
+                paths.push((Stack<Integer>)visited.clone());
+                return paths;
+            }
+
+            // sons' exploration
+            for (int neighbor : maze.getEdges()[current.id]) {
+                // gScore: temporary score
+                int tryGScore = gScore.getOrDefault(current.id, Integer.MAX_VALUE) + 1;
+
+                if (tryGScore < gScore.getOrDefault(neighbor, Integer.MAX_VALUE)) {
+                    cameFrom.put(neighbor, current.id);
+                    gScore.put(neighbor, tryGScore);
+                    fScore.put(neighbor, tryGScore + heuristic(neighbor, end, width));
+
+                    // add to the queue if not already here
+                    if (!openSet.contains(new Node(neighbor, 0))) {
+                        openSet.add(new Node(neighbor, fScore.get(neighbor)));
+                    }
+                }
+            }
+        }
+        paths=inversionPaths(paths);
+        paths.push(new Stack<>());
+        return paths; // no path to the end
+    }
+    /// takes the path to the end from the top of the stack returned by solveAStar and return it
+    /// @param maze the maze to solve
+    /// @return the best path to the end
+    public static Stack<Integer> prepAStar(GraphMaze maze) {
+        Stack<Integer> path;
+        Stack<Stack<Integer>>paths;
+        paths=solveAStar(maze);
+        path=paths.pop();
+        return path;
+    }
+
+    ///solve the manhattan's distance
+    /// @param width the width of the maze
+    /// @param a the node compared to the end
+    /// @param b the end
+    /// @return manhattan's distance
+    private static int heuristic(int a, int b, int width) {
+        int x1 = a % width, y1 = a / width;
+        int x2 = b % width, y2 = b / width;
+        return Math.abs(x1 - x2) + Math.abs(y1 - y2);
+    }
+
+    /// creation of the path to the end
+    /// @param current the end
+    /// @param parent the dictionary of sons - parents
+    /// @return the path to the end
+    private static Stack<Integer> reconstructPath(Map<Integer, Integer> parent, int current) {
+        Stack<Integer> path = new Stack<>();
+        path.push(current);
+
+        while (parent.containsKey(current)) {
+            current = parent.get(current);
+            path.push(current);
+        }
+
+        //inversion of the path to get start->end
+        Collections.reverse(path);
+        return path;
+    }
+
+    /// Class helper for priority queue
+    static class Node implements Comparable<Node> {
+        int id;
+        int fScore;
+
+        /// constructor of Node
+        /// @param id the node
+        /// @param fScore the score of the node
+        public Node(int id, int fScore) {
+            this.id = id;
+            this.fScore = fScore;
+        }
+
+        /// compare 2 scores and return the lesser one
+        /// @param other the other node
+        /// @return the element of node with the lesser score
+        @Override
+        public int compareTo(Node other) {
+            return Integer.compare(this.fScore, other.fScore);
+        }
+
+
+        /// compare an object with an element of Node/
+        /// @param o the object to compare
+        /// @return true if the object has the same class and the same id as the element of Node
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Node node = (Node) o;
+            return id == node.id;
+        }
+
+        /// @return the hashcode of the element
+        @Override
+        public int hashCode() {
+            return Objects.hash(id);
+        }
     }
 }
 

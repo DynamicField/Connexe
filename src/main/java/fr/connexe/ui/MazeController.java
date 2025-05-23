@@ -124,7 +124,11 @@ public class MazeController {
         mazeRenderer.stopAnimation();
         if(mazeRenderer.isLastAnimIsGeneration()){
             createMazeFX(); // Rebuild generated grid as it was by default
-            vboxLayout.getChildren().add(statsContainer); // Force keep solving stats (they get cleared by createMazeFX)
+
+            if (statsContainer != null) {
+                // Force keep solving stats (they get cleared by createMazeFX)
+                vboxLayout.getChildren().add(statsContainer);
+            }
         } else {
             // Rebuild grid with end state of animation (visited cells + final path)
             mazeRenderer.finishStepByStepSolving(stepByStepPath, isDFS);
