@@ -408,10 +408,8 @@ public class MainController {
                 solveButton.setDisable(running);
             }
 
-            if (!running) {
-                // Disable maze editing mode when we're launching a game.
-                setMazeEditor(false);
-            }
+            // Disable maze editing mode when we're launching or stopping a game.
+            setMazeEditor(false);
         });
     }
 }
