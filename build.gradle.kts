@@ -53,6 +53,14 @@ javafx {
     modules = listOf("javafx.controls", "javafx.fxml")
 }
 
+dependencies {
+    // Include the "sdl2gdx" library for SDL2 controller support.
+    implementation(files(layout.projectDirectory.dir("external").file("sdl2gdx-1.0.5.jar")))
+
+    // Include JetBrains annotations for @Nullable.
+    implementation("org.jetbrains:annotations:26.0.2")
+}
+
 jlink {
     // Configuration for the standalone executables which bundle a customized JVM with only the necessary modules.
     imageZip.set(layout.buildDirectory.file("/distributions/app-${javafx.platform.classifier}.zip"))
@@ -70,6 +78,8 @@ tasks.withType<JavaExec> {
         "--enable-native-access=javafx.graphics",
         // https://bugs.openjdk.org/browse/JDK-8345121
         "--sun-misc-unsafe-memory-access=allow",
+        // Enable JNI for SDL2
+        "--enable-native-access=sdl2gdx",
         "-ea" // Enable assertions
     )
 
