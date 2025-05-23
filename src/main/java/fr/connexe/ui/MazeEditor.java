@@ -1,6 +1,8 @@
 package fr.connexe.ui;
 
 import fr.connexe.algo.ArrayMaze;
+import fr.connexe.algo.GraphMaze;
+import fr.connexe.algo.Point;
 import javafx.scene.Node;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
@@ -11,9 +13,14 @@ public class MazeEditor {
     private Region lastSelectedCell = null;
     private Region lastNeighborCell = null;
     protected Boolean isEditMode = false;
+    private GraphMaze graphMaze;
 
     /// Constructor for the maze editor.
     public MazeEditor() {}
+
+    public void setGraphMaze(GraphMaze graphMaze) {
+        this.graphMaze = graphMaze;
+    }
 
     /// Enables maze editing.
     /// @param editMode true to enable editing, false to disable it
@@ -246,6 +253,7 @@ public class MazeEditor {
 
         //And apply the modified style to the neighbor
         if (neighborRow >= 0 && neighborCol >= 0 && neighborRow < arrayMaze.getHeight() && neighborCol < arrayMaze.getWidth()) {
+            applyGraphMaze(col, row, neighborCol, neighborRow, type);
             Region neighborCell = getCellFromGrid(grid, neighborCol, neighborRow);
             if (neighborCell != null) {
                 String neighborStyle = neighborCell.getStyle();
@@ -259,5 +267,18 @@ public class MazeEditor {
                 }
             }
         }
+    }
+
+    public void applyGraphMaze(int col, int row, int neighborCol, int neighborRow, String type) {
+        Point point = new Point(col, row);
+        int vertexBorder = graphMaze.toVertexId(point);
+
+        Point neighborPoint = new Point(neighborCol, neighborRow);
+        int vertexNeighborBorder = graphMaze.toVertexId(neighborPoint);
+
+        if(type.equals("transparent"))
+            graphMaze.connect(vertexBorder, vertexNeighborBorder);
+        else
+            graphMaze.disconnect(vertexBorder, vertexNeighborBorder);
     }
 }

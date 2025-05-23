@@ -197,6 +197,8 @@ public class MazeRenderer {
                 //Remembers the initial style for reset
                 gridCell.getProperties().put("initialStyle", style.toString());
 
+
+                mazeEditor.setGraphMaze(graphMaze);
                 mazeEditor.selectWall(gridCell, arrayMaze, row, col, grid);
                 mazeEditor.interactBorder(gridCell, arrayMaze, row, col, grid);
 
