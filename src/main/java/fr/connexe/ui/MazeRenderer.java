@@ -173,8 +173,6 @@ public class MazeRenderer {
                 //Remembers the initial style for reset
                 gridCell.getProperties().put("initialStyle", style.toString());
 
-
-                mazeEditor.setGraphMaze(graphMaze);
                 mazeEditor.configureCellClick(gridCell, row, col, grid);
                 mazeEditor.configureCellCommands(gridCell, row, col, grid);
 
