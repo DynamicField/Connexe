@@ -205,6 +205,7 @@ public class MazeEditor {
         style = style.replaceAll("-fx-border-color: [^;]+;", "");
         style += "-fx-border-color: " + String.join(" ", colors) + ";";
         gridCell.setStyle(style);
+        gridCell.getProperties().put("initialStyle", style);
     }
 
     /// Applies the action "type" to the neighbor of the cell (split of applyBorder() for more clarity).
@@ -246,6 +247,7 @@ public class MazeEditor {
                     neighborStyle = neighborStyle.replaceAll("-fx-border-color: [^;]+;", "");
                     neighborStyle += "-fx-border-color: " + String.join(" ", neighborColors) + ";";
                     neighborCell.setStyle(neighborStyle);
+                    neighborCell.getProperties().put("initialStyle", neighborStyle);
                 }
             }
         }
