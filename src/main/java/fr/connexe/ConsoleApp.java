@@ -180,8 +180,8 @@ public class ConsoleApp {
                 chemin = MazeSolver.solveDijkstra(currentMaze);
                 break;
             case "5":
-                out.println("L'algorithme A* sera ajouté prochainement par Mathis :)");
-                return;
+                chemin = MazeSolver.prepAStar(currentMaze);
+                break;
             default:
                 out.println("Choix invalide.");
                 return;
@@ -219,7 +219,12 @@ public class ConsoleApp {
     // Loads a maze from a file
     private static void loadMaze() {
         out.print("Nom du fichier à charger (ex : maze1.con) : ");
-        String filename = scanner.nextLine();
+        String filename = scanner.nextLine().trim();
+        if (filename.isEmpty()) {
+            out.println("Nom de fichier invalide.");
+            return;
+        }
+
 
         try (ObjectInputStream in = new ObjectInputStream(new FileInputStream(filename))) {
             currentMaze = (GraphMaze) in.readObject();
