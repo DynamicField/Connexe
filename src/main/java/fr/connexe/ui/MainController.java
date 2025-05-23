@@ -307,6 +307,7 @@ public class MainController {
             connexeApp.showPlayArcadeDialog().ifPresent(config -> {
                 try {
                     mazeController.beginGame(config);
+                    setMazeEditor(false);
                 } catch (IncompatibleMazeException e) {
                     // The maze is incompatible with the game mode! Tell the user about that with an alert.
                     showError("Labyrinthe incompatible", e.getMessage());
