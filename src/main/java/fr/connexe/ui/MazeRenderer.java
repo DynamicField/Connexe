@@ -7,10 +7,8 @@ import fr.connexe.algo.Point;
 import fr.connexe.algo.generation.MazeGenLog;
 import javafx.animation.PauseTransition;
 import javafx.beans.binding.Bindings;
-import javafx.beans.binding.NumberBinding;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
-import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 
 import javafx.scene.paint.Color;
@@ -35,34 +33,6 @@ public class MazeRenderer {
 
     /// Initialize a maze renderer about to take a maze which parameters will be set by a user
     public MazeRenderer(){
-    }
-
-    ///  For testing purposes
-    public void setDefaultExample(){
-        var g = new GraphMaze(4, 4);
-        g.connect(0, 1);
-        g.connect(0, 4);
-        g.connect(2, 3);
-        g.connect(3, 7);
-        g.connect(1, 2);
-        g.connect(4, 5);
-        g.connect(4, 8);
-        g.connect(6, 7);
-        g.connect(6, 10);
-        g.connect(8, 9);
-        g.connect(8, 12);
-        g.connect(9, 13);
-        g.connect(9, 10);
-        g.connect(10, 11);
-        g.connect(10, 14);
-        g.connect(11, 15);
-        g.connect(14, 15);
-        g.setStart(0);
-        g.setEnd(15);
-        this.graphMaze = g;
-        this.log = null; // in case we're reusing a previous renderer for another maze for whatever reason
-
-        System.out.println(g);
     }
 
     ///  Build a [GridPane] to represent the maze and its walls
