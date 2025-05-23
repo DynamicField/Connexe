@@ -4,6 +4,8 @@ import fr.connexe.algo.GraphMaze;
 import fr.connexe.algo.MazeSolver;
 import fr.connexe.algo.generation.MazeGenResult;
 import fr.connexe.algo.generation.MazeGenerator;
+import java.util.List;
+import java.util.Stack;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -167,33 +169,81 @@ public class ConsoleApp {
         out.print("Votre choix : ");
         String algoChoice = scanner.nextLine();
 
-        Stack<Integer> chemin;
+        // Ask if user wants step-by-step mode for supported algorithms
+        boolean pasAPas = false;
+        if (algoChoice.equals("1") || algoChoice.equals("3") || algoChoice.equals("4") || algoChoice.equals("5")) {
+            out.print("Souhaitez-vous une résolution pas à pas ? [O/N] : ");
+            pasAPas = scanner.nextLine().trim().equalsIgnoreCase("O");
+        }
+
+        Stack<Integer> chemin = null;
+        Stack<Stack<Integer>> etapes = null;
+        List<Stack<Integer>> etapesList = null;
 
         switch (algoChoice) {
             case "1":
-                chemin = MazeSolver.prepDFS(currentMaze, 0);
+                if (pasAPas) {
+                    etapesList = MazeSolver.prepDFS2(currentMaze);
+                } else {
+                    chemin = MazeSolver.prepDFS(currentMaze, 0);
+                }
                 break;
             case "2":
-                chemin = MazeSolver.prepLeftHand(currentMaze);
+                chemin = MazeSolver.prepLeftHand(currentMaze); // no step-by-step available
                 break;
             case "3":
-                chemin = MazeSolver.prepClockwise(currentMaze);
+                if (pasAPas) {
+                    etapes = MazeSolver.prepClockwise2(currentMaze);
+                } else {
+                    chemin = MazeSolver.prepClockwise(currentMaze);
+                }
                 break;
             case "4":
-                chemin = MazeSolver.solveDijkstra(currentMaze);
+                if (pasAPas) {
+                    etapes = MazeSolver.solveDijkstra2(currentMaze);
+                } else {
+                    chemin = MazeSolver.solveDijkstra(currentMaze);
+                }
                 break;
             case "5":
-                chemin = MazeSolver.prepAStar(currentMaze);
+                if (pasAPas) {
+                    etapes = MazeSolver.solveAStar(currentMaze);
+                } else {
+                    chemin = MazeSolver.prepAStar(currentMaze);
+                }
                 break;
             default:
                 out.println("Choix invalide.");
                 return;
         }
 
-        if (chemin.isEmpty()) {
-            out.println("Aucun chemin trouvé !");
+        // Step-by-step display
+        if (pasAPas) {
+            if (etapes != null) {
+                for (Stack<Integer> etape : etapes) {
+                    out.println("Étape : " + etape);
+                    try {
+                        Thread.sleep(200); // 0.2 second delay between steps
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            } else if (etapesList != null) {
+                for (Stack<Integer> etape : etapesList) {
+                    out.println("Étape : " + etape);
+                    try {
+                        Thread.sleep(200); // 0.2 second delay between steps
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                    }
+                }
+            }
         } else {
-            out.println("Chemin trouvé : " + chemin);
+            if (chemin == null || chemin.isEmpty()) {
+                out.println("Aucun chemin trouvé !");
+            } else {
+                out.println("Chemin trouvé : " + chemin);
+            }
         }
 
         out.println(currentMaze);
