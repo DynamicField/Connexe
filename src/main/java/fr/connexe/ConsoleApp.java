@@ -146,6 +146,27 @@ public class ConsoleApp {
         // Set the maze to what we generated
         currentMaze = genResult.maze();
 
+        out.println("Voulez-vous voir la génération en pas à pas ? [O/N] ");
+        String showMaze = scanner.nextLine();
+        if (showMaze.startsWith("o") || showMaze.startsWith("O")) {
+            GraphMaze maze = new GraphMaze(width, height);
+            for (int i = 0; i < genResult.log().size(); i++) {
+                // Apply the n-th event (we won't show the maze before the first event)
+                genResult.log().applyEvent(maze, genResult.log().get(i));
+
+                // Show the maze
+                out.printf("Étape %d/%d :\n", i, genResult.log().size());
+                out.println(maze);
+
+                // Delay a bit
+                try {
+                    Thread.sleep(50); // 0.05 second delay between steps
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+
         out.println("Labyrinthe généré.");
     }
 
@@ -226,14 +247,25 @@ public class ConsoleApp {
 
         // Step-by-step display
         if (stepByStep) {
-            for (Stack<Integer> step : steps) {
+            List<Stack<Integer>> reversed = steps.reversed();
+            boolean isFirstStep = false; // The first step of the reversed list is the final step, don't show it!
+
+            for (Stack<Integer> step : reversed) {
+                if (!isFirstStep) {
+                    // First step is the final step, don't show it
+                    isFirstStep = true;
+                    continue;
+                }
+
                 out.println("Étape : " + step);
                 try {
-                    Thread.sleep(50); // 0.05 second delay between steps
+                    Thread.sleep(100); // 0.1 second delay between steps
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
             }
+
+            out.println("Chemin final : " + steps.getFirst());
         } else {
             // Not step-by-step
             if (path == null || path.isEmpty()) {
