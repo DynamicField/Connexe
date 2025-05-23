@@ -1,3 +1,6 @@
+
+import java.io.PrintStream
+
 plugins {
     // Plugin to do Java (shocking!)
     java
@@ -70,6 +73,21 @@ jlink {
     }
 }
 
+// Task to run the ConsoleApp class.
+// ./gradlew runConsole --console=plain
+tasks.register<JavaExec>("runConsole") {
+    description = "Runs the console application"
+    group = "application"
+
+    mainModule.set("fr.connexe")
+    mainClass.set("fr.connexe.ConsoleApp")
+
+    classpath = sourceSets.main.get().runtimeClasspath
+
+    standardInput = System.`in`
+    standardOutput = System.out
+}
+
 // Configure the "run" task. Must be AFTER the "application" block for some reason?!
 tasks.withType<JavaExec> {
     jvmArgs(
@@ -105,4 +123,5 @@ tasks.withType<Javadoc> {
         // No idea why this is needed for "bottom" to work properly. Allow script in COMMENTS?!
         addBooleanOption("-allow-script-in-comments", true)
     }
+
 }
