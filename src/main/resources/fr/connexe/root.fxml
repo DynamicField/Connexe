@@ -54,7 +54,7 @@
                       <Menu mnemonicParsing="false" text="Actions">
                           <items>
                         <MenuItem mnemonicParsing="false" onAction="#handleSolve" text="Résoudre le labyrinthe..." />
-                              <MenuItem mnemonicParsing="false" text="Modifier le labyrinthe..." />
+                              <MenuItem fx:id="change" onAction="#handleChange" disable="true" mnemonicParsing="false" text="Modifier le labyrinthe..." />
                           </items>
                       </Menu>
                   </menus>

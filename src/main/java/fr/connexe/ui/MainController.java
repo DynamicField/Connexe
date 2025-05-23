@@ -9,6 +9,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.stage.FileChooser;
+import javafx.scene.control.MenuItem;
 
 import java.io.File;
 import java.io.IOException;
@@ -27,6 +28,9 @@ public class MainController {
 
     @FXML
     private Label speedLabel;
+
+    @FXML
+    private MenuItem change;
 
     @FXML
     private Button solveButton;
@@ -86,6 +90,7 @@ public class MainController {
             mazeController.setMazeRenderer(mazeRenderer);
             genButton.setDisable(false);
             solveButton.setDisable(true);
+            change.setDisable(false);
 
             // Create the maze grid on the view (also displays the maze in the console)
             mazeController.createMazeFX();
@@ -145,6 +150,7 @@ public class MainController {
     /// Opens a FileChooser to let the user save a maze into a .con file
     @FXML
     private void handleSaveAs() {
+        setMazeEditor(false);
         if(mazeController.getMazeRenderer() != null){
             // Init the FileChooser and retrieve the file
             FileChooser fileChooser = initFileChooser();
@@ -175,6 +181,22 @@ public class MainController {
         }
     }
 
+    /// Enables the maze editor mode. Content moved in setMazeEditor() for better reusability
+    public void handleChange(){
+        setMazeEditor(true);
+    }
+
+    /// Enables the maze editor mode
+    /// @param editMode true to enable the maze editor, false to disable it
+    public void setMazeEditor(boolean editMode) {
+        MazeEditor mazeEditor = this.mazeController.getMazeRenderer().getMazeSelector();
+        mazeEditor.setEditMode(editMode);
+        if(!editMode){
+            javafx.scene.layout.GridPane grid = this.mazeController.getMazeRenderer().getGrid();
+            mazeEditor.clearAllRedBorders(grid);
+        }
+    }
+
     ///  Closes the app
     @FXML
     private void handleExit() {
@@ -184,6 +206,7 @@ public class MainController {
     /// Menu action to solve a maze. When clicked, shows the dialog box with the solving algorithm options for the user to select.
     @FXML
     private void handleSolve() throws IOException {
+        setMazeEditor(false);
         if(mazeController.getMazeRenderer() != null){
             boolean okClicked = connexeApp.showSolveMazeDialog(mazeController);
             if(okClicked){
@@ -197,6 +220,7 @@ public class MainController {
     /// Building button to show the generation step by step animation, for newly created mazes
     @FXML
     private void handleGenerationAnimation(){
+        setMazeEditor(false);
         if(mazeController.getMazeRenderer() != null){
             // Disable buttons when playing animation to prevent unwanted behaviors
             genButton.setDisable(true);
@@ -219,6 +243,7 @@ public class MainController {
     /// Building button to show the generation step by step animation, for newly created mazes
     @FXML
     private void handleSolveAnimation(){
+        setMazeEditor(false);
         if(mazeController.getMazeRenderer() != null && mazeController.getStepByStepPath() != null){
             // Disable buttons when playing animation to prevent unwanted behaviors
             genButton.setDisable(true);
@@ -242,6 +267,7 @@ public class MainController {
     /// to the end result of the animation.
     @FXML
     private void handleStopAnimation(){
+        setMazeEditor(false);
         mazeController.endCurrentAnimation();
         if(mazeController.getMazeRenderer().getLog() != null){
             genButton.setDisable(false); // re-enable generation animation button if maze was generated
@@ -257,6 +283,7 @@ public class MainController {
     /// Only accepts a file of ".con" extension
     /// Opens by default the last directory a user saved into/opened
     private FileChooser initFileChooser(){
+        setMazeEditor(false);
         // Create a new file chooser dialog popup and set the opened directory to the last visited one
         FileChooser fileChooser = new FileChooser();
         File lastDir = Settings.getLastVisitedDirectory();
@@ -273,6 +300,7 @@ public class MainController {
     /// @param error the title displayed in the dialog box
     /// @param details the content of the error message
     private void showError(String error, String details){
+        setMazeEditor(false);
         Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle("Erreur");
         alert.setHeaderText(error);
