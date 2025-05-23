@@ -6,6 +6,7 @@ import fr.connexe.algo.generation.MazeGenResult;
 import fr.connexe.algo.generation.MazeGenerator;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.Stack;
@@ -23,11 +24,7 @@ public class ConsoleApp {
     private static PrintStream out;
 
     public static void main(String[] args) {
-        try {
-            out = new PrintStream(System.out, true, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            out = System.out; // Give up on UTF-8
-        }
+        out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
         boolean running = true;
 
@@ -62,9 +59,9 @@ public class ConsoleApp {
     private static void generateMaze() {
         //Give the Width and Height of the maze
         out.print("Largeur du labyrinthe: ");
-        int size;
+        int width;
         try {
-            size = Integer.parseInt(scanner.nextLine());
+            width = Integer.parseInt(scanner.nextLine());
         } catch (NumberFormatException e) {
             out.println("Taille invalide.");
             return;
@@ -78,8 +75,14 @@ public class ConsoleApp {
             out.println("Taille invalide.");
             return;
         }
-        if (size <= 1 || height <= 1) {
-            out.println("Taille invalide.");
+
+        // Check the maze dimensions
+        if (width <= 1 || height <= 1) {
+            out.println("Taille trop petite.");
+            return;
+        }
+        if (width > 50 || height > 50) {
+            out.println("Taille trop grande.");
             return;
         }
         // Give the seed if needed
@@ -102,32 +105,37 @@ public class ConsoleApp {
         out.print("Veuillez me dire votre algo de generation (DFS ou Prim): ");
         String s = scanner.nextLine();
 
+        // Run the generation algorithm
         MazeGenResult genResult;
         if (s.equalsIgnoreCase("DFS")) {
-            genResult = MazeGenerator.makeDFS(size, height, seed);
+            genResult = MazeGenerator.makeDFS(width, height, seed);
         } else if (s.equalsIgnoreCase("Prim")) {
-            genResult = MazeGenerator.makePrim(size, height, seed);
+            genResult = MazeGenerator.makePrim(width, height, seed);
         } else {
             out.println("Algo invalide.");
             return;
         }
 
+        // See if we want to have an imperfect maze
         out.print("Voulez-vous un labyrinthe parfait ? [O/N] ");
         String answer = scanner.nextLine();
 
         if (answer.startsWith("n") || answer.startsWith("N")) {
+            // Ask for chaos (default to 0.2)
             out.print("Quelle quantité de chaos voulez-vous ? (nombre de 0.0 à 1.0) ");
-            double chaos = 0.2;
+            float chaos = 0.2f;
             try {
-                chaos = scanner.nextDouble();
-                chaos = Math.clamp(chaos, 0.0, 1.0);
+                chaos = scanner.nextFloat();
+                chaos = Math.clamp(chaos, 0.0f, 1.0f);
             } catch (InputMismatchException e)  {
                 out.println("Utilisation de la valeur par défaut : " + chaos);
             }
 
-            MazeGenerator.introduceChaos(genResult, (float) chaos, seed);
+            // Introduce some chaos!
+            MazeGenerator.introduceChaos(genResult, chaos, seed);
         }
 
+        // Set the maze to what we generated
         currentMaze = genResult.maze();
 
         out.println("Labyrinthe généré.");
@@ -148,11 +156,6 @@ public class ConsoleApp {
         if (currentMaze == null) {
             out.println("Aucun labyrinthe à résoudre.");
             return;
-        }
-
-        if (currentMaze.getStart() == -1 || currentMaze.getEnd() == -1) {
-            currentMaze.setStart(0);
-            currentMaze.setEnd(currentMaze.getNumCells() - 1);
         }
 
         out.println("Choisissez un algorithme de résolution :");
