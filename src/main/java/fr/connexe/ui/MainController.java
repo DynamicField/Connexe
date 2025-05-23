@@ -190,6 +190,8 @@ public class MainController {
     /// Enables the maze editor mode. Content moved in setMazeEditor() for better reusability
     public void handleChange() {
         setMazeEditor(true);
+        genButton.setDisable(true);
+        solveButton.setDisable(true);
     }
 
     /// Enables the maze editor mode
