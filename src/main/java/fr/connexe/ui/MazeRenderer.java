@@ -137,6 +137,7 @@ public class MazeRenderer {
         for (int row = 0; row < rows; row++) {
             for (int col = 0; col < cols; col++) {
                 StackPane gridCell = new StackPane();
+                StringBuilder style = new StringBuilder();
 
                 // Retrieve information of the cell from the ArrayMaze
                 Point vertexCoordinates = new Point(col, row);
@@ -174,8 +175,8 @@ public class MazeRenderer {
 
 
                 mazeEditor.setGraphMaze(graphMaze);
-                mazeEditor.selectWall(gridCell, arrayMaze, row, col, grid);
-                mazeEditor.interactBorder(gridCell, arrayMaze, row, col, grid);
+                mazeEditor.configureCellClick(gridCell, row, col, grid);
+                mazeEditor.configureCellCommands(gridCell, row, col, grid);
 
                 // Add some padding so the icon inside the cell doesn't suddenly move
                 // when an inner border is added or removed.
