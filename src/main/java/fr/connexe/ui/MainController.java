@@ -199,6 +199,7 @@ public class MainController {
         // Remove the generation log since the maze will change and disable the generation animation button
         mazeController.getMazeRenderer().setLog(null);
         genButton.setDisable(true);
+        solveButton.setDisable(true); // Disable solving animation button
 
         // Remove colors done by the solving algorithm
         mazeController.getMazeRenderer().clearGridColor();
