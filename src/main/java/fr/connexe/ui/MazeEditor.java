@@ -204,7 +204,7 @@ public class MazeEditor {
     /// @param row      the row of the cell
     /// @param col      the column of the cell
     /// @param grid     the grid containing the maze cells (used to retrieve the cell at the clicked position)
-    /// @param type     the action to apply (connect or disconnect)
+    /// @param type     the color to apply (black or transparent)
     public void applyBorder(Region gridCell, int row, int col, GridPane grid, String type) {
         // Find the border colors of the cell
         String style = gridCell.getStyle();
@@ -244,7 +244,7 @@ public class MazeEditor {
     /// @param row  the row of the cell
     /// @param col  the column of the cell
     /// @param grid the grid containing the maze cells (used to retrieve the cell at the clicked position)
-    /// @param type the action to apply (connect or disconnect)
+    /// @param type the color to apply (black or transparent)
     public void applyNeighborBorder(Side side, int row, int col, GridPane grid, String type) {
         //Calculate the neighbor coordinate in the same way as for selectWall
         int neighborRow = row, neighborCol = col;
@@ -293,7 +293,7 @@ public class MazeEditor {
     /// @param row         the row of the cell
     /// @param neighborCol the column of the neighbor cell
     /// @param neighborRow the row of the neighbor cell
-    /// @param type        the action to apply (connect or disconnect)
+    /// @param type        the color to apply (black or transparent)
     public void applyGraphMaze(int col, int row, int neighborCol, int neighborRow, String type) {
         //Get the coordinates of the cell and the neighbor of the cell and create the two points and their vertices
         int vertexBorder = graphMaze.toVertexId(new Point(col, row));
