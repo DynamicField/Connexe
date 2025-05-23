@@ -44,6 +44,11 @@ public class MazeController {
     private StackPane root; // Root element of the vboxLayout
     private VBox statsContainer;
 
+    /// Creates a new MazeController.
+    ///
+    /// This constructor is used by JavaFX when loading the FXML file.
+    public MazeController() {}
+
     ///  Display a maze in the VBox of the main scene. If an arcade game is running, stops it immediately.
     public void createMazeFX(){
         // Stop the current game session if we already have one.
@@ -155,6 +160,8 @@ public class MazeController {
 
     /// Saves the current rendered maze into a file
     /// @param file file to save the maze to
+    /// @throws MazeSerializationException when the maze failed to be serialized
+    /// @throws IOException when the file can't be written
     public void saveMaze(File file) throws MazeSerializationException, IOException {
         assert mazeRenderer.getGraphMaze() != null : "MazeRenderer must have a maze to be saved";
 
@@ -166,6 +173,8 @@ public class MazeController {
 
     /// Loads a file containing maze data and renders it on the view
     /// @param file file to load in the view
+    /// @throws MazeSerializationException when the maze failed to be serialized
+    /// @throws IOException when the file can't be written
     public void loadMaze(File file) throws MazeSerializationException, IOException {
         // Open an input stream with the given file, then close it automatically
         try (FileInputStream fileInputStream = new FileInputStream(file)) {
@@ -227,23 +236,33 @@ public class MazeController {
         this.controllerHub = controllerHub;
     }
 
+    /// Sets the maze renderer to use for this controller. Called every time a maze is created or loaded.
+    /// @param mazeRenderer the maze renderer to use
     public void setMazeRenderer(MazeRenderer mazeRenderer) {
         this.mazeRenderer = mazeRenderer;
         stepByStepPath = null; // Remove the step by step path of the previous maze.
     }
 
+    /// Returns the maze renderer used by this controller.
+    /// @return the maze renderer used by this controller
     public MazeRenderer getMazeRenderer() {
         return mazeRenderer;
     }
 
+    /// Returns the last computed step-by-step path created by a maze-solving algorithm.
+    /// @return the last computed step-by-step path
     public List<Stack<Integer>> getStepByStepPath() {
         return stepByStepPath;
     }
 
+    /// Sets the step-by-step path created by a maze-solving algorithm.
+    /// @param stepByStepPath the step-by-step path to set
     public void setStepByStepPath(List<Stack<Integer>> stepByStepPath) {
         this.stepByStepPath = stepByStepPath;
     }
 
+    /// Sets whether or not the last [step-by-step path][#setStepByStepPath(List)] was computed using a DFS algorithm.
+    /// @param DFS true when the last algo was a DFS algorithm, false otherwise
     public void setDFS(boolean DFS) {
         isDFS = DFS;
     }
@@ -264,6 +283,7 @@ public class MazeController {
 
     /// Flatten a [List<Stack<Integer>>] to a [Set<Integer>]
     /// and get the total number of visited nodes of a step by step algorithm
+    /// @param stepByStepPath the list of stacks (paths) to flatten
     /// @return total number of visited nodes of the `List<Stack<Integer>>` step by step solving history
     public int getUniqueVisitedNodeCount(List<Stack<Integer>> stepByStepPath) {
         Set<Integer> visited = new HashSet<>();

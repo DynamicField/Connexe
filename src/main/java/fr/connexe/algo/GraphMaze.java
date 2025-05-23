@@ -3,6 +3,7 @@ package fr.connexe.algo;
 import java.io.*;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /// A **rectangular maze** using a **graph structure** to represent connections between cells, called vertices.
@@ -34,6 +35,14 @@ import java.util.List;
 ///
 /// When an edge doesn't exist between A and B, there's a wall between A and B: you cannot walk from A to B.
 ///
+/// ## Endpoints
+///
+/// The maze can have a **start** and an **end** vertex. They can be either:
+/// - not defined, both equal to -1
+/// - defined, both different and valid vertices.
+///
+/// The existence of a path between the start and end vertices is not guaranteed.
+///
 /// ## Querying the maze
 ///
 /// - [#isConnected(int, int)]: Tells if two vertices are connected.
@@ -53,19 +62,24 @@ import java.util.List;
 /// - [#connect(int, int)]: Add an edge between two vertices.
 /// - [#disconnect(int, int)]: Remove an edge between two vertices.
 /// - [#setConnected(int, int, boolean)]: Add/remove an edge between two vertices.
-/// - [#setStart(int)]: Set the start point of the maze
-/// - [#setEnd(int)]: Set the end point of the maze
+/// - [#setEndpoints(int, int)]: Set the start and end points of the maze
 public class GraphMaze implements Serializable {
     // Version of this class for Java serialization. Increment it when changing the class!
     @Serial
     private static final long serialVersionUID = 1L;
 
+    /// The width of the maze. (number of columns)
     private final int width;
+    /// The height of the maze. (number of rows)
     private final int height;
+    /// The total number of cells in the maze (= width * height).
     private final int numCells;
+    /// The start vertex. A value of -1 indicates no start vertex.
     private int start;
+    /// The end vertex. A value of -1 indicates no end vertex.
     private int end;
-    List<Integer>[] edges; // Like a Map<Integer, List<Integer>> (https://i.imgur.com/HNeObED.png)
+    /// The adjacency list of the graph. Each vertex has a list of vertices it is connected to.
+    private final List<Integer>[] edges; // Like a Map<Integer, List<Integer>> (https://i.imgur.com/HNeObED.png)
 
     /// Makes an empty maze with inaccessible cells, and no start/end points.
     ///
@@ -178,6 +192,7 @@ public class GraphMaze implements Serializable {
     ///
     /// @param vertexA The first vertex.
     /// @param vertexB The second vertex.
+    /// @param connected true to connect both vertices; false to disconnect them.
     /// @return true when the graph changed; false when nothing changed.
     public boolean setConnected(int vertexA, int vertexB, boolean connected) {
         // Check that the vertices EXIST.
@@ -224,26 +239,46 @@ public class GraphMaze implements Serializable {
         return true;
     }
 
-    /// Returns all adjacent vertices of the given vertex V.
+    /// Sets both start and end vertices.
     ///
-    /// The array will contain all vertices that are connected to V.
+    /// To indicate an absence of endpoints, both must be set to -1.
+    /// Both vertices must be valid and different from each other.
     ///
-    /// The given array is a snapshot of the current state; future changes to the graph won't update it.
-    ///
-    /// @param vertex The vertex to get the adjacent vertices of.
-    /// @return An array containing all adjacent vertices.
-    public int[] getAdjacentVertices(int vertex) {
-        checkVertex(vertex);
-
-        List<Integer> edges = this.edges[vertex];
-
-        // Copy all edges to an integer array. We don't use toArray here because Integer[] is a bit ugly.
-        int[] edgesCopy = new int[edges.size()];
-        for (int i = 0; i < edgesCopy.length; i++) {
-            edgesCopy[i] = edges.get(i);
+    /// @throws InvalidVertexException when either vertex is invalid, unless both are -1.
+    /// @throws IllegalArgumentException when start and end are the same.
+    /// @param start the start vertex
+    /// @param end the end vertex
+    public void setEndpoints(int start, int end) {
+        if (start == -1 && end == -1) {
+            // Empty start/end; clear current endpoints.
+            this.start = -1;
+            this.end = -1;
+            return;
         }
 
-        return edgesCopy;
+        // Check that both vertices are valid.
+        checkVertex(start);
+        checkVertex(end);
+
+        // Make sure we can't get start == end
+        if (start == end) {
+            throw new IllegalArgumentException("Start and end vertices cannot be the same.");
+        }
+
+        // Set the start and end vertices.
+        this.start = start;
+        this.end = end;
+    }
+
+    /// Returns all adjacent vertices of the given vertex V. Changes to the maze are reflected in this list.
+    ///
+    /// @param vertex The vertex to get the adjacent vertices of
+    /// @throws InvalidVertexException when the vertex is invalid.
+    /// @return A list containing all adjacent vertices, unmodifiable.
+    public List<Integer> getAdjacentVertices(int vertex) {
+        checkVertex(vertex);
+
+        return Collections.unmodifiableList(this.edges[vertex]);
     }
 
     /// Converts this maze into an [ArrayMaze], with all walls properly set to match the edges of this graph.
@@ -356,25 +391,8 @@ public class GraphMaze implements Serializable {
         }
     }
 
-    /// Checks if this vertex is a valid start or end vertex.
-    ///
-    /// The `otherEnd` parameter should contain the value of the other end:
-    /// start when giving the end; end when giving the start.
-    private void checkStartOrEnd(int vertexId, int otherEnd) {
-        if (vertexId == -1) {
-            // Empty start/end; no check.
-            return;
-        }
-
-        checkVertex(vertexId);
-
-        // Make sure we can't get start == end
-        if (otherEnd == vertexId) {
-            throw new InvalidVertexException("Start and end vertices cannot be the same.");
-        }
-    }
-
     /// Returns a cool ASCII representation of the maze.
+    /// @return a string representation of the maze.
     @Override
     public String toString() {
         return toArrayMaze().toString();
@@ -383,26 +401,31 @@ public class GraphMaze implements Serializable {
     // --- Boring getters/setters ---
 
     /// Returns the width of the maze.
+    /// @return the width of the maze.
     public int getWidth() {
         return width;
     }
 
     /// Returns the height of the maze.
+    /// @return the height of the maze.
     public int getHeight() {
         return height;
     }
 
     /// Returns the total number of cells in the maze.
+    /// @return the total number of cells in the maze.
     public int getNumCells() {
         return numCells;
     }
 
     /// Returns the start vertex. A value of -1 indicates no start vertex.
+    /// @return the start vertex.
     public int getStart() {
         return start;
     }
 
-    ///  Returns the coordinates of the start vertex. Returns null if no start vertex.
+    /// Returns the coordinates of the start vertex. Returns null if no start vertex.
+    /// @return the coordinates of the start vertex.
     public Point getStartPoint() {
         if (start == -1) {
             return null;
@@ -410,7 +433,8 @@ public class GraphMaze implements Serializable {
         return toPoint(start);
     }
 
-    ///  Returns the coordinates of the end vertex. Returns null if no end vertex.
+    /// Returns the coordinates of the end vertex. Returns null if no end vertex.
+    /// @return the coordinates of the end vertex.
     public Point getEndPoint() {
         if (end == -1) {
             return null;
@@ -418,25 +442,9 @@ public class GraphMaze implements Serializable {
         return toPoint(end);
     }
 
-    /// Sets the start vertex. A value of -1 indicates no start vertex.
-    public void setStart(int start) {
-        checkStartOrEnd(start, end);
-        this.start = start;
-    }
-
     /// Returns the end vertex. A value of -1 indicates no end vertex.
+    /// @return the end vertex.
     public int getEnd() {
         return end;
-    }
-
-    /// Sets the end vertex. A value of -1 indicates no end vertex.
-    public void setEnd(int end) {
-        checkStartOrEnd(end, start);
-        this.end = end;
-    }
-
-    /// Returns the entire adjacency list. The n-th list corresponds to the n-th vertex's adjacent vertices.
-    public List<Integer>[] getEdges() {
-        return edges;
     }
 }

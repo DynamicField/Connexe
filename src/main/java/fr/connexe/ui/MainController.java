@@ -47,6 +47,11 @@ public class MainController {
 
     private IntegerProperty animationSpeed;
 
+    /// Creates a new [MainController].
+    ///
+    /// Automatically called by JavaFX when the controller is created and attached to an FXML node.
+    public MainController() {}
+
     @FXML
     private void initialize() {
         // Default animation delay between frames is 500ms (x1 speed)
@@ -200,6 +205,9 @@ public class MainController {
         mazeController.getMazeRenderer().setLog(null);
         genButton.setDisable(true);
         solveButton.setDisable(true); // Disable solving animation button
+
+        // Remove the previous step by step path
+        mazeController.setStepByStepPath(null);
 
         // Remove colors done by the solving algorithm
         mazeController.getMazeRenderer().clearGridColor();

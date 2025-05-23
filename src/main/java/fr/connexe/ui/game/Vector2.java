@@ -3,6 +3,9 @@ package fr.connexe.ui.game;
 import fr.connexe.algo.Point;
 
 /// A vector in 2D space, with double-precision floating point numbers.
+///
+/// @param x the x-coordinate of the vector
+/// @param y the y-coordinate of the vector
 public record Vector2(double x, double y) {
     /// Creates a new vector that is the sum of this vector and the given vector.
     ///

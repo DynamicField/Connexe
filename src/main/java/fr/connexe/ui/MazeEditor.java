@@ -7,12 +7,12 @@ import javafx.scene.input.KeyCode;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
 
-/// Class to manage the selection of walls in the maze.
+/// Class to manage the selection, deletion and addition of walls in the maze.
 public class MazeEditor {
     //When selecting another wall, the old one must be unselected
     private Region lastSelectedCell = null;
     private Region lastNeighborCell = null;
-    protected Boolean isEditMode = false;
+    private Boolean isEditMode = false;
     private GraphMaze graphMaze;
 
     /// Constructor for the maze editor.
@@ -34,10 +34,17 @@ public class MazeEditor {
 
     /// Four possible directions for the walls of the labyrinth.
     public enum Side {
-        TOP, RIGHT, BOTTOM, LEFT
+        /// The wall is located at the top of the cell.
+        TOP,
+        /// The wall is located at the right of the cell.
+        RIGHT,
+        /// The wall is located at the bottom of the cell.
+        BOTTOM,
+        /// The wall is located at the left of the cell.
+        LEFT
     }
 
-    /// Select a wall when it's clicked. There is a margin of 10 around the cell to make it easier to click.
+    /// Select a wall when it's clicked. There is a margin of 10 around the wall to make it easier to click.
     ///
     /// @param gridCell the cell that was clicked
     /// @param row      the row of the cell
@@ -56,7 +63,7 @@ public class MazeEditor {
             double y = event.getY();
             double width = gridCell.getWidth();
             double height = gridCell.getHeight();
-            double margin = 10;
+            double margin = 5;
 
             Side selectedSide = null;
             //Walls consist of the current cell wall (top, right, bottom, left) and the wall adjacent to the current cell wall (so for top -> bottom, right -> left, bottom -> top, left -> right)
@@ -190,33 +197,36 @@ public class MazeEditor {
     public void configureCellCommands(Region gridCell, int row, int col, GridPane grid) {
         gridCell.setOnKeyPressed(event -> {
             if (!isEditMode) return;
-            if (event.getCode() == KeyCode.BACK_SPACE || event.getCode() == KeyCode.DELETE) {
-                applyBorder(gridCell, row, col, grid, "transparent");
-            } else if (event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.SPACE) {
-                applyBorder(gridCell, row, col, grid, "black");
+            if ((event.getCode() == KeyCode.ENTER || event.getCode() == KeyCode.SPACE) || (event.getCode() == KeyCode.BACK_SPACE || event.getCode() == KeyCode.DELETE) || (event.getCode() == KeyCode.INSERT)) {
+                applyBorder(gridCell,row,col,grid);
             }
         });
     }
 
-    /// Applies the action "type" to the cell
+    /// Applies the action "type" to the cell (black=add a wall, transparent=remove a wall).
     ///
     /// @param gridCell the cell that was clicked
     /// @param row      the row of the cell
     /// @param col      the column of the cell
     /// @param grid     the grid containing the maze cells (used to retrieve the cell at the clicked position)
-    /// @param type     the action to apply (connect or disconnect)
-    public void applyBorder(Region gridCell, int row, int col, GridPane grid, String type) {
+    public void applyBorder(Region gridCell, int row, int col, GridPane grid) {
         // Find the border colors of the cell
+        String type;
         String style = gridCell.getStyle();
+        String initialStyle = (String) gridCell.getProperties().get("initialStyle");
         String[] colors = getColors(style);
+        String[] initialColors = getColors(initialStyle);
         if (colors == null) return;
 
         // For each side, if it's red, we apply the action "type" and we apply the same action to the neighbor
         Side[] sides = Side.values();
         for (int i = 0; i < colors.length; i++) {
             if ("red".equals(colors[i])) {
+                if(initialColors[i].equals("black"))
+                    type = "transparent";
+                else
+                    type = "black";
                 colors[i] = type;
-                //sides[i] <=> colors[i]. In fact, the colors of the walls and their position in the cell have the same index.
                 applyNeighborBorder(sides[i], row, col, grid, type);
             }
         }
@@ -244,7 +254,7 @@ public class MazeEditor {
     /// @param row  the row of the cell
     /// @param col  the column of the cell
     /// @param grid the grid containing the maze cells (used to retrieve the cell at the clicked position)
-    /// @param type the action to apply (connect or disconnect)
+    /// @param type the color to apply (black or transparent)
     public void applyNeighborBorder(Side side, int row, int col, GridPane grid, String type) {
         //Calculate the neighbor coordinate in the same way as for selectWall
         int neighborRow = row, neighborCol = col;
@@ -293,7 +303,7 @@ public class MazeEditor {
     /// @param row         the row of the cell
     /// @param neighborCol the column of the neighbor cell
     /// @param neighborRow the row of the neighbor cell
-    /// @param type        the action to apply (connect or disconnect)
+    /// @param type        the color to apply (black or transparent)
     public void applyGraphMaze(int col, int row, int neighborCol, int neighborRow, String type) {
         //Get the coordinates of the cell and the neighbor of the cell and create the two points and their vertices
         int vertexBorder = graphMaze.toVertexId(new Point(col, row));

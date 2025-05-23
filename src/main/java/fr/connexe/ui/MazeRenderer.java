@@ -261,6 +261,9 @@ public class MazeRenderer {
                     gridCell.getChildren().add(rect);
                 }
 
+                mazeEditor.configureCellClick(gridCell, row, col, grid);
+                mazeEditor.configureCellCommands(gridCell, row, col, grid);
+
                 // Allow dynamic resizing of the cell
                 GridPane.setHgrow(gridCell, Priority.ALWAYS);
                 GridPane.setVgrow(gridCell, Priority.ALWAYS);
@@ -492,31 +495,51 @@ public class MazeRenderer {
         }
     }
 
+    /// Returns the maze rendered by this renderer
+    /// @return the maze rendered by this renderer
     public GraphMaze getGraphMaze() {
         return graphMaze;
     }
 
+    /// Sets the maze to be rendered by this renderer. Also updates the maze editor.
+    /// @param graphMaze the maze to be rendered
     public void setGraphMaze(GraphMaze graphMaze) {
         this.graphMaze = graphMaze;
         mazeEditor.setGraphMaze(graphMaze);
     }
 
+    /// Returns the maze generation log created while generating the rendered maze.
+    ///
+    /// Can be null if the maze wasn't generated (when opening a file for example).
+    ///
+    /// @return the maze generation log created while generating the rendered maze
     public MazeGenLog getLog() {
         return log;
     }
 
+    /// Sets the maze generation log created while generating the rendered maze.
+    /// @param log the maze generation log created while generating the rendered maze
     public void setLog(MazeGenLog log) {
         this.log = log;
     }
 
+    /// Returns the JavaFX grid used to render the maze.
+    /// @return the JavaFX grid used to render the maze
     public GridPane getGrid() {
         return grid;
     }
 
+    /// Sets a function returning the delay in milliseconds between animation steps.
+    ///
+    /// Used to configure the animation speed on the fly.
+    ///
+    /// @param delaySupplier the function returning the delay in milliseconds between animation steps
     public void setDelaySupplier(Supplier<Double> delaySupplier) {
         this.delaySupplier = delaySupplier;
     }
 
+    /// Returns true if the last displayed animation was a generation animation.
+    /// @return true if the last displayed animation was a generation animation; false otherwise
     public boolean isLastAnimIsGeneration(){
         return lastAnimIsGeneration;
     }

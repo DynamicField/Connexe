@@ -25,6 +25,9 @@ public class ConsoleApp {
     // The UTF-8 out stream because for some reason gradle doesn't want to output UTF-8 properly????
     private static PrintStream out;
 
+    /// The main method of the console application.
+    ///
+    /// @param args command line arguments (not used yet)
     public static void main(String[] args) {
         out = new PrintStream(System.out, true, StandardCharsets.UTF_8);
 
@@ -56,6 +59,9 @@ public class ConsoleApp {
 
         out.println("Au revoir !");
     }
+
+    // Don't allow instantiation of this class
+    private ConsoleApp() {}
 
     // Generates a new maze based on user input size
     private static void generateMaze() {
