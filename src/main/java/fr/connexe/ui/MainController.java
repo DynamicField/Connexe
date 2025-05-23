@@ -190,8 +190,9 @@ public class MainController {
     /// Enables the maze editor mode. Content moved in setMazeEditor() for better reusability
     public void handleChange() {
         setMazeEditor(true);
+        // Remove the generation log since the maze will change and disable the generation animation button
+        mazeController.getMazeRenderer().setLog(null);
         genButton.setDisable(true);
-        solveButton.setDisable(true);
     }
 
     /// Enables the maze editor mode
