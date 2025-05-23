@@ -181,22 +181,6 @@ public class MainController {
         System.exit(0);
     }
 
-    ///  Menu Item option to show a hardcoded example maze
-    @FXML
-    private void handleExampleMaze(){
-        // Initialize a renderer taking a maze generated from user parameters through the creation dialog box
-        MazeRenderer mazeRenderer = new MazeRenderer();
-        mazeRenderer.setDefaultExample();
-        mazeController.setMazeRenderer(mazeRenderer);
-        mazeController.createMazeFX();
-        genButton.setDisable(true); // Disable generation animation for example (no gen log)
-        solveButton.setDisable(true);
-
-        // Update the app title
-        connexeApp.updateStageTitle("Exemple");
-        connexeApp.setMazeFilePath(null);
-    }
-
     /// Menu action to solve a maze. When clicked, shows the dialog box with the solving algorithm options for the user to select.
     @FXML
     private void handleSolve() throws IOException {
