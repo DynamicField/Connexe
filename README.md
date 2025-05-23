@@ -8,11 +8,12 @@ les algorithmes de génération et de résolution. Elle est disponible avec une 
 Pour la **génération**, **deux algorithmes** vous sont proposés : l'algorithme de **Prim** et **DFS**. Vous pouvez aussi
 générer des **labyrinthes imparfaits** grâce à un algorithme de "chaos" qui ajoute ou supprime des murs du labyrinthe aléatoirement.
 
-Pour la **résolution**, **quatre algorithmes** sont disponibles :
+Pour la **résolution**, **cinq algorithmes** sont disponibles :
 - algorithme de **Dijkstra**
 - **DFS** (Depth First Search)
 - Méthode **horaire**
 - Méthode de la **main gauche**
+- **A&ast;**
 
 Si un labyrinthe généré vous intéresse particulièrement, vous pouvez **sauvegarder** un labyrinthe
 dans un fichier (par exemple `laby.con`) et l'**ouvrir** plus tard.
@@ -25,6 +26,16 @@ Le **Mode Arcade** est là pour ça ! Vous pouvez **concourir jusqu'à 8 joueurs
 - **Efficacité** : le joueur qui parcourt le moins de cases gagne !
 - **Rapidité** : le joueur le plus rapide gagne !
 - **Furtivité** : la case d'arrivée est cachée, choisie au hasard ; le premier à la trouver gagne !
+
+## Structure du projet
+
+- `docs` : Images pour le README
+- `external` : Contient le JAR "sdl2gdx" pour le support manette
+- `javadocs` : Javadoc générée du projet (avec la commande `./javadoc`)
+- `src/main` : Code du projet
+  - `java` : Code Java
+  - `resources` : Fichiers FXML et images pour l'interface JavaFX
+- `gradle` : Fichiers pour le Gradle Wrapper
 
 ## Logiciels et éditeurs à installer
 
